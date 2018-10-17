@@ -1,0 +1,12 @@
+E:\Swifter\Swifter.Reflection\bin\Release\net30\Swifter.Reflection.dll
+E:\Swifter\Swifter.Reflection\bin\Release\net30\Swifter.Reflection.pdb
+E:\Swifter\Swifter.Reflection\bin\Release\net30\Swifter.Reflection.xml
+E:\Swifter\Swifter.Reflection\bin\Release\net30\Swifter.Core.dll
+E:\Swifter\Swifter.Reflection\bin\Release\net30\Swifter.Pointer.dll
+E:\Swifter\Swifter.Reflection\obj\Release\net30\Swifter.Reflection.csprojAssemblyReference.cache
+E:\Swifter\Swifter.Reflection\obj\Release\net30\Swifter.Reflection.csproj.CoreCompileInputs.cache
+E:\Swifter\Swifter.Reflection\obj\Release\net30\Swifter.Reflection.AssemblyInfoInputs.cache
+E:\Swifter\Swifter.Reflection\obj\Release\net30\Swifter.Reflection.AssemblyInfo.cs
+E:\Swifter\Swifter.Reflection\obj\Release\net30\Swifter.Reflection.csproj.CopyComplete
+E:\Swifter\Swifter.Reflection\obj\Release\net30\Swifter.Reflection.dll
+E:\Swifter\Swifter.Reflection\obj\Release\net30\Swifter.Reflection.pdb

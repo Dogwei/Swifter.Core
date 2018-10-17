@@ -1,0 +1,9 @@
+E:\Swifter\Swifter.Data\bin\Release\netcoreapp2.1\Swifter.Data.deps.json
+E:\Swifter\Swifter.Data\bin\Release\netcoreapp2.1\Swifter.Data.dll
+E:\Swifter\Swifter.Data\bin\Release\netcoreapp2.1\Swifter.Data.pdb
+E:\Swifter\Swifter.Data\bin\Release\netcoreapp2.1\Swifter.Data.xml
+E:\Swifter\Swifter.Data\obj\Release\netcoreapp2.1\Swifter.Data.csproj.CoreCompileInputs.cache
+E:\Swifter\Swifter.Data\obj\Release\netcoreapp2.1\Swifter.Data.AssemblyInfoInputs.cache
+E:\Swifter\Swifter.Data\obj\Release\netcoreapp2.1\Swifter.Data.AssemblyInfo.cs
+E:\Swifter\Swifter.Data\obj\Release\netcoreapp2.1\Swifter.Data.dll
+E:\Swifter\Swifter.Data\obj\Release\netcoreapp2.1\Swifter.Data.pdb

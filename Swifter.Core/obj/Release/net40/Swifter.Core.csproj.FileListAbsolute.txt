@@ -1,0 +1,11 @@
+E:\Swifter\Swifter.Core\bin\Release\net40\Swifter.Core.dll
+E:\Swifter\Swifter.Core\bin\Release\net40\Swifter.Core.pdb
+E:\Swifter\Swifter.Core\bin\Release\net40\Swifter.Pointer.dll
+E:\Swifter\Swifter.Core\obj\Release\net40\Swifter.Core.csprojAssemblyReference.cache
+E:\Swifter\Swifter.Core\obj\Release\net40\Swifter.Core.csproj.CoreCompileInputs.cache
+E:\Swifter\Swifter.Core\obj\Release\net40\Swifter.Core.AssemblyInfoInputs.cache
+E:\Swifter\Swifter.Core\obj\Release\net40\Swifter.Core.AssemblyInfo.cs
+E:\Swifter\Swifter.Core\obj\Release\net40\Swifter.Core.csproj.CopyComplete
+E:\Swifter\Swifter.Core\obj\Release\net40\Swifter.Core.dll
+E:\Swifter\Swifter.Core\obj\Release\net40\Swifter.Core.pdb
+E:\Swifter\Swifter.Core\bin\Release\net40\Swifter.DataBase.xml

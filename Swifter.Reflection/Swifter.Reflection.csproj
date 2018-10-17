@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net20;net30;net35;net40;net45;net451;netcoreapp2.0;netcoreapp2.1;netstandard2.0</TargetFrameworks>
+    <Optimize>true</Optimize>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>1.0.1</Version>
+    <Authors>Dogwei</Authors>
+    <DocumentationFile>bin\Debug\$(TargetFramework)\Swifter.Reflection.xml</DocumentationFile>
+    <Description>Swifter Reflection Tool.</Description>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Swifter.Core" Version="1.0.1" />
+  </ItemGroup>
+  
+</Project>

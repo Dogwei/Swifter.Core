@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Swifter.Json</id>
+    <version>1.0.0</version>
+    <authors>Dogwei</authors>
+    <owners>Dogwei</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>fastest JSON serialize and deserialize tool in the world.</description>
+    <dependencies>
+      <group targetFramework=".NETFramework2.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework3.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework3.5">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.5">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.5.1">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETCoreApp2.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETCoreApp2.1">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net20\Swifter.Json.dll" target="lib\net20\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net20\Swifter.Json.xml" target="lib\net20\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net30\Swifter.Json.dll" target="lib\net30\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net30\Swifter.Json.xml" target="lib\net30\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net35\Swifter.Json.dll" target="lib\net35\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net35\Swifter.Json.xml" target="lib\net35\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net40\Swifter.Json.dll" target="lib\net40\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net40\Swifter.Json.xml" target="lib\net40\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net45\Swifter.Json.dll" target="lib\net45\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net45\Swifter.Json.xml" target="lib\net45\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net451\Swifter.Json.dll" target="lib\net451\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\net451\Swifter.Json.xml" target="lib\net451\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\netcoreapp2.0\Swifter.Json.dll" target="lib\netcoreapp2.0\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\netcoreapp2.0\Swifter.Json.xml" target="lib\netcoreapp2.0\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\netcoreapp2.1\Swifter.Json.dll" target="lib\netcoreapp2.1\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\netcoreapp2.1\Swifter.Json.xml" target="lib\netcoreapp2.1\Swifter.Json.xml" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\netstandard2.0\Swifter.Json.dll" target="lib\netstandard2.0\Swifter.Json.dll" />
+    <file src="E:\Swifter\Swifter.Json\bin\Release\netstandard2.0\Swifter.Json.xml" target="lib\netstandard2.0\Swifter.Json.xml" />
+  </files>
+</package>

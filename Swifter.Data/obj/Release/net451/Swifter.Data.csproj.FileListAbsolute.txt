@@ -1,0 +1,12 @@
+E:\Swifter\Swifter.Data\bin\Release\net451\Swifter.Data.dll
+E:\Swifter\Swifter.Data\bin\Release\net451\Swifter.Data.pdb
+E:\Swifter\Swifter.Data\bin\Release\net451\Swifter.Data.xml
+E:\Swifter\Swifter.Data\bin\Release\net451\Swifter.Core.dll
+E:\Swifter\Swifter.Data\bin\Release\net451\Swifter.Pointer.dll
+E:\Swifter\Swifter.Data\obj\Release\net451\Swifter.Data.csprojAssemblyReference.cache
+E:\Swifter\Swifter.Data\obj\Release\net451\Swifter.Data.csproj.CoreCompileInputs.cache
+E:\Swifter\Swifter.Data\obj\Release\net451\Swifter.Data.AssemblyInfoInputs.cache
+E:\Swifter\Swifter.Data\obj\Release\net451\Swifter.Data.AssemblyInfo.cs
+E:\Swifter\Swifter.Data\obj\Release\net451\Swifter.Data.csproj.CopyComplete
+E:\Swifter\Swifter.Data\obj\Release\net451\Swifter.Data.dll
+E:\Swifter\Swifter.Data\obj\Release\net451\Swifter.Data.pdb

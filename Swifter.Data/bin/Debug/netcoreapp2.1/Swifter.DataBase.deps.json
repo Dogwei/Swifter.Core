@@ -1,0 +1,52 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v2.1",
+    "signature": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v2.1": {
+      "Swifter.DataBase/1.0.0": {
+        "dependencies": {
+          "Swifter.Core": "1.0.0"
+        },
+        "runtime": {
+          "Swifter.DataBase.dll": {}
+        }
+      },
+      "Swifter.Core/1.0.0": {
+        "dependencies": {
+          "Swifter.Pointer": "0.0.0.0"
+        },
+        "runtime": {
+          "Swifter.Core.dll": {}
+        }
+      },
+      "Swifter.Pointer.Reference/0.0.0.0": {
+        "runtime": {
+          "Swifter.Pointer.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Swifter.DataBase/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Swifter.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Swifter.Pointer.Reference/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,5078 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Swifter.Core</name>
+    </assembly>
+    <members>
+        <member name="T:Swifter.Formatters.ITextFormatter">
+            <summary>
+            提供字符类文档的序列化和反序列化接口
+            </summary>
+        </member>
+        <member name="M:Swifter.Formatters.ITextFormatter.Deserialize``1(System.String)">
+            <summary>
+            将文档字符串反序列化为指定类型的值。
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+            <param name="text">文档字符串</param>
+            <returns>指定类型的值</returns>
+        </member>
+        <member name="M:Swifter.Formatters.ITextFormatter.Deserialize``1(System.IO.TextReader)">
+            <summary>
+            将文档字符串反序列化为指定类型的值。
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+            <param name="textReader">文档字符串读取器</param>
+            <returns>指定类型的值</returns>
+        </member>
+        <member name="M:Swifter.Formatters.ITextFormatter.Deserialize(System.String,System.Type)">
+            <summary>
+            将文档字符串反序列化为指定类型的值。
+            </summary>
+            <param name="text">文档字符串</param>
+            <param name="type">指定类型</param>
+            <returns>指定类型的值</returns>
+        </member>
+        <member name="M:Swifter.Formatters.ITextFormatter.Deserialize(System.IO.TextReader,System.Type)">
+            <summary>
+            将文档字符串反序列化为指定类型的值。
+            </summary>
+            <param name="textReader">文档字符串读取器</param>
+            <param name="type">指定类型</param>
+            <returns>指定类型的值</returns>
+        </member>
+        <member name="M:Swifter.Formatters.ITextFormatter.Serialize``1(``0)">
+            <summary>
+            将指定类型的实例序列化为文档字符串。
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+            <param name="value">指定类型的值</param>
+            <returns>返回当前文档字符串</returns>
+        </member>
+        <member name="M:Swifter.Formatters.ITextFormatter.Serialize``1(``0,System.IO.TextWriter)">
+            <summary>
+            将指定类型的实例序列化为文档字符串。
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+            <param name="value">指定类型的值</param>
+            <param name="textWriter">文档字符串写入器</param>
+        </member>
+        <member name="T:Swifter.Readers.IAsDataReader">
+            <summary>
+            数据读取器键类型转换的接口。
+            </summary>
+        </member>
+        <member name="T:Swifter.Readers.AsDataReader`2">
+            <summary>
+            数据读取器键类型转换的类型。
+            </summary>
+            <typeparam name="TIn">输入类型</typeparam>
+            <typeparam name="TOut">输出类型</typeparam>
+        </member>
+        <member name="F:Swifter.Readers.AsDataReader`2.dataReader">
+            <summary>
+            原始数据读取器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.AsDataReader`2.#ctor(Swifter.Readers.IDataReader{`0})">
+            <summary>
+            创建数据读取器键类型转换类的实例。
+            </summary>
+            <param name="dataReader">原始数据读取器</param>
+        </member>
+        <member name="P:Swifter.Readers.AsDataReader`2.Item(`1)">
+            <summary>
+            转换键，并返回该键对应的值读取器。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回值读取器</returns>
+        </member>
+        <member name="P:Swifter.Readers.AsDataReader`2.Keys">
+            <summary>
+            获取转换后的键集合。
+            </summary>
+        </member>
+        <member name="P:Swifter.Readers.AsDataReader`2.Count">
+            <summary>
+            获取数据源键的数量。
+            </summary>
+        </member>
+        <member name="P:Swifter.Readers.AsDataReader`2.ObjectId">
+            <summary>
+            获取原始数据读取器的数据源 Id。
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.AsDataReader`2.OnReadAll(Swifter.Writers.IDataWriter{`1})">
+            <summary>
+            将数据中的所有转换后的键与值写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.AsDataReader`2.OnReadValue(`1,Swifter.Writers.IValueWriter)">
+            <summary>
+            转换键，并将该键对应的值写入到值写入器中。
+            </summary>
+            <param name="key">指定键</param>
+            <param name="valueWriter">值写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.AsDataReader`2.OnReadAll(Swifter.Writers.IDataWriter{`1},Swifter.Readers.IValueFilter{`1})">
+            <summary>
+            将数据中的所有转换后的键与值进行筛选，并将满足筛选的键与值写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+            <param name="valueFilter">键值筛选器</param>
+        </member>
+        <member name="T:Swifter.Readers.IDataReader`1">
+            <summary>
+            提供数据的读取方法。
+            </summary>
+            <typeparam name="TKey">键的类型</typeparam>
+        </member>
+        <member name="P:Swifter.Readers.IDataReader`1.Item(`0)">
+            <summary>
+            获取指定键的值读取器实例。
+            </summary>
+            <param name="key">指定键</param>
+            <returns>返回值读取器实例</returns>
+        </member>
+        <member name="M:Swifter.Readers.IDataReader`1.OnReadValue(`0,Swifter.Writers.IValueWriter)">
+            <summary>
+            将指定键对应的值写入到值写入器中。
+            </summary>
+            <param name="key">指定键</param>
+            <param name="valueWriter">值写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.IDataReader`1.OnReadAll(Swifter.Writers.IDataWriter{`0})">
+            <summary>
+            将数据中的所有键与值写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.IDataReader`1.OnReadAll(Swifter.Writers.IDataWriter{`0},Swifter.Readers.IValueFilter{`0})">
+            <summary>
+            将数据中的所有键与值进行筛选，并将满足筛选的键与值写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+            <param name="valueFilter">键值筛选器</param>
+        </member>
+        <member name="P:Swifter.Readers.IDataReader`1.Keys">
+            <summary>
+            获取该数据所有的键。
+            </summary>
+        </member>
+        <member name="T:Swifter.Readers.IDataReader">
+            <summary>
+            表示一个数据读取器。
+            </summary>
+        </member>
+        <member name="P:Swifter.Readers.IDataReader.Count">
+            <summary>
+            获取数据源键的数量。
+            </summary>
+        </member>
+        <member name="P:Swifter.Readers.IDataReader.ObjectId">
+            <summary>
+            获取数据源的 Id.
+            要求全局唯一。
+            不能是 HashCode 值。
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.IDataReader.As``1">
+            <summary>
+            将此数据读取器转换为具有键的类型的具体数据读取器。
+            </summary>
+            <typeparam name="T">键的类型</typeparam>
+            <returns>返回具体数据读取器</returns>
+        </member>
+        <member name="T:Swifter.Readers.ITableReader">
+            <summary>
+            表格数据读取器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.ITableReader.Read">
+            <summary>
+            开始读取下一行数据，开始为没有行。
+            </summary>
+            <returns>返回是否存在下一行数据。</returns>
+        </member>
+        <member name="T:Swifter.Readers.IValueFilter`1">
+            <summary>
+            数据读取器的值筛选接口。
+            </summary>
+            <typeparam name="TKey">键类型。</typeparam>
+        </member>
+        <member name="M:Swifter.Readers.IValueFilter`1.Filter(Swifter.Readers.ValueFilterInfo{`0})">
+            <summary>
+            值筛选方法。
+            </summary>
+            <param name="valueInfo">值信息。</param>
+            <returns>返回读取或不读取该值。</returns>
+        </member>
+        <member name="T:Swifter.Readers.ValueFilterInfo`1">
+            <summary>
+            值筛选时的值信息。
+            </summary>
+            <typeparam name="TKey">键类型</typeparam>
+        </member>
+        <member name="M:Swifter.Readers.ValueFilterInfo`1.#ctor">
+            <summary>
+            初始化默认实例。
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.ValueFilterInfo`1.#ctor(`0,System.Type,Swifter.RW.ValueCopyer)">
+            <summary>
+            初始化具有指定值的实例。
+            </summary>
+            <param name="key">键的值</param>
+            <param name="type">值的类型</param>
+            <param name="valueCopyer">值的读写器</param>
+        </member>
+        <member name="F:Swifter.Readers.ValueFilterInfo`1.Key">
+            <summary>
+            读取或设置字段名。
+            </summary>
+        </member>
+        <member name="F:Swifter.Readers.ValueFilterInfo`1.Type">
+            <summary>
+            读取值的定义类型。
+            </summary>
+        </member>
+        <member name="F:Swifter.Readers.ValueFilterInfo`1.ValueCopyer">
+            <summary>
+            获取值的读写器。
+            </summary>
+        </member>
+        <member name="T:Swifter.Readers.IValueReader">
+            <summary>
+            提供基础类型的值的读取器
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadInt64">
+            <summary>
+            读取 Int64 值。
+            </summary>
+            <returns>返回一个 long 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadDouble">
+            <summary>
+            读取 Double 值。
+            </summary>
+            <returns>返回一个 double 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadString">
+            <summary>
+            读取 String 值。
+            </summary>
+            <returns>返回一个 string 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadBoolean">
+            <summary>
+            读取 Boolean 值。
+            </summary>
+            <returns>返回一个 bool 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadByte">
+            <summary>
+            读取 Byte 值。
+            </summary>
+            <returns>返回一个 byte 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadChar">
+            <summary>
+            读取 Char 值。
+            </summary>
+            <returns>返回一个 char 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadDateTime">
+            <summary>
+            读取 DateTime 值。
+            </summary>
+            <returns>返回一个 DateTime 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadDecimal">
+            <summary>
+            读取 Decimal 值。
+            </summary>
+            <returns>返回一个 decimal 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadInt16">
+            <summary>
+            读取 Int16 值。
+            </summary>
+            <returns>返回一个 short 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadInt32">
+            <summary>
+            读取 Int32 值。
+            </summary>
+            <returns>返回一个 int 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadSByte">
+            <summary>
+            读取 SByte 值。
+            </summary>
+            <returns>返回一个 sbyte 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadSingle">
+            <summary>
+            读取 Single 值。
+            </summary>
+            <returns>返回一个 float 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadUInt16">
+            <summary>
+            读取 UInt16 值。
+            </summary>
+            <returns>返回一个 ushort 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadUInt32">
+            <summary>
+            读取 UInt32 值。
+            </summary>
+            <returns>返回一个 uint 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadUInt64">
+            <summary>
+            读取 UInt64 值。
+            </summary>
+            <returns>返回一个 ulong 值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadObject(Swifter.Writers.IDataWriter{System.String})">
+            <summary>
+            读取一个对象数据结构。
+            </summary>
+            <param name="valueWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.ReadArray(Swifter.Writers.IDataWriter{System.Int32})">
+            <summary>
+            读取一个数组数据结构。
+            </summary>
+            <param name="valueWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.DirectRead">
+            <summary>
+            直接读取一个值。
+            </summary>
+            <returns>返回一个未知类型的值。</returns>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader.GetBasicType">
+            <summary>
+            获取该值的基础类型枚举。
+            </summary>
+            <returns>返回一个 BasicTypes 枚举值</returns>
+        </member>
+        <member name="T:Swifter.Readers.IValueReader`1">
+            <summary>
+            提供具体类型的值的读取方法。
+            </summary>
+            <typeparam name="T">具体类型</typeparam>
+        </member>
+        <member name="M:Swifter.Readers.IValueReader`1.ReadValue">
+            <summary>
+            读取该类型的值。
+            </summary>
+            <returns>返回该类型的值</returns>
+        </member>
+        <member name="T:Swifter.Readers.OverrideDbDataReader">
+            <summary>
+            重写数据库读取器，使它成为表格读取器。
+            </summary>
+        </member>
+        <member name="F:Swifter.Readers.OverrideDbDataReader.dbDataReader">
+            <summary>
+            数据源。
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.#ctor(System.Data.Common.DbDataReader)">
+            <summary>
+            初始化数据读取器。
+            </summary>
+            <param name="dbDataReader">数据源</param>
+        </member>
+        <member name="P:Swifter.Readers.OverrideDbDataReader.Item(System.Int32)">
+            <summary>
+            获取位于指定索引处的值读取器。
+            </summary>
+            <param name="key">指定索引</param>
+            <returns>返回值读取器</returns>
+        </member>
+        <member name="P:Swifter.Readers.OverrideDbDataReader.Item(System.String)">
+            <summary>
+            获取位于指定名称的值读取器。
+            </summary>
+            <param name="key">指定名称</param>
+            <returns>返回值读取器</returns>
+        </member>
+        <member name="P:Swifter.Readers.OverrideDbDataReader.Count">
+            <summary>
+            获取表格列的数量。
+            </summary>
+        </member>
+        <member name="P:Swifter.Readers.OverrideDbDataReader.Keys">
+            <summary>
+            获取表格列的名称集合。
+            </summary>
+        </member>
+        <member name="P:Swifter.Readers.OverrideDbDataReader.ObjectId">
+            <summary>
+            获取数据源的 Id。
+            </summary>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.OnReadAll(Swifter.Writers.IDataWriter{System.Int32})">
+            <summary>
+            读取所有值当前行的所有值，然后写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.OnReadAll(Swifter.Writers.IDataWriter{System.String})">
+            <summary>
+            读取所有值当前行的所有值，然后写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.OnReadValue(System.Int32,Swifter.Writers.IValueWriter)">
+            <summary>
+            读取指定位置的值，然后写入到值写入器中。
+            </summary>
+            <param name="key">指定位置</param>
+            <param name="valueWriter">值写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.OnReadValue(System.String,Swifter.Writers.IValueWriter)">
+            <summary>
+            读取指定名称的值，然后写入到值写入器中。
+            </summary>
+            <param name="key">指定名称</param>
+            <param name="valueWriter">值写入器</param>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.Read">
+            <summary>
+            读取下一行数据。
+            </summary>
+            <returns>返回是否有下一行数据</returns>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.OnReadAll(Swifter.Writers.IDataWriter{System.String},Swifter.Readers.IValueFilter{System.String})">
+            <summary>
+            读取当前行的所有数据并进行筛选，然后将筛选结果写入器数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+            <param name="valueFilter">值筛选器</param>
+        </member>
+        <member name="M:Swifter.Readers.OverrideDbDataReader.OnReadAll(Swifter.Writers.IDataWriter{System.Int32},Swifter.Readers.IValueFilter{System.Int32})">
+            <summary>
+            读取当前行的所有数据并进行筛选，然后将筛选结果写入器数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+            <param name="valueFilter">值筛选器</param>
+        </member>
+        <member name="T:Swifter.RW.DataSetRW">
+            <summary>
+            System.Data.DataSet Reader impl.
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.DataTableRW">
+            <summary>
+            System.Data.DataTable Reader impl.
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.FastObjectRW">
+            <summary>
+            FastObjectRW 基于 Emit 实现的几乎完美效率的对象读写器。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.FastObjectRW.DefaultOptions">
+            <summary>
+            FastObjectRW 全局默认配置。
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.FastObjectRW`1">
+            <summary>
+            FastObjectRW 基于 Emit 实现的几乎完美效率的对象读写器。
+            </summary>
+            <typeparam name="T">数据源对象的类型</typeparam>
+        </member>
+        <member name="P:Swifter.RW.FastObjectRW`1.CurrentOptions">
+            <summary>
+            读取或设置该类型的 FastObjectRWOptions 枚举配置项。
+            如果该类型已经初始化完成，则无法设置该值，且发生异常。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.Create">
+            <summary>
+            创建 FastObjectRW 实例。
+            </summary>
+            <returns>返回 FastObjectRW 实例</returns>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRW`1.content">
+            <summary>
+            数据源，此字段提供给 Emit 实现类使用。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.FastObjectRW`1.Content">
+            <summary>
+            获取数据源。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.Initialize">
+            <summary>
+            调用默认无参的构造函数初始化数据源。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.Initialize(`0)">
+            <summary>
+            设置数据源。
+            </summary>
+            <param name="content">数据源</param>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.Initialize(System.Int32)">
+            <summary>
+            调用默认无参的构造函数初始化数据源。
+            </summary>
+            <param name="capacity">不使用此参数</param>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.OnReadValue(System.String,Swifter.Writers.IValueWriter)">
+            <summary>
+            将指定名称的成员的值写入到值写入器中。
+            </summary>
+            <param name="key">指定名称</param>
+            <param name="valueWriter">值写入器</param>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.OnWriteValue(System.String,Swifter.Readers.IValueReader)">
+            <summary>
+            将值读取器中的值写入到指定名称的成员中。
+            </summary>
+            <param name="key">指定名称</param>
+            <param name="valueReader">值读取器</param>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.OnReadAll(Swifter.Writers.IDataWriter{System.String})">
+            <summary>
+            将数据源中的所有成员写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.OnReadAll(Swifter.Writers.IDataWriter{System.String},Swifter.Readers.IValueFilter{System.String})">
+            <summary>
+            对数据源中的所有成员进行筛选，并将满足筛选的结果写入到数据写入器中。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+            <param name="valueFilter">值筛选器</param>
+        </member>
+        <member name="P:Swifter.RW.FastObjectRW`1.Item(System.String)">
+            <summary>
+            获取指定名称的成员的值读写器。
+            </summary>
+            <param name="key">指定名称</param>
+            <returns>返回值读写器</returns>
+        </member>
+        <member name="P:Swifter.RW.FastObjectRW`1.Keys">
+            <summary>
+            获取该类型所有的成员。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.FastObjectRW`1.Count">
+            <summary>
+            获取该类型所有的成员的数量。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.FastObjectRW`1.ObjectId">
+            <summary>
+            获取数据源的 Id，全局唯一。如果数据源是值类型或 Null，则返回 0。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.FastObjectRW`1.ToString">
+            <summary>
+            获取该读写器的名称。
+            </summary>
+            <returns>返回该读写器的名称</returns>
+        </member>
+        <member name="T:Swifter.RW.FastObjectRWOptions">
+            <summary>
+            FastObjectRW 初始化配置。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.IgnoreCase">
+            <summary>
+            忽略大小写。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.NotFoundException">
+            <summary>
+            字段未找到发生异常。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.CannotGetException">
+            <summary>
+            不能读取发生异常。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.CannotSetException">
+            <summary>
+            不能写入发送异常。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.BasicTypeDirectCallMethod">
+            <summary>
+            基础类型直接调用方法读写，不经过 ValueInterface。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.Property">
+            <summary>
+            读写器包含属性。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.Field">
+            <summary>
+            读写器包含字段。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.InheritedMembers">
+            <summary>
+            读写器包含继承的成员。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.FastObjectRWOptions.SkipDefaultValue">
+            <summary>
+            在 OnReadAll 中跳过具有类型默认值的成员。
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.IFastObjectRWCreater`1">
+            <summary>
+            FastObjectRW 创建接口。
+            此接口由 Emit 实现。
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Swifter.RW.IFastObjectRWCreater`1.Create">
+            <summary>
+            创建该类型的对象读写器。
+            </summary>
+            <returns>返回该类型</returns>
+        </member>
+        <member name="T:Swifter.RW.IDataRW`1">
+            <summary>
+            数据读写器
+            </summary>
+            <typeparam name="TKey">键的类型</typeparam>
+        </member>
+        <member name="T:Swifter.RW.IDataRW">
+            <summary>
+            表示数据读写器
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.IDirectContent">
+            <summary>
+            表示支持直接获取或设置数据源的数据读写器
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.IDirectContent.DirectContent">
+            <summary>
+            直接获取或设置数据源
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.IInitialize`1">
+            <summary>
+            表示允许指定类型的数据源初始化的数据读写器
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+        </member>
+        <member name="M:Swifter.RW.IInitialize`1.Initialize(`0)">
+            <summary>
+            初始化数据读写器
+            </summary>
+            <param name="obj">数据源</param>
+        </member>
+        <member name="P:Swifter.RW.IInitialize`1.Content">
+            <summary>
+            获取数据源
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.ITableRW">
+            <summary>
+            表格数据读写器。
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.IValueRW">
+            <summary>
+            基础类型的值读写器
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.IValueRW`1">
+            <summary>
+            自定义类型的值读写器
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Swifter.RW.RWFieldAccess">
+            <summary>
+            对象读写器的字段可访问性。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.RWFieldAccess.RW">
+            <summary>
+            表示此字段允许读写。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.RWFieldAccess.Ignore">
+            <summary>
+            表示忽略此字段。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.RWFieldAccess.ReadOnly">
+            <summary>
+            表示此字段只能读。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.RWFieldAccess.WriteOnly">
+            <summary>
+            表示此字段只能写。
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.RWFieldAttribute">
+            <summary>
+            表示对象读取器的一个字段的特性。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.RWFieldAttribute.#ctor">
+            <summary>
+            初始化对象读取器的一个字段的特性。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.RWFieldAttribute.#ctor(System.String)">
+            <summary>
+            初始化具有指定名称的对象读取器的一个字段的特性。
+            </summary>
+            <param name="name">指定名称</param>
+        </member>
+        <member name="P:Swifter.RW.RWFieldAttribute.Name">
+            <summary>
+            此字段的名称。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.RWFieldAttribute.Order">
+            <summary>
+            此字段的排序值。约小越靠前，默认值为最靠后。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.RWFieldAttribute.Access">
+            <summary>
+            字段的可访问性。
+            </summary>
+        </member>
+        <member name="T:Swifter.RW.RWHelper">
+            <summary>
+            读写器帮助类。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.CreateReader``1(``0)">
+            <summary>
+            为实例创建读取器。
+            </summary>
+            <typeparam name="T">实例类型</typeparam>
+            <param name="obj">实例</param>
+            <returns>返回一个读取器</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.CreateRW``1(``0)">
+            <summary>
+            为实例创建读写器。
+            </summary>
+            <typeparam name="T">实例类型</typeparam>
+            <param name="obj">实例</param>
+            <returns>返回一个读写器</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.CreateWriter``1">
+            <summary>
+            为类型创建一个写入器。
+            </summary>
+            <typeparam name="T">类型</typeparam>
+            <returns>返回一个写入器</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.CreateReader(System.Object)">
+            <summary>
+            为实例创建一个读取器。
+            </summary>
+            <param name="obj">实例</param>
+            <returns>返回一个读取器</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.CreateRW(System.Object)">
+            <summary>
+            为实例创建一个读写器。
+            </summary>
+            <param name="obj">实例</param>
+            <returns>返回一个读写器</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy``1(Swifter.Readers.IDataReader{``0},Swifter.Writers.IDataWriter{``0})">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <typeparam name="T">键类型</typeparam>
+            <param name="dataReader">数据源</param>
+            <param name="dataWriter">目标</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy``1(Swifter.Readers.IDataReader{``0},Swifter.Writers.IDataWriter)">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <typeparam name="T">键类型</typeparam>
+            <param name="dataReader">数据源</param>
+            <param name="dataWriter">目标</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy``1(Swifter.Readers.IDataReader,Swifter.Writers.IDataWriter{``0})">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <typeparam name="T">键类型</typeparam>
+            <param name="dataReader">数据源</param>
+            <param name="dataWriter">目标</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy``1(Swifter.Readers.IDataReader{``0},Swifter.Writers.IDataWriter{``0},Swifter.Readers.IValueFilter{``0})">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <typeparam name="T">键类型</typeparam>
+            <param name="dataReader">数据源</param>
+            <param name="dataWriter">目标</param>
+            <param name="valueFilter">筛选器</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy``1(Swifter.Readers.IDataReader{``0},Swifter.Writers.IDataWriter,Swifter.Readers.IValueFilter{``0})">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <typeparam name="T">键类型</typeparam>
+            <param name="dataReader">数据源</param>
+            <param name="dataWriter">目标</param>
+            <param name="valueFilter">筛选器</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy``1(Swifter.Readers.IDataReader,Swifter.Writers.IDataWriter{``0},Swifter.Readers.IValueFilter{``0})">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <typeparam name="T">键类型</typeparam>
+            <param name="dataReader">数据源</param>
+            <param name="dataWriter">目标</param>
+            <param name="valueFilter">筛选器</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy(Swifter.Readers.IDataReader,Swifter.Writers.IDataWriter)">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <param name="dataReader">数据源</param>
+            <param name="dataWriter">目标</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy(Swifter.Readers.ITableReader,Swifter.Writers.ITableWriter)">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <param name="tableReader">数据源</param>
+            <param name="tableWriter">目标</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy(Swifter.Readers.ITableReader,Swifter.Writers.IDataWriter)">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <param name="tableReader">数据源</param>
+            <param name="dataWriter">目标</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.Copy(Swifter.Readers.IDataReader,Swifter.Writers.ITableWriter)">
+            <summary>
+            Copy 数据内容。
+            </summary>
+            <param name="dataReader">数据源</param>
+            <param name="tableWriter">目标</param>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.GetContent``1(Swifter.Readers.IDataReader)">
+            <summary>
+            获取数据读取器的数据源。
+            </summary>
+            <typeparam name="T">数据源类型</typeparam>
+            <param name="dataReader">数据读取器</param>
+            <returns>返回该数据源</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.GetContent``1(Swifter.Writers.IDataWriter)">
+            <summary>
+            获取数据写入器的数据源。
+            </summary>
+            <typeparam name="T">数据源类型</typeparam>
+            <param name="dataWriter">数据写入器</param>
+            <returns>返回该数据源</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.GetContent(Swifter.Readers.IDataReader)">
+            <summary>
+            获取数据读取器的数据源。
+            </summary>
+            <param name="dataReader">数据读取器</param>
+            <returns>返回该数据源</returns>
+        </member>
+        <member name="M:Swifter.RW.RWHelper.GetContent(Swifter.Writers.IDataWriter)">
+            <summary>
+            获取数据写入器的数据源。
+            </summary>
+            <param name="dataWriter">数据写入器</param>
+            <returns>返回该数据源</returns>
+        </member>
+        <member name="T:Swifter.RW.ValueCopyer`1">
+            <summary>
+            值暂存器。
+            </summary>
+            <typeparam name="TKey">键的类型</typeparam>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.#ctor(Swifter.RW.IDataRW{`0},`0)">
+            <summary>
+            初始化值暂存器。
+            </summary>
+            <param name="dataRW">数据读写器</param>
+            <param name="key">键</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.GetBasicType">
+            <summary>
+            获取值的基础类型枚举。
+            </summary>
+            <returns>返回一个 BasicTypes 枚举值。</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadArray(Swifter.Writers.IDataWriter{System.Int32})">
+            <summary>
+            读取一个数组结构数据。
+            </summary>
+            <param name="valueWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadBoolean">
+            <summary>
+            读取一个 Boolean 值。
+            </summary>
+            <returns>返回一个 bool 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadByte">
+            <summary>
+            读取一个 Byte 值。
+            </summary>
+            <returns>返回一个 byte 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadChar">
+            <summary>
+            读取一个 Char 值。
+            </summary>
+            <returns>返回一个 char 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadDateTime">
+            <summary>
+            读取一个 DateTime 值。
+            </summary>
+            <returns>返回一个 DateTime 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadDecimal">
+            <summary>
+            读取一个 Decimal 值。
+            </summary>
+            <returns>返回一个 decimal 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.DirectRead">
+            <summary>
+            读取一个未知类型的值。
+            </summary>
+            <returns>返回一个未知类型的值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadDouble">
+            <summary>
+            读取一个 Double 值。
+            </summary>
+            <returns>返回一个 double 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadInt16">
+            <summary>
+            读取一个 Int16 值。
+            </summary>
+            <returns>返回一个 short 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadInt32">
+            <summary>
+            读取一个 Int32 值。
+            </summary>
+            <returns>返回一个 int 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadInt64">
+            <summary>
+            读取一个 Int64 值。
+            </summary>
+            <returns>返回一个 long 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadObject(Swifter.Writers.IDataWriter{System.String})">
+            <summary>
+            读取一个对象结构数据。
+            </summary>
+            <param name="valueWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadSByte">
+            <summary>
+            读取一个 SByte 值。
+            </summary>
+            <returns>返回一个 sbyte 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadSingle">
+            <summary>
+            读取一个 Single 值。
+            </summary>
+            <returns>返回一个 flaot 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadString">
+            <summary>
+            读取一个 String 值。
+            </summary>
+            <returns>返回一个 string 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadUInt16">
+            <summary>
+            读取一个 UInt16 值。
+            </summary>
+            <returns>返回一个 ushort 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadUInt32">
+            <summary>
+            读取一个 UInt32 值。
+            </summary>
+            <returns>返回一个 uint 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ReadUInt64">
+            <summary>
+            读取一个 UInt64 值。
+            </summary>
+            <returns>返回一个 ulong 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteArray(Swifter.Readers.IDataReader{System.Int32})">
+            <summary>
+            写入一个数组结构数据。
+            </summary>
+            <param name="dataReader">数据读取器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteBoolean(System.Boolean)">
+            <summary>
+            写入一个 Boolean 值。
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteByte(System.Byte)">
+            <summary>
+            写入一个 Byte 值。
+            </summary>
+            <param name="value">byte 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteChar(System.Char)">
+            <summary>
+            写入一个 Char 值。
+            </summary>
+            <param name="value">char 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteDateTime(System.DateTime)">
+            <summary>
+            写入一个 DateTime 值。
+            </summary>
+            <param name="value">DateTime 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteDecimal(System.Decimal)">
+            <summary>
+            写入一个 Decimal 值。
+            </summary>
+            <param name="value">decimal 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.DirectWrite(System.Object)">
+            <summary>
+            写入一个未知类型的值。
+            </summary>
+            <param name="value">未知类型的值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteDouble(System.Double)">
+            <summary>
+            写入一个 Double 值。
+            </summary>
+            <param name="value">double 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteInt16(System.Int16)">
+            <summary>
+            写入一个 Int16 值。
+            </summary>
+            <param name="value">short 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteInt32(System.Int32)">
+            <summary>
+            写入一个 Int32 值。
+            </summary>
+            <param name="value">int 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteInt64(System.Int64)">
+            <summary>
+            写入一个 Int64 值。
+            </summary>
+            <param name="value">long 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteObject(Swifter.Readers.IDataReader{System.String})">
+            <summary>
+            写入一个对象结构数据。
+            </summary>
+            <param name="dataReader">数据读取器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteSByte(System.SByte)">
+            <summary>
+            写入一个 SByte 值。
+            </summary>
+            <param name="value">sbyte 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteSingle(System.Single)">
+            <summary>
+            写入一个 Single 值。
+            </summary>
+            <param name="value">float 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteString(System.String)">
+            <summary>
+            写入一个 String 值。
+            </summary>
+            <param name="value">string 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteUInt16(System.UInt16)">
+            <summary>
+            写入一个 UInt16 值。
+            </summary>
+            <param name="value">ushort 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteUInt32(System.UInt32)">
+            <summary>
+            写入一个 UInt32 值。
+            </summary>
+            <param name="value">uint 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.WriteUInt64(System.UInt64)">
+            <summary>
+            写入一个 UInt64 值。
+            </summary>
+            <param name="value">ulong 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer`1.ToString">
+            <summary>
+            获取值读写器的名称。
+            </summary>
+            <returns>返回一个名称</returns>
+        </member>
+        <member name="T:Swifter.RW.ValueCopyer">
+            <summary>
+            值暂存器。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.#ctor">
+            <summary>
+            初始化值暂存器。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.GetBasicType">
+            <summary>
+            获取值的基础类型枚举。
+            </summary>
+            <returns>返回一个 BasicTypes 枚举值。</returns>
+        </member>
+        <member name="P:Swifter.RW.ValueCopyer.Type">
+            <summary>
+            获取值的类型
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.ValueCopyer.Value">
+            <summary>
+            获取值暂存器的值。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadArray(Swifter.Writers.IDataWriter{System.Int32})">
+            <summary>
+            读取一个数组结构数据。
+            </summary>
+            <param name="valueWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadBoolean">
+            <summary>
+            读取一个 Boolean 值。
+            </summary>
+            <returns>返回一个 bool 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadByte">
+            <summary>
+            读取一个 Byte 值。
+            </summary>
+            <returns>返回一个 byte 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadChar">
+            <summary>
+            读取一个 Char 值。
+            </summary>
+            <returns>返回一个 char 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadDateTime">
+            <summary>
+            读取一个 DateTime 值。
+            </summary>
+            <returns>返回一个 DateTime 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadDecimal">
+            <summary>
+            读取一个 Decimal 值。
+            </summary>
+            <returns>返回一个 decimal 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.DirectRead">
+            <summary>
+            读取一个未知类型的值。
+            </summary>
+            <returns>返回一个未知类型的值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadDouble">
+            <summary>
+            读取一个 Double 值。
+            </summary>
+            <returns>返回一个 double 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadInt16">
+            <summary>
+            读取一个 Int16 值。
+            </summary>
+            <returns>返回一个 short 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadInt32">
+            <summary>
+            读取一个 Int32 值。
+            </summary>
+            <returns>返回一个 int 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadInt64">
+            <summary>
+            读取一个 Int64 值。
+            </summary>
+            <returns>返回一个 long 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadObject(Swifter.Writers.IDataWriter{System.String})">
+            <summary>
+            读取一个对象结构数据。
+            </summary>
+            <param name="valueWriter">数据写入器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadSByte">
+            <summary>
+            读取一个 SByte 值。
+            </summary>
+            <returns>返回一个 sbyte 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadSingle">
+            <summary>
+            读取一个 Single 值。
+            </summary>
+            <returns>返回一个 flaot 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadString">
+            <summary>
+            读取一个 String 值。
+            </summary>
+            <returns>返回一个 string 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadUInt16">
+            <summary>
+            读取一个 UInt16 值。
+            </summary>
+            <returns>返回一个 ushort 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadUInt32">
+            <summary>
+            读取一个 UInt32 值。
+            </summary>
+            <returns>返回一个 uint 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.ReadUInt64">
+            <summary>
+            读取一个 UInt64 值。
+            </summary>
+            <returns>返回一个 ulong 值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteTo(Swifter.Writers.IValueWriter)">
+            <summary>
+            将值写入到值写入器中。
+            </summary>
+            <param name="valueWriter">值写入器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteArray(Swifter.Readers.IDataReader{System.Int32})">
+            <summary>
+            写入一个数组结构数据。
+            </summary>
+            <param name="dataReader">数据读取器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteBoolean(System.Boolean)">
+            <summary>
+            写入一个 Boolean 值。
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteByte(System.Byte)">
+            <summary>
+            写入一个 Byte 值。
+            </summary>
+            <param name="value">byte 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteChar(System.Char)">
+            <summary>
+            写入一个 Char 值。
+            </summary>
+            <param name="value">char 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteDateTime(System.DateTime)">
+            <summary>
+            写入一个 DateTime 值。
+            </summary>
+            <param name="value">DateTime 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteDecimal(System.Decimal)">
+            <summary>
+            写入一个 Decimal 值。
+            </summary>
+            <param name="value">decimal 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.DirectWrite(System.Object)">
+            <summary>
+            写入一个未知类型的值。
+            </summary>
+            <param name="value">未知类型的值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteDouble(System.Double)">
+            <summary>
+            写入一个 Double 值。
+            </summary>
+            <param name="value">double 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteInt16(System.Int16)">
+            <summary>
+            写入一个 Int16 值。
+            </summary>
+            <param name="value">short 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteInt32(System.Int32)">
+            <summary>
+            写入一个 Int32 值。
+            </summary>
+            <param name="value">int 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteInt64(System.Int64)">
+            <summary>
+            写入一个 Int64 值。
+            </summary>
+            <param name="value">long 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteObject(Swifter.Readers.IDataReader{System.String})">
+            <summary>
+            写入一个对象结构数据。
+            </summary>
+            <param name="dataReader">数据读取器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteSByte(System.SByte)">
+            <summary>
+            写入一个 SByte 值。
+            </summary>
+            <param name="value">sbyte 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteSingle(System.Single)">
+            <summary>
+            写入一个 Single 值。
+            </summary>
+            <param name="value">float 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteString(System.String)">
+            <summary>
+            写入一个 String 值。
+            </summary>
+            <param name="value">string 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteUInt16(System.UInt16)">
+            <summary>
+            写入一个 UInt16 值。
+            </summary>
+            <param name="value">ushort 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteUInt32(System.UInt32)">
+            <summary>
+            写入一个 UInt32 值。
+            </summary>
+            <param name="value">uint 值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueCopyer.WriteUInt64(System.UInt64)">
+            <summary>
+            写入一个 UInt64 值。
+            </summary>
+            <param name="value">ulong 值</param>
+        </member>
+        <member name="T:Swifter.RW.ValueInterface`1">
+            <summary>
+            ValueInterface/<T/> 提供在 ValueReader 中读取指定类型的值或在 ValueWriter 中写入指定类型的值。
+            此类型提供泛型方法，效率更高。
+            <typeparam name="T">值的类型</typeparam>
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.ValueInterface`1.Content">
+            <summary>
+            此类型的具体读写方法实现。
+            </summary>
+        </member>
+        <member name="F:Swifter.RW.ValueInterface`1.IsNoModify">
+            <summary>
+            表示是否使用用户自定义的读写方法，如果为 True, FastObjectRW 将不优化基础类型的读写。
+            基础类型型请参见枚举 BasicTypes。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface`1.ReadValue(Swifter.Readers.IValueReader)">
+            <summary>
+            非泛型读取值方法。
+            </summary>
+            <param name="valueReader">值读取器。</param>
+            <returns>返回一个 T 类型的值。</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface`1.WriteValue(Swifter.Writers.IValueWriter,System.Object)">
+            <summary>
+            非泛型写入值方法。
+            </summary>
+            <param name="valueWriter">值写入器</param>
+            <param name="value">T 类型的值</param>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface`1.ReverseWriteValue(`0,Swifter.Writers.IValueWriter)">
+            <summary>
+            参数反转写入值方法。
+            </summary>
+            <param name="value">T 类型的值</param>
+            <param name="valueWriter">值写入器</param>
+        </member>
+        <member name="T:Swifter.RW.ValueInterface">
+            <summary>
+            ValueInterface 提供在 ValueReader 中读取指定类型的值或在 ValueWriter 中写入指定类型的值。
+            此类提供非泛型方法。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.ValueInterface.DefaultObjectInterfaceType">
+            <summary>
+            获取或设置默认的对象类型读写接口类型。
+            如果要设置此类型要满足以下条件
+            1: 类型必须是可以实例化并且具有公开的无参构造函数。
+            2: 必须继承 IValueInterface/<T/> 接口。
+            3: 必须是泛型类型，有且只有一个泛型参数，泛型参数与 IValueInterface/<T/> 的泛型参数对应。
+            </summary>
+        </member>
+        <member name="P:Swifter.RW.ValueInterface.DefaultArrayInterfaceType">
+            <summary>
+            获取或设置默认的数组类型读写接口类型。
+            如果要设置此类型要满足以下条件
+            1: 类型必须是可以实例化并且具有公开的无参构造函数。
+            2: 必须继承 IValueInterface/<T/> 接口。
+            3: 必须是泛型类型，有且只有一个泛型参数，泛型参数与 IValueInterface/<T/> 的泛型参数对应。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface.AddMaper(Swifter.RW.IValueInterfaceMaper)">
+            <summary>
+            添加一个类型与 ValueInterface 的匹配器。
+            此匹配器可以自定义类型的读写方法。
+            后加入的匹配器优先级高。
+            </summary>
+            <param name="maper">类型与 ValueInterface 的匹配器</param>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface.GetInterface(System.Type)">
+            <summary>
+            非泛型方式获取指定类型的 ValueInterface ，此方式效率并不高。
+            如果是已知类型，请考虑使用泛型方式 ValueInterface/<TYPE/>.Content 获取。
+            如果是未知类型的实例，请考虑使用 ValueInterface.GetInterface(object) 获取。
+            </summary>
+            <param name="type">指定类型</param>
+            <returns>返回一个 ValueInterface 实例。</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface.GetInterface(System.Object)">
+            <summary>
+            非泛型方式获取实例的类型的 ValueInterface ，此方式效率比 ValueInterface.GetInterface(Tyoe) 高，但比 ValueInterface/<T/>.Content 低。
+            </summary>
+            <param name="obj">指定一个实例，此实例不能为 Null。</param>
+            <returns>返回一个 ValueInterface 实例。</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface.ReadValue(Swifter.Readers.IValueReader)">
+            <summary>
+            在 IValueReader 中读取该类型的值。
+            </summary>
+            <param name="valueReader">值读取器</param>
+            <returns>返回该类型的值</returns>
+        </member>
+        <member name="M:Swifter.RW.ValueInterface.WriteValue(Swifter.Writers.IValueWriter,System.Object)">
+            <summary>
+            在 IValueWriter 中写入该类型的值。
+            </summary>
+            <param name="valueWriter">值写入器</param>
+            <param name="value">该类型的值</param>
+        </member>
+        <member name="T:Swifter.RW.IValueInterface`1">
+            <summary>
+            提供某一类型在 IValueReader 中读取值和在 IValueWriter 写入值的方法。
+            </summary>
+            <typeparam name="T">类型</typeparam>
+        </member>
+        <member name="M:Swifter.RW.IValueInterface`1.ReadValue(Swifter.Readers.IValueReader)">
+            <summary>
+            在 IValueReader 中读取该类型的值。
+            </summary>
+            <param name="valueReader">值读取器</param>
+            <returns>返回该类型的值</returns>
+        </member>
+        <member name="M:Swifter.RW.IValueInterface`1.WriteValue(Swifter.Writers.IValueWriter,`0)">
+            <summary>
+            在 IValueWriter 中写入该类型的值。
+            </summary>
+            <param name="valueWriter">值写入器</param>
+            <param name="value">该类型的值</param>
+        </member>
+        <member name="T:Swifter.RW.IValueInterfaceMaper">
+            <summary>
+            提供类型与 IValueInterface 的匹配器。
+            实现它，并使用 ValueInterface.AddMaper 添加它的实例即可自定义类型的读写方法。
+            </summary>
+        </member>
+        <member name="M:Swifter.RW.IValueInterfaceMaper.TryMap``1">
+            <summary>
+            类型与 IValueInterface 的匹配方法。
+            匹配成功则返回实例，不成功则返回 Null。
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+            <returns>返回一个 IValueInterface/<T/> 实例</returns>
+        </member>
+        <member name="T:Swifter.Tools.ArrayHelper">
+            <summary>
+            提供对数组和集合操作的方法。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.ArrayHelper.MaxPrimeArrayLength">
+            <summary>
+            最大素数
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.ArrayHelper.IsPrime(System.Int32)">
+            <summary>
+            判断一个数字是否为素数
+            </summary>
+            <param name="candidate">数字</param>
+            <returns>返回一个 bool 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.ArrayHelper.GetPrime(System.Int32)">
+            <summary>
+            获取在 Int32 范围内大于指定值的最小素数。
+            </summary>
+            <param name="min">数字</param>
+            <returns>返回一个 int 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.ArrayHelper.Filter``2(``0[],System.Func{``0,System.Boolean},System.Func{``0,``1})">
+            <summary>
+            筛选数组元素
+            </summary>
+            <typeparam name="TIn">输入数组类型</typeparam>
+            <typeparam name="TOut">输出数组类型</typeparam>
+            <param name="InArray">输入数组</param>
+            <param name="Filter">输入数组筛选器</param>
+            <param name="AsValue">输入数组元素转输出数组元素委托</param>
+            <returns>返回一个新的数组</returns>
+        </member>
+        <member name="M:Swifter.Tools.ArrayHelper.Filter``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean},System.Func{``0,``1})">
+            <summary>
+            筛选数组元素
+            </summary>
+            <typeparam name="TIn">输入数组类型</typeparam>
+            <typeparam name="TOut">输出数组类型</typeparam>
+            <param name="InSource">输入源</param>
+            <param name="Filter">输入数组筛选器</param>
+            <param name="AsValue">输入数组元素转输出数组元素委托</param>
+            <returns>返回一个新的数组</returns>
+        </member>
+        <member name="T:Swifter.Tools.IAction">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.IAction.Invoke">
+            <summary>
+            执行此委托。
+            </summary>
+        </member>
+        <member name="T:Swifter.Tools.IAction`1">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`1.Invoke(`0)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`2">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`2.Invoke(`0,`1)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`3">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`3.Invoke(`0,`1,`2)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`4">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`4.Invoke(`0,`1,`2,`3)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`5">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`5.Invoke(`0,`1,`2,`3,`4)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`6">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`6.Invoke(`0,`1,`2,`3,`4,`5)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`7">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`7.Invoke(`0,`1,`2,`3,`4,`5,`6)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`8">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`8.Invoke(`0,`1,`2,`3,`4,`5,`6,`7)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`9">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`9.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`10">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`10.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`11">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`11.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`12">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`12.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`13">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`13.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`14">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+            <typeparam name="Arg14"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`14.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12,`13)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+            <param name="arg14"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`15">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+            <typeparam name="Arg14"></typeparam>
+            <typeparam name="Arg15"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`15.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12,`13,`14)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+            <param name="arg14"></param>
+            <param name="arg15"></param>
+        </member>
+        <member name="T:Swifter.Tools.IAction`16">
+            <summary>
+            无返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+            <typeparam name="Arg14"></typeparam>
+            <typeparam name="Arg15"></typeparam>
+            <typeparam name="Arg16"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IAction`16.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12,`13,`14,`15)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+            <param name="arg14"></param>
+            <param name="arg15"></param>
+            <param name="arg16"></param>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`1">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`1.Invoke">
+            <summary>
+            执行此委托。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`2">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`2.Invoke(`0)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`3">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`3.Invoke(`0,`1)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`4">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`4.Invoke(`0,`1,`2)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`5">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`5.Invoke(`0,`1,`2,`3)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`6">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`6.Invoke(`0,`1,`2,`3,`4)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`7">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`7.Invoke(`0,`1,`2,`3,`4,`5)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`8">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`8.Invoke(`0,`1,`2,`3,`4,`5,`6)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`9">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`9.Invoke(`0,`1,`2,`3,`4,`5,`6,`7)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`10">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`10.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`11">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`11.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`12">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`12.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`13">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`13.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`14">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`14.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`15">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+            <typeparam name="Arg14"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`15.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12,`13)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+            <param name="arg14"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`16">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+            <typeparam name="Arg14"></typeparam>
+            <typeparam name="Arg15"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`16.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12,`13,`14)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+            <param name="arg14"></param>
+            <param name="arg15"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IFunc`17">
+            <summary>
+            有返回值并且参数数量匹配的动态委托将实现此接口。
+            </summary>
+            <typeparam name="Arg1"></typeparam>
+            <typeparam name="Arg2"></typeparam>
+            <typeparam name="Arg3"></typeparam>
+            <typeparam name="Arg4"></typeparam>
+            <typeparam name="Arg5"></typeparam>
+            <typeparam name="Arg6"></typeparam>
+            <typeparam name="Arg7"></typeparam>
+            <typeparam name="Arg8"></typeparam>
+            <typeparam name="Arg9"></typeparam>
+            <typeparam name="Arg10"></typeparam>
+            <typeparam name="Arg11"></typeparam>
+            <typeparam name="Arg12"></typeparam>
+            <typeparam name="Arg13"></typeparam>
+            <typeparam name="Arg14"></typeparam>
+            <typeparam name="Arg15"></typeparam>
+            <typeparam name="Arg16"></typeparam>
+            <typeparam name="Out"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IFunc`17.Invoke(`0,`1,`2,`3,`4,`5,`6,`7,`8,`9,`10,`11,`12,`13,`14,`15)">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="arg1"></param>
+            <param name="arg2"></param>
+            <param name="arg3"></param>
+            <param name="arg4"></param>
+            <param name="arg5"></param>
+            <param name="arg6"></param>
+            <param name="arg7"></param>
+            <param name="arg8"></param>
+            <param name="arg9"></param>
+            <param name="arg10"></param>
+            <param name="arg11"></param>
+            <param name="arg12"></param>
+            <param name="arg13"></param>
+            <param name="arg14"></param>
+            <param name="arg15"></param>
+            <param name="arg16"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.IInstanceDynamicDelegate">
+            <summary>
+            第一个参数是 class 类型或是 ref 类型的动态委托将实现此接口。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.IInstanceDynamicDelegate.Invoke(System.IntPtr,System.Object[])">
+            <summary>
+            执行此委托。
+            </summary>
+            <param name="pObject">第一个参数</param>
+            <param name="parameters">后续的参数</param>
+            <returns>返回值，无返回值则为 Null。</returns>
+        </member>
+        <member name="T:Swifter.Tools.MethodHelper">
+            <summary>
+            提供创建委托的方法。
+            
+            提高委托的创建成功率和委托的动态执行效率。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.MethodHelper.InvokeMethodName">
+            <summary>
+            委托的 Invoke 方法名称。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.MethodHelper.CreateDelegate(System.Type,System.Reflection.MethodBase,Swifter.Tools.SignatureLevels)">
+            <summary>
+            为方法创建一个指定类型的委托。
+            </summary>
+            <param name="delegateType">指定委托类型</param>
+            <param name="methodInfo">方法</param>
+            <param name="signatureLevel">签名等级</param>
+            <returns>返回指定类型的委托</returns>
+        </member>
+        <member name="M:Swifter.Tools.MethodHelper.CreateDelegate``1(System.Reflection.MethodBase,Swifter.Tools.SignatureLevels)">
+            <summary>
+            为方法创建一个指定类型的委托。
+            </summary>
+            <typeparam name="T">指定委托类型</typeparam>
+            <param name="methodInfo">方法</param>
+            <param name="signatureLevel">签名等级</param>
+            <returns>返回指定类型的委托</returns>
+        </member>
+        <member name="M:Swifter.Tools.MethodHelper.CreateDelegate(System.Reflection.MethodBase)">
+            <summary>
+            为方法创建一个动态类型的委托。
+            </summary>
+            <param name="methodInfo">方法</param>
+            <returns>返回动态类型的委托</returns>
+        </member>
+        <member name="T:Swifter.Tools.MethodSign">
+            <summary>
+            函数参数签名标识
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.MethodSign.#ctor(System.String,System.Type[],System.Type,System.Boolean)">
+            <summary>
+            构造函数参数签名标识
+            </summary>
+            <param name="Name">函数的名称</param>
+            <param name="ParametersTypes">函数的参数类型</param>
+            <param name="ResultType">函数的返回值类型</param>
+            <param name="Internal">内部调用</param>
+        </member>
+        <member name="M:Swifter.Tools.MethodSign.#ctor(System.String,System.Type[],System.Type)">
+            <summary>
+            构造函数参数签名标识
+            </summary>
+            <param name="Name">函数的名称</param>
+            <param name="ParametersTypes">函数的参数类型</param>
+            <param name="ResultType">函数的返回值类型</param>
+        </member>
+        <member name="M:Swifter.Tools.MethodSign.GetHashCode">
+            <summary>
+            返回此方法签名 HashCode。此值考虑方法名，参数，返回值生成。
+            </summary>
+            <returns>一个 HashCode 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.MethodSign.Equals(System.Object)">
+            <summary>
+            比较一个对象的实例是否为 MethodSign 类型，并且和当前实例的签名相同。
+            </summary>
+            <param name="obj">对象的实例</param>
+            <returns>返回一个 bool 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.MethodSign.op_Equality(Swifter.Tools.MethodSign,Swifter.Tools.MethodSign)">
+            <summary>
+            比较两个 MethodSign 是否相同。
+            </summary>
+            <param name="XSign">第一个 MethodSign。</param>
+            <param name="YSign">第二个 MethodSign。</param>
+            <returns>两个 MethodSign 是否相同。</returns>
+        </member>
+        <member name="M:Swifter.Tools.MethodSign.op_Inequality(Swifter.Tools.MethodSign,Swifter.Tools.MethodSign)">
+            <summary>
+            比较两个 MethodSign 是否不相同。
+            </summary>
+            <param name="XSign">第一个 MethodSign。</param>
+            <param name="YSign">第二个 MethodSign。</param>
+            <returns>两个 MethodSign 是否不相同。</returns>
+        </member>
+        <member name="T:Swifter.Tools.RuntimeMethodSign">
+            <summary>
+            运行时函数参数签名标识
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeMethodSign.#ctor(System.String,System.Object[])">
+            <summary>
+            构造运行时函数参数签名标识
+            </summary>
+            <param name="Name">函数名称</param>
+            <param name="Params">函数的参数</param>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeMethodSign.#ctor(System.String,System.Type[])">
+            <summary>
+            构造运行时函数参数签名标识
+            </summary>
+            <param name="Name">函数名称</param>
+            <param name="Types">函数的参数类型</param>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeMethodSign.GetHashCode">
+            <summary>
+            返回此方法签名 HashCode。此值考虑方法名和参数生成。
+            </summary>
+            <returns>一个 HashCode 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeMethodSign.Equals(System.Object)">
+            <summary>
+            比较一个对象的实例是否为 RuntimeMethodSign 类型，并且和当前实例的签名相同。
+            </summary>
+            <param name="obj">对象的实例</param>
+            <returns>返回一个 bool 值</returns>
+        </member>
+        <member name="T:Swifter.Tools.RuntimeParamsSign">
+            <summary>
+            表示函数的参数签名标识
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeParamsSign.#ctor(System.Object[])">
+            <summary>
+            构造运行时函数参数签名标识
+            </summary>
+            <param name="parameters">输入参数</param>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeParamsSign.#ctor(System.Type[])">
+            <summary>
+            构造运行时函数参数签名标识
+            </summary>
+            <param name="Types">参数类型</param>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeParamsSign.GetHashCode">
+            <summary>
+            返回此方法签名 HashCode。此值只考虑参数生成。
+            </summary>
+            <returns>一个 HashCode 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.RuntimeParamsSign.Equals(System.Object)">
+            <summary>
+            比较一个对象的实例是否为 RuntimeParamsSign 类型，并且和当前实例的签名相同。
+            </summary>
+            <param name="obj">对象的实例</param>
+            <returns>返回一个 bool 值</returns>
+        </member>
+        <member name="T:Swifter.Tools.SignatureLevels">
+            <summary>
+            方法或委托的签名等级。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.SignatureLevels.None">
+            <summary>
+            只进行参数和返回值的数量匹配，不对类型匹配。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.SignatureLevels.Cast">
+            <summary>
+            允许通过转换的参数和返回值类型匹配。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.SignatureLevels.Consistent">
+            <summary>
+            完全匹配，要求参数和返回值类型完全一致。
+            </summary>
+        </member>
+        <member name="T:Swifter.Tools.DateTimeHelper">
+            <summary>
+            提供对象日期和时间操作的方法。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.DateTimeHelper.UTCDifference">
+            <summary>
+            本地时间与 UTC 时间的时差 Tick 值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.DateTimeHelper.OneMillisecond">
+            <summary>
+            一毫秒的 Tick 值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.DateTimeHelper.OneSecond">
+            <summary>
+            一秒的 Tick 值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.DateTimeHelper.OneMinute">
+            <summary>
+            一分钟的 Tick 值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.DateTimeHelper.OneHour">
+            <summary>
+            一小时的 Tick 值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.DateTimeHelper.OneDay">
+            <summary>
+            一天的 Tick 值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.DateTimeHelper.ISOStringMaxLength">
+            <summary>
+            ISO 格式日期字符串的最大长度。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.DateTimeHelper.ToISOString(System.DateTime,System.Char*)">
+            <summary>
+            将日期和时间以 ISO8061 格式字符串写入到字符串中。
+            </summary>
+            <param name="value">日期和时间</param>
+            <param name="chars">字符串</param>
+            <returns>返回写入结束位置，最后一个字符写入位置 + 1。</returns>
+        </member>
+        <member name="M:Swifter.Tools.DateTimeHelper.ToUTCISOString(System.DateTime,System.Char*)">
+            <summary>
+            将日期和时间的 UTC 时间以 ISO8061 格式字符串写入到字符串中。
+            </summary>
+            <param name="value">日期和时间</param>
+            <param name="chars">字符串</param>
+            <returns>返回写入结束位置，最后一个字符写入位置 + 1。</returns>
+        </member>
+        <member name="M:Swifter.Tools.DateTimeHelper.ToISOString(System.DateTime)">
+            <summary>
+            将日期和时间以 ISO8061 格式化字符串。
+            </summary>
+            <param name="value">日期和时间</param>
+            <returns>返回一个字符串。</returns>
+        </member>
+        <member name="M:Swifter.Tools.DateTimeHelper.ToUTCISOString(System.DateTime)">
+            <summary>
+            将日期和时间的 UTC 时间以 ISO8061 格式化字符串。
+            </summary>
+            <param name="value">日期和时间</param>
+            <returns>返回一个字符串。</returns>
+        </member>
+        <member name="M:Swifter.Tools.DateTimeHelper.TryParseISODateTime(System.Char*,System.Int32,System.DateTime@)">
+            <summary>
+            尝试解析 ISO8061 格式日期和时间字符串。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">解析结束位置。</param>
+            <param name="value">成功返回日期和时间对象，失败返回日期和时间最小值。</param>
+            <returns>返回成功或失败。</returns>
+        </member>
+        <member name="M:Swifter.Tools.DateTimeHelper.TryParseISODateTime(System.String,System.DateTime@)">
+            <summary>
+            尝试解析 ISO8061 格式日期和时间字符串。
+            </summary>
+            <param name="text">字符串</param>
+            <param name="value">成功返回日期和时间对象，失败返回日期和时间最小值。</param>
+            <returns>返回成功或失败。</returns>
+        </member>
+        <member name="T:Swifter.Tools.NumberHelper">
+            <summary>
+            提供数字类的方法。
+            这些方法都是高效的。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.MaxRadix">
+            <summary>
+            支持的最大进制。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.MinRadix">
+            <summary>
+            支持的最小进制。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.IgnoreCaseMaxRadix">
+            <summary>
+            忽略大小写的前提下支持的最大进制。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.PositiveSign">
+            <summary>
+            正负号。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.NegativeSign">
+            <summary>
+            负符号。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.InfinitySign">
+            <summary>
+            无限大符号。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.ExponentSign">
+            <summary>
+            指数符号。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.DotSign">
+            <summary>
+            点符号。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.NaNSign">
+            <summary>
+            非数字符号。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.Decimal">
+            <summary>
+            十进制实例。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.Hex">
+            <summary>
+            十六进制实例。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.Octal">
+            <summary>
+            八进制实例。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.NumberHelper.Binary">
+            <summary>
+            二进制实例。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Guid,System.Char*)">
+            <summary>
+            将一个 Guid 值写入到一个空间足够的字符串中。
+            </summary>
+            <param name="value">Guid 值</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度。</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Decimal,System.Char*)">
+            <summary>
+            将一个 Decimal 值写入到一个空间足够的字符串中。
+            </summary>
+            <param name="value">Decimal 值</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToDecimalString(System.UInt64,System.Char*)">
+            <summary>
+            将一个 UInt64 值以十进制格式写入到一个空间足够的字符串中。
+            </summary>
+            <param name="value">UInt64 值</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.Char*,System.Int32,System.Guid@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 Guid 值。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 Guid 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.Char*,System.Int32,System.Decimal@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 Decimal 值。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 Decimal 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToDecimal(Swifter.Tools.NumberInfo)">
+            <summary>
+            将一个 NumberInfo 转换为 Decimal。转换失败则引发异常。
+            </summary>
+            <param name="numberInfo">NumberInfo</param>
+            <returns>返回一个 Decimal</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.Mult(System.UInt32*,System.Int32,System.UInt32,System.UInt32@)">
+            <summary>
+            字节正整数乘以 UInt32 值。
+            </summary>
+            <param name="number">字节正整数</param>
+            <param name="length">字节正整数的长度</param>
+            <param name="value">UInt32 值</param>
+            <param name="carry">进位值</param>
+            <returns>返回字节正整数的长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.Div(System.UInt32*,System.Int32,System.UInt32,System.UInt32@)">
+            <summary>
+            字节正整数除以 UInt32 值。
+            </summary>
+            <param name="number">字节正整数</param>
+            <param name="length">字节正整数的长度</param>
+            <param name="value">UInt32 值</param>
+            <param name="remainder">余数</param>
+            <returns>返回字节正整数的长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.Add(System.UInt32*,System.Int32,System.UInt32,System.UInt32@)">
+            <summary>
+            字节正整数加上 UInt32 值。
+            </summary>
+            <param name="number">字节正整数</param>
+            <param name="length">字节正整数的长度</param>
+            <param name="value">UInt32 值</param>
+            <param name="carry">进位值</param>
+            <returns>返回字节正整数的长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.Sub(System.UInt32*,System.Int32,System.UInt32,System.UInt32@)">
+            <summary>
+            字节正整数减去 UInt32 值。
+            </summary>
+            <param name="number">字节正整数</param>
+            <param name="length">字节正整数的长度</param>
+            <param name="value">UInt32 值</param>
+            <param name="remainder">余数</param>
+            <returns>返回字节正整数的长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Guid)">
+            <summary>
+            将一个 Guid 值转换为 String 表现形式。转换失败将引发异常。
+            </summary>
+            <param name="value">Guid 值</param>
+            <returns>返回一个 String 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Decimal)">
+            <summary>
+            将一个 Decimal 值转换为 String 表现形式。转换失败将引发异常。
+            </summary>
+            <param name="value">Decimal 值</param>
+            <returns>返回一个 String 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.String,System.Guid@)">
+            <summary>
+            尝试将 String 值转换为 Guid 值。
+            </summary>
+            <param name="text">String 值</param>
+            <param name="value">返回 Guid 值</param>
+            <returns>返回成功否</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseGuid(System.String)">
+            <summary>
+            将 String 值转换为 Guid 值。失败将引发异常。
+            </summary>
+            <param name="text">String 值</param>
+            <returns>返回 Guid 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.String,System.Decimal@)">
+            <summary>
+            尝试将 String 值转换为 Decimal 值。
+            </summary>
+            <param name="text">String 值</param>
+            <param name="value">返回 Decimal 值</param>
+            <returns>返回成功否</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseDecimal(System.String)">
+            <summary>
+            将 String 值转换为 Decimal 值。失败将引发异常。
+            </summary>
+            <param name="text">String 值</param>
+            <returns>返回 Decimal 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.#ctor(System.Byte)">
+            <summary>
+            初始化实例。
+            </summary>
+            <param name="radix">指定进制</param>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.Finalize">
+            <summary>
+            释放内存。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.GetPositiveExponent(System.Double)">
+            <summary>
+            获取整数部分位数。
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.GetNegativeExponent(System.Double)">
+            <summary>
+            获取数字需要移动多少位才能大于等于 1。
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.GetLength(System.UInt64)">
+            <summary>
+            获取 UInt64 值的字符串表现形式长度。
+            </summary>
+            <param name="value">UInt64 值</param>
+            <returns>返回字符串表现形式长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.UInt64,System.Char*)">
+            <summary>
+            将一个 UInt64 值写入到空间足够的字符串中。
+            </summary>
+            <param name="value">UInt64 值</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.UInt64,System.UInt32,System.Char*)">
+            <summary>
+            将指定长度的 UInt64 值写入到空间足够的字符串中。
+            </summary>
+            <param name="value">UInt64 值</param>
+            <param name="length">指定长度</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Int64,System.Char*)">
+            <summary>
+            将一个 Int64 值写入到空间足够的字符串中。
+            </summary>
+            <param name="value">Int64 值</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Double,System.Char*)">
+            <summary>
+            将一个 Double 值写入到空间足够的字符串中。
+            </summary>
+            <param name="value">Double 值</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Single,System.Char*)">
+            <summary>
+            将一个 Single 值写入到空间足够的字符串中。
+            </summary>
+            <param name="value">Single 值</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.UInt32*,System.Int32,System.Char*)">
+            <summary>
+            将一个字节正整数写入到空间足够的字符串中。
+            </summary>
+            <param name="value">字节正整数</param>
+            <param name="length">字节正整数的长度</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.DirectOperateToString(System.UInt32*,System.Int32,System.Char*)">
+            <summary>
+            将一个字节正整数写入到空间足够的字符串中。此方法对字节正整数直接运算，所以会改变它的值。
+            </summary>
+            <param name="value">字节正整数</param>
+            <param name="length">字节正整数的长度</param>
+            <param name="chars">空间足够的字符串</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.Char*,System.Int32,System.Int64@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 Int64 值。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 Int64 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.Char*,System.Int32,System.UInt64@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 UInt64 值。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 UInt64 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.Char*,System.Int32,System.UInt32*,System.Int32@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个字节正整数值。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">字节正整数空间</param>
+            <param name="writeCount">返回写入长度</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.Char*,System.Int32,System.Int32@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 Int32 值。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 Int32 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParseExp(System.Char*,System.Int32,System.UInt64@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 UInt64 值。此方法允许指数。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 UInt64 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParseExp(System.Char*,System.Int32,System.Int64@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 Int64 值。此方法允许指数。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 Int64 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.Char*,System.Int32,System.Double@,System.Boolean)">
+            <summary>
+            尝试从字符串开始位置解析一个 Double 值。此方法允许指数。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <param name="value">返回一个 Double 值</param>
+            <param name="exception">当解析到错误时是否引发异常，异常不代表解析失败。</param>
+            <returns>解析成功则返回解析的长度，失败则返回 0</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.GetNumberInfo(System.Char*,System.Int32)">
+            <summary>
+            创建一个 NumberInfo。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="length">字符串长度</param>
+            <returns>返回一个 NumberInfo</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToUInt64(Swifter.Tools.NumberInfo)">
+            <summary>
+            将 NumberInfo 转换为 UInt64。失败将引发异常。
+            </summary>
+            <param name="numberInfo">NumberInfo</param>
+            <returns>返回一个 UInt64</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToInt64(Swifter.Tools.NumberInfo)">
+            <summary>
+            将 NumberInfo 转换为 Int64。失败将引发异常。
+            </summary>
+            <param name="numberInfo">NumberInfo</param>
+            <returns>返回一个 Int64</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToDouble(Swifter.Tools.NumberInfo)">
+            <summary>
+            将 NumberInfo 转换为 Double。失败将引发异常。
+            </summary>
+            <param name="numberInfo">NumberInfo</param>
+            <returns>返回一个 Double</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.UncheckedParse(System.Char*,System.Int32)">
+            <summary>
+            从字符串中强制解析出一个 Int64 值。
+            </summary>
+            <param name="chars">字符串</param>
+            <param name="count">字符串长度</param>
+            <returns>返回一个 Int64 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.UInt64)">
+            <summary>
+            将 UInt64 值转换为字符串表现形式。
+            </summary>
+            <param name="value">UInt64 值</param>
+            <returns>返回一个 String 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Int64)">
+            <summary>
+            将 Int64 值转换为字符串表现形式。
+            </summary>
+            <param name="value">Int64 值</param>
+            <returns>返回一个 String 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Double)">
+            <summary>
+            将 Double 值转换为字符串表现形式。
+            </summary>
+            <param name="value">Double 值</param>
+            <returns>返回一个 String 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.Single)">
+            <summary>
+            将 Single 值转换为字符串表现形式。
+            </summary>
+            <param name="value">Single 值</param>
+            <returns>返回一个 String 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ToString(System.UInt32*,System.Int32)">
+            <summary>
+            将字节正整数转换为字符串表现形式。
+            </summary>
+            <param name="value">字节正整数</param>
+            <param name="length">字节正整数长度</param>
+            <returns>返回一个 String 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.String,System.Int64@)">
+            <summary>
+            尝试将字符串转换为 Int64 值。
+            </summary>
+            <param name="text">字符串</param>
+            <param name="value">返回一个 Int64 值</param>
+            <returns>返回转换是否成功</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseInt64(System.String)">
+            <summary>
+            将字符串转换为 Int64 值。失败将引发异常。
+            </summary>
+            <param name="text">字符串</param>
+            <returns>返回一个 Int64 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.String,System.UInt64@)">
+            <summary>
+            尝试将字符串转换为 UInt64 值。
+            </summary>
+            <param name="text">字符串</param>
+            <param name="value">返回一个 UInt64 值</param>
+            <returns>返回转换是否成功</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseUInt64(System.String)">
+            <summary>
+            将字符串转换为 UInt64 值。失败将引发异常。
+            </summary>
+            <param name="text">字符串</param>
+            <returns>返回一个 UInt64 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.String,System.Double@)">
+            <summary>
+            尝试将字符串转换为 Double 值。
+            </summary>
+            <param name="text">字符串</param>
+            <param name="value">返回一个 Double 值</param>
+            <returns>返回转换是否成功</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseDouble(System.String)">
+            <summary>
+            将字符串转换为 Double 值。失败将引发异常。
+            </summary>
+            <param name="text">字符串</param>
+            <returns>返回一个 Double 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParseExp(System.String,System.UInt64@)">
+            <summary>
+            尝试将字符串转换为 UInt64 值。此方法允许指数。
+            </summary>
+            <param name="text">字符串</param>
+            <param name="value">返回一个 UInt64 值</param>
+            <returns>返回转换是否成功</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseUInt64Exp(System.String)">
+            <summary>
+            将字符串转换为 UInt64 值。失败将引发异常。此方法允许指数。
+            </summary>
+            <param name="text">字符串</param>
+            <returns>返回一个 UInt64 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParseExp(System.String,System.Int64@)">
+            <summary>
+            尝试将字符串转换为 Int64 值。此方法允许指数。
+            </summary>
+            <param name="text">字符串</param>
+            <param name="value">返回一个 Int64 值</param>
+            <returns>返回转换是否成功</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseInt64Exp(System.String)">
+            <summary>
+            将字符串转换为 Int64 值。失败将引发异常。此方法允许指数。
+            </summary>
+            <param name="text">字符串</param>
+            <returns>返回一个 Int64 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.TryParse(System.String,System.UInt32*,System.Int32@)">
+            <summary>
+            尝试将字符串转换为字节正整数值。
+            </summary>
+            <param name="text"></param>
+            <param name="value">字节正整数</param>
+            <param name="length">返回写入长度</param>
+            <returns>返回转换是否成功</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.ParseBigInteger(System.String,System.UInt32*)">
+            <summary>
+            将字符串转换为字节正整数值。失败将引发异常。
+            </summary>
+            <param name="text">字符串</param>
+            <param name="value">字节正整数</param>
+            <returns>返回写入长度</returns>
+        </member>
+        <member name="M:Swifter.Tools.NumberHelper.GetNumberInfo(System.String)">
+            <summary>
+            创建一个 NumberInfo。此实例的内容是瞬态的，请不要长期使用。
+            </summary>
+            <param name="text">字符串</param>
+            <returns>返回一个 NumberInfo</returns>
+        </member>
+        <member name="T:Swifter.Tools.NumberInfo">
+            <summary>
+            储存一个字符串的数字信息
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.NumberInfo.#ctor">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.IsFloat">
+            <summary>
+            获取该数字是否为浮点数。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.IsNegative">
+            <summary>
+            获取该数字是否为负数。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.ExponentIsNegative">
+            <summary>
+            获取该数字的指数是否为负数。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.IntegerCount">
+            <summary>
+            获取该数字的整数部分的长度。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.FractionalCount">
+            <summary>
+            获取该数字的小数部分的长度。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.ExponentCount">
+            <summary>
+            获取该数字的指数的长度。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.IsNumber">
+            <summary>
+            获取该字符串是否是一个数字。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.HaveExponent">
+            <summary>
+            获取是否存在指数。
+            此值不考虑是否为数字。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.NumberInfo.End">
+            <summary>
+            获取此数字在字符串中的结束位置，数字内容不包含此位置。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.NumberInfo.ToString">
+            <summary>
+            获取此数字的信息的字符串表现形式。
+            </summary>
+            <returns>返回一个 string 值</returns>
+        </member>
+        <member name="T:Swifter.Tools.OverlappedValue">
+            <summary>
+            一个重叠的基础类型集合。
+            </summary>
+        </member>
+        <member name="T:Swifter.Tools.IdCache`1">
+            <summary>
+            提供 Int64 为 Id 的缓存类。
+            </summary>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.IdCache`1.#ctor">
+            <summary>
+            初始化缓存类
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.IdCache`1.Item(System.Int64)">
+            <summary>
+            获取或设置指定 Id 的缓存。
+            </summary>
+            <param name="id">缓存 Id</param>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">当 Id 不存在事抛出异常</exception>
+            <returns>返回缓存</returns>
+        </member>
+        <member name="P:Swifter.Tools.IdCache`1.Count">
+            <summary>
+            获取该缓存集合的数量。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.IdCache`1.Add(System.Int64,`0)">
+            <summary>
+            添加一个缓存。
+            </summary>
+            <param name="id">缓存 Id</param>
+            <param name="value">缓存值</param>
+        </member>
+        <member name="M:Swifter.Tools.IdCache`1.TryGetValue(System.Int64,`0@)">
+            <summary>
+            尝试获取指定 Id 的缓存。
+            </summary>
+            <param name="id">缓存 Id</param>
+            <param name="value">返回缓存值</param>
+            <returns>返回该缓存 Id 是否存在</returns>
+        </member>
+        <member name="M:Swifter.Tools.IdCache`1.Remove(System.Int64)">
+            <summary>
+            移除一个缓存。
+            </summary>
+            <param name="id">缓存 Id</param>
+            <returns>返回该缓存 Id 之前是否存在</returns>
+        </member>
+        <member name="T:Swifter.Tools.XDictionaryOption">
+            <summary>
+            参数字典的初始化配置
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.XDictionaryOption.None">
+            <summary>
+            默认值，无配置
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.XDictionaryOption.AllowNullKey">
+            <summary>
+            允许 Null Key
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.XDictionaryOption.AllowRepeat">
+            <summary>
+            允许 Key 重复
+            </summary>
+        </member>
+        <member name="T:Swifter.Tools.XDictionary`2">
+            <summary>
+            参数字典
+            </summary>
+            <typeparam name="TKey">字典 Key 的类型</typeparam>
+            <typeparam name="TValue">字典 Value 的类型</typeparam>
+        </member>
+        <member name="T:Swifter.Tools.XDictionary`2.Entity">
+            <summary>
+            字典中保存的元素
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.#ctor">
+            <summary>
+            使用默认参数初始化字典
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.#ctor(System.Int32)">
+            <summary>
+            使用默认参数初始化字典，并指定初始字典容量
+            </summary>
+            <param name="Size">初始容量</param>
+        </member>
+        <member name="P:Swifter.Tools.XDictionary`2.Count">
+            <summary>
+            获取元素数量。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.#ctor(System.Int32,Swifter.Tools.XDictionaryOption)">
+            <summary>
+            指定字典配置参数和初始容量初始化字典
+            </summary>
+            <param name="Size">初始容量</param>
+            <param name="option">配置参数</param>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.#ctor(Swifter.Tools.XDictionaryOption)">
+            <summary>
+            使用默认初始容量和指定配置参数初始字典
+            </summary>
+            <param name="option">配置参数</param>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.#ctor(Swifter.Tools.XDictionaryOption,System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            使用默认初始容量和指定配置参数初始字典。
+            </summary>
+            <param name="option">配置参数</param>
+            <param name="keyComparer">Key 比较器</param>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.GetHashCode(`0)">
+            <summary>
+            获得指定键的哈希值，如果该键为空，并且允许配置允许空键，则返回 0;不允许空值则发生异常。
+            </summary>
+            <param name="key">需要获取哈希值得键对象</param>
+            <returns></returns>
+        </member>
+        <member name="P:Swifter.Tools.XDictionary`2.Item(`0)">
+            <summary>
+            获取或设置指定键对应的值。
+            </summary>
+            <param name="key">键</param>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">键不存在将引发异常</exception>
+            <returns>返回值</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.GetEntry(System.Int32)">
+            <summary>
+            获取指定索引处的元素。
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.TryGetValue(`0,`1@)">
+            <summary>
+            尝试获取指定键对应的值。
+            </summary>
+            <param name="key">键</param>
+            <param name="value">返回值</param>
+            <returns>返回是否存在该键</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.RemoveLast(`0)">
+            <summary>
+            移除集合中最后一个与该键匹配的元素。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回是否有移除元素</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.RemoveFirst(`0)">
+            <summary>
+            移除集合中第一个与该键匹配的元素。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回是否有移除元素</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.RemoveAll(`0)">
+            <summary>
+            移除集合中所有与该键匹配的元素。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回是否有移除元素</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.FindFirstIndex(`0)">
+            <summary>
+            找到第一个与该键匹配的元素的索引。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回索引，不存在则返回 -1。</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.FindLastIndex(`0)">
+            <summary>
+            找到最后一个与该键匹配的元素的索引。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回索引，不存在则返回 -1。</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.Fixed">
+            <summary>
+            整理元素并固定集合大小。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.Sort(System.Collections.Generic.IComparer{System.Collections.Generic.KeyValuePair{`0,`1}})">
+            <summary>
+            排序集合。
+            </summary>
+            <param name="comparer">元素比较器</param>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.Sort(System.Comparison{System.Collections.Generic.KeyValuePair{`0,`1}})">
+            <summary>
+            排序集合。
+            </summary>
+            <param name="comparer">元素比较器</param>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.Add(`0,`1)">
+            <summary>
+            添加一个键值对。
+            </summary>
+            <param name="key">键</param>
+            <param name="value">值</param>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.GetEnumerator">
+            <summary>
+            获取迭代器。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.GetValues(`0)">
+            <summary>
+            获取该键所有的值集合。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回值集合</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.Each(`0,System.Func{`1,System.Boolean})">
+            <summary>
+            遍历字典元素
+            </summary>
+            <param name="Key">指定 Key。</param>
+            <param name="function">回掉函数，当此回掉函数返回 true 时则继续遍历，返回 false 则停止。</param>
+            <returns>如果是因为回掉函数返回 false 而终止遍历的返回该元素的索引，否则返回 -1</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.Each(System.Func{`0,`1,System.Boolean})">
+            <summary>
+            遍历字典元素
+            </summary>
+            <param name="function">回掉函数，当此回掉函数返回 true 时则继续遍历，返回 false 则停止。</param>
+            <returns>如果是因为回掉函数返回 false 而终止遍历的返回该元素的索引，否则返回 -1</returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.Clear">
+            <summary>
+            清空集合。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.ContainsKey(`0)">
+            <summary>
+            判断是否存在该键。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回否存在该键</returns>
+        </member>
+        <member name="P:Swifter.Tools.XDictionary`2.Keys">
+            <summary>
+            获取键的集合。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.XDictionary`2.Values">
+            <summary>
+            获取值的集合。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.CopyTo(System.Collections.Generic.KeyValuePair{`0,`1}[],System.Int32)">
+            <summary>
+            将元素集合复制到空间足够的目标数组中。
+            </summary>
+            <param name="array">数组</param>
+            <param name="arrayIndex">开始写入的位置</param>
+        </member>
+        <member name="T:Swifter.Tools.XDictionary`2.ValuesCollection">
+            <summary>
+            值的集合。
+            </summary>
+        </member>
+        <member name="P:Swifter.Tools.XDictionary`2.ValuesCollection.Length">
+            <summary>
+            值的数量
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.ValuesCollection.GetEnumerator">
+            <summary>
+            获取迭代器。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Swifter.Tools.XDictionary`2.ValuesCollection.ToArray">
+            <summary>
+            转换为数组。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Swifter.Tools.XDictionary`2.Enumerator">
+            <summary>
+            参数字典迭代器
+            </summary>
+        </member>
+        <member name="T:Swifter.Tools.IgnoreCaseEqualityComparer">
+            <summary>
+            忽略大小写的字符串匹配器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.IgnoreCaseEqualityComparer.Equals(System.String,System.String)">
+            <summary>
+            比较两个字符串是否相等。
+            </summary>
+            <param name="x">字符串 1</param>
+            <param name="y">字符串 2</param>
+            <returns>返回一个 bool 值</returns>
+        </member>
+        <member name="M:Swifter.Tools.IgnoreCaseEqualityComparer.GetHashCode(System.String)">
+            <summary>
+            获取一个字符串的 HashCode 值。
+            </summary>
+            <param name="obj">字符串</param>
+            <returns>返回一个 HashCode 值</returns>
+        </member>
+        <member name="T:Swifter.Tools.StringHelper">
+            <summary>
+            字符串辅助类
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.Reverse(System.String)">
+            <summary>
+            颠倒字符串内容。
+            </summary>
+            <param name="text">字符串</param>
+            <returns>返回一个新的字符串</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IgnoreCaseGetHashCode(System.String)">
+            <summary>
+            忽略大小写获取字符串 Hash 值。
+            </summary>
+            <param name="st">字符串。</param>
+            <returns>返回一个 int hash 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.GetHashCode(System.String)">
+            <summary>
+            获取字符串 Hash 值。
+            </summary>
+            <param name="st">字符串。</param>
+            <returns>返回一个 int hash 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IgnoreCaseEquals(System.String,System.String)">
+            <summary>
+            忽略大小写匹配两个字符串。请确保字符串 2 是已大写的。
+            </summary>
+            <param name="st1">字符串 1</param>
+            <param name="st2">字符串 2</param>
+            <returns>返回一个 bool 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.Equals(System.String,System.String)">
+            <summary>
+            匹配两个字符串。
+            </summary>
+            <param name="st1">字符串 1</param>
+            <param name="st2">字符串 2</param>
+            <returns>返回一个 bool 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.Format(System.String,System.String[])">
+            <summary>
+            将字符串中的格式项 ({Index})替换为数组中相应的字符串。可以用 '\' 字符让字符串直接复制下一个字符。
+            </summary> 
+            <param name="text">字符串</param>
+            <param name="args">数组</param>
+            <returns>返回一个新的字符串。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.Equals(System.Char*,System.Int32,System.Int32,System.String)">
+            <summary>
+            比较两个字符串是否相同。如果字符串 1 比字符串 2 长，但两个字符串前面的内容相同也返回 true。如果字符串 1 比字符串 2 短则直接返回 false。
+            </summary>
+            <param name="pText">字符串 1</param>
+            <param name="begin">字符串 1 的开始索引</param>
+            <param name="end">字符串 1 的结束索引，比较的位置不包含此值。</param>
+            <param name="chars">字符串 2 </param>
+            <returns>返回一个 bool 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IgnoreCaseEquals(System.Char*,System.Int32,System.Int32,System.String)">
+            <summary>
+            比较两个字符串是否相同，忽略英文字符大小写。如果字符串 1 比字符串 2 长，但两个字符串前面的内容相同也返回 true。如果字符串 1 比字符串 2 短则直接返回 false。
+            </summary>
+            <param name="pText">字符串 1</param>
+            <param name="begin">字符串 1 的开始索引</param>
+            <param name="end">字符串 1 的结束索引，比较的位置不包含此值。</param>
+            <param name="chars">字符串 2 </param>
+            <returns>返回一个 bool 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.ToUpper(System.Char)">
+            <summary>
+            将小写英文字符转为大写英文字符。
+            </summary>
+            <param name="c"></param>
+            <returns>返回一个字符。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.ToLower(System.Char)">
+            <summary>
+            将大写英文字符转为小写英文字符。
+            </summary>
+            <param name="c"></param>
+            <returns>返回一个字符。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.Trim(System.Char*,System.Int32,System.Int32)">
+            <summary>
+            去除字符串两端的的空白字符
+            </summary>
+            <param name="pText">字符串</param>
+            <param name="begin">开始索引</param>
+            <param name="end">结束索引，裁剪的位置不包含此值。</param>
+            <returns>返回一个新的字符串。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IsWhiteSpace(System.Char)">
+            <summary>
+            判断一个字符是否为空白字符
+            </summary>
+            <param name="c">字符</param>
+            <returns>返回一个 Boolean 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IndexOf(System.Char*,System.Char,System.Int32,System.Int32)">
+            <summary>
+            在字符串中找到指定字符的索引，没找到则返回 -1
+            </summary>
+            <param name="pText">字符串</param>
+            <param name="c">字符</param>
+            <param name="begin">开始查找的位置。</param>
+            <param name="end">结束查找的位置，不包含此值。</param>
+            <returns>返回一个 int 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IndexOf(System.Char*,System.Char,System.Char,System.Int32,System.Int32)">
+            <summary>
+            在字符串中找到第一个字符 1 或字符 2 的索引，两个字符都没找到则返回 -1
+            </summary>
+            <param name="pText">字符串</param>
+            <param name="char1">字符 1</param>
+            <param name="char2">字符 2</param>
+            <param name="begin">开始查找的位置。</param>
+            <param name="end">结束查找的位置，不包含此值。</param>
+            <returns>返回一个 int 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IndexOf(System.Char*,System.String,System.Int32,System.Int32)">
+            <summary>
+            在字符串 1 中找到字符串 2 的索引，没找到则返回 -1
+            </summary>
+            <param name="pText">字符串 1</param>
+            <param name="chars">字符串 2</param>
+            <param name="begin">开始查找的位置</param>
+            <param name="end">结束查找的位置，不包含此值。</param>
+            <returns>返回一个 int 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.IndexOf(System.Char*,System.Char[],System.Int32,System.Int32)">
+            <summary>
+            在字符串中找到字符集合中第一个出现的索引，没找到则返回 -1
+            </summary>
+            <param name="pText">字符串</param>
+            <param name="chars">字符集合</param>
+            <param name="begin">开始查找的位置。</param>
+            <param name="end">结束查找的位置，不包含此值。</param>
+            <returns>返回一个 int 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.NoEscapeIndexOf(System.Char*,System.Char,System.Int32,System.Int32)">
+            <summary>
+            在字符串中找到第一个未被转义的指定字符的索引，没找到则返回 -1
+            </summary>
+            <param name="Text">字符串</param>
+            <param name="Char">字符</param>
+            <param name="Begin">开始查找的位置。</param>
+            <param name="End">结束查找的位置，不包含此值。</param>
+            <returns>返回一个 int 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.StringHelper.CountOf(System.Char*,System.Int32,System.Int32,System.Char)">
+            <summary>
+            获得字符在字符串中出现的次数。
+            </summary>
+            <param name="pText">字符串</param>
+            <param name="begin">字符串开始位置</param>
+            <param name="end">字符串结束位置，不包含此位置</param>
+            <param name="c">字符</param>
+            <returns>返回一个 int 值</returns>
+        </member>
+        <member name="T:Swifter.Tools.BasicTypes">
+            <summary>
+            基础类型枚举，此枚举不能按位合并值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Boolean">
+            <summary>
+            Boolean, bool
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.SByte">
+            <summary>
+            SByte, sbyte
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Int16">
+            <summary>
+            Int16, short
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Int32">
+            <summary>
+            Int32, int
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Int64">
+            <summary>
+            Int64, long
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Byte">
+            <summary>
+            Byte, byte
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.UInt16">
+            <summary>
+            UInt16, ushort
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.UInt32">
+            <summary>
+            UInt32, uint
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.UInt64">
+            <summary>
+            UInt64, ulong
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Single">
+            <summary>
+            Single, float
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Double">
+            <summary>
+            Double, double
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Decimal">
+            <summary>
+            Decimal, decimal
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Char">
+            <summary>
+            Char, char
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.DateTime">
+            <summary>
+            DateTime
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.String">
+            <summary>
+            String, string
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Direct">
+            <summary>
+            Direct
+            
+            表示可以直接读写值的类型。
+            通常是可以用字符串表示的值的类型。
+            
+            Represents a type that can read and write value directly.
+            is typically the type of a value that can be represented by a string.
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Array">
+            <summary>
+            Array
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Object">
+            <summary>
+            Object
+            其他类型
+            Other types
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.BasicTypes.Null">
+            <summary>
+            Null, DBNull
+            </summary>
+        </member>
+        <member name="T:Swifter.Tools.EmitHelper">
+            <summary>
+            提供 Emit 帮助方法。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadStaticField(System.Reflection.Emit.ILGenerator,System.Reflection.FieldInfo)">
+            <summary>
+            加载静态字段值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="fieldInfo">静态字段信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadStaticFieldAddress(System.Reflection.Emit.ILGenerator,System.Reflection.FieldInfo)">
+            <summary>
+            加载静态字段地址。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="fieldInfo">静态字段信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadField(System.Reflection.Emit.ILGenerator,System.Reflection.FieldInfo)">
+            <summary>
+            加载字段值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="fieldInfo">字段信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadFieldAddress(System.Reflection.Emit.ILGenerator,System.Reflection.FieldInfo)">
+            <summary>
+            加载字段地址。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="fieldInfo">字段信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadLocal(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.LocalBuilder)">
+            <summary>
+            加载本地变量值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="localBuilder">变量信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadLocalAddress(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.LocalBuilder)">
+            <summary>
+            加载本地变量地址。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="localBuilder">变量信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadArgumentAddress(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            加载参数地址。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="index">参数序号</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadConstant(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            加载 Int32 常量。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="value">值</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadConstant(System.Reflection.Emit.ILGenerator,System.Int64)">
+            <summary>
+            加载 Int64 常量。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="value">值</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadString(System.Reflection.Emit.ILGenerator,System.String)">
+            <summary>
+            加载 String 常量。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="value">值</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.StoreLocal(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.LocalBuilder)">
+            <summary>
+            设置本地变量值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="localBuilder">本地变量信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.StoreValue(System.Reflection.Emit.ILGenerator,System.Type)">
+            <summary>
+            设置类型已提供的值到提供的内存上。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="type">值的类型</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadValue(System.Reflection.Emit.ILGenerator,System.Type)">
+            <summary>
+            在提供的内存上加载一个类型的值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="type">值的类型</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadArgument(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            加载参数值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="index">参数序号</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadElementAddress(System.Reflection.Emit.ILGenerator,System.Type)">
+            <summary>
+            加载提供的数组位于提供索引出的元素的地址。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="elementType">元素的类型</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.SizeOf(System.Reflection.Emit.ILGenerator,System.Type)">
+            <summary>
+            加载类型值的大小。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="type">类型</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LoadNull(System.Reflection.Emit.ILGenerator)">
+            <summary>
+            加载一个 Null 值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.BranchFalse(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.Label)">
+            <summary>
+            当提供的值为 False 时跳到指定块。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="label">代码块</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.BranchTrue(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.Label)">
+            <summary>
+            当提供的值为 True 时跳到指定块。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="label">代码块</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.BranchDefaultValue(System.Reflection.Emit.ILGenerator,System.Type,System.Collections.Generic.Dictionary{System.Type,System.Reflection.Emit.LocalBuilder},System.Reflection.Emit.Label)">
+            <summary>
+            当提供的值为该类型的默认值时跳到指定块。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="type">类型</param>
+            <param name="tempLocals">已声明的临时变量集合</param>
+            <param name="label">代码块</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.StoreArgument(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            设置参数值。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="index">参数序号</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.Call(System.Reflection.Emit.ILGenerator,System.Reflection.MethodBase)">
+            <summary>
+            调用方法。
+            </summary>
+            <param name="ilGen">ilGen</param>
+            <param name="methodBase">方法信息</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.ConvertPointer(System.Reflection.Emit.ILGenerator)">
+            <summary>
+            将值转换为指针类型。
+            </summary>
+            <param name="ilGen">ilGen</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.ConvertInt32(System.Reflection.Emit.ILGenerator)">
+            <summary>
+            将值转换为 Int32 类型。
+            </summary>
+            <param name="ilGen">ilGen</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.ConvertInt64(System.Reflection.Emit.ILGenerator)">
+            <summary>
+            将值转换为 Int64 类型。
+            </summary>
+            <param name="ilGen">ilGen</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.Subtract(System.Reflection.Emit.ILGenerator)">
+            <summary>
+            将两个值相减。
+            </summary>
+            <param name="ilGen">ilGen</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.LocalAllocate(System.Reflection.Emit.ILGenerator)">
+            <summary>
+            分配本地内存。
+            </summary>
+            <param name="ilGen">ilGen</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.Return(System.Reflection.Emit.ILGenerator)">
+            <summary>
+            方法返回。
+            </summary>
+            <param name="ilGen">ilGen</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.Switch(System.Reflection.Emit.ILGenerator,System.Action{System.Reflection.Emit.ILGenerator},Swifter.Tools.CaseInfo{System.String}[],System.Reflection.Emit.Label,System.Boolean)">
+            <summary>
+            生成 Switch(String) 代码块。
+            </summary>
+            <param name="iLGen">ILGenerator IL 指令生成器</param>
+            <param name="emitLdcValue">生成加载 Switch 参数的指令的委托</param>
+            <param name="cases">case 标签块集合</param>
+            <param name="defaultLabel">默认标签块</param>
+            <param name="ignoreCase">是否忽略大小写</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.Switch(System.Reflection.Emit.ILGenerator,System.Action{System.Reflection.Emit.ILGenerator},Swifter.Tools.CaseInfo{System.Int32}[],System.Reflection.Emit.Label)">
+            <summary>
+            生成 Switch(int) 代码块。
+            </summary>
+            <param name="iLGen">ILGenerator IL 指令生成器</param>
+            <param name="emitLdcValue">生成加载 Switch 参数的指令的委托</param>
+            <param name="cases">case 标签块集合</param>
+            <param name="defaultLabel">默认标签块</param>
+        </member>
+        <member name="M:Swifter.Tools.EmitHelper.Switch``1(System.Reflection.Emit.ILGenerator,System.Action{System.Reflection.Emit.ILGenerator},System.Reflection.MethodInfo,System.Reflection.MethodInfo,Swifter.Tools.CaseInfo{``0}[],System.Reflection.Emit.Label,System.Action{System.Reflection.Emit.ILGenerator,``0})">
+            <summary>
+            生成指定类型的 Switch 代码块。
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+            <param name="iLGen">ILGenerator IL 指令生成器</param>
+            <param name="emitLdcValue">生成加载 Switch 参数的指令的委托</param>
+            <param name="getHashCodeMethod">获取 HashCode 值的方法，参数签名: int(T)</param>
+            <param name="equalsMethod">比例两个值的方法，参数签名: bool (T, T)</param>
+            <param name="cases">case 标签块集合</param>
+            <param name="defaultLabel">默认标签块</param>
+            <param name="ldcCaseValue">生成加载指定 Case 块值的指定的委托</param>
+        </member>
+        <member name="T:Swifter.Tools.CaseInfo`1">
+            <summary>
+            表示 Switch 的 Case 块
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="F:Swifter.Tools.CaseInfo`1.Value">
+            <summary>
+            获取 Case 块的值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.CaseInfo`1.Label">
+            <summary>
+            获取 Case 块的指令标签。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.CaseInfo`1.HashCode">
+            <summary>
+            获取或设置值的 HashCode 值。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.CaseInfo`1.#ctor(`0,System.Reflection.Emit.Label)">
+            <summary>
+            实例化 Case 块。
+            </summary>
+            <param name="Value">Case 块的值</param>
+            <param name="Label">ase 块的指令标签</param>
+        </member>
+        <member name="M:Swifter.Tools.CaseInfo`1.CompareTo(Swifter.Tools.CaseInfo{`0})">
+            <summary>
+            与另一个 Case 块信息比较 HashCode 的大小。
+            </summary>
+            <param name="other">Case 块信息</param>
+            <returns>返回大于 0 则比它大，小于 0 则比它小，否则一样大</returns>
+        </member>
+        <member name="T:Swifter.Tools.TypeHelper">
+            <summary>
+            提供类型信息的一些方法。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.TypeHelper.DefaultIndexerName">
+            <summary>
+            获取默认索引器的名称。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.OffsetOf(System.Reflection.FieldInfo)">
+            <summary>
+            获取一个字段的偏移量。如果是 Class 的字段则不包括 ObjectHandle 的大小。
+            </summary>
+            <param name="fieldInfo">字段信息</param>
+            <returns>返回偏移量</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.SizeOf(System.Type)">
+            <summary>
+            获取一个类型占用的内存大小。如果是 Class 则不包括 ObjectHandle 的大小。
+            </summary>
+            <param name="type">类型信息</param>
+            <returns>返回内存大小。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.Clone``1(``0)">
+            <summary>
+            克隆一个值或对象。
+            </summary>
+            <typeparam name="T">值或对象的类型</typeparam>
+            <param name="obj">值或对象</param>
+            <returns>返回一个新的值或对象</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.Allocate(System.Type)">
+            <summary>
+            分配一个类型的实例。
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetObjectHandle(System.Object)">
+            <summary>
+            获取实例的 ObjectHandle 值。
+            </summary>
+            <param name="obj">实例</param>
+            <returns>返回 ObjectHandle 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetTypeHandle(System.Object)">
+            <summary>
+            获取实例的 TypeHandle 值。
+            </summary>
+            <param name="obj">实例</param>
+            <returns>返回 ObjectHandle 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetTypeHandle(System.Type)">
+            <summary>
+            获取类型的 TypeHandle 值。
+            </summary>
+            <param name="type">类型信息</param>
+            <returns>返回 TypeHandle 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetObjectHandle(System.Type)">
+            <summary>
+            获取类型的 ObjectHandle 值。
+            </summary>
+            <param name="type">类型信息</param>
+            <returns>返回 ObjectHandle 值。</returns>
+        </member>
+        <member name="P:Swifter.Tools.TypeHelper.ObjectHandleSize">
+            <summary>
+            获取 ObjectHandle 占用的内存大小。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetTypeStaticMemoryAddress(System.Type)">
+            <summary>
+            获取类型的静态内存地址位置。
+            </summary>
+            <param name="type">类型信息</param>
+            <returns>返回内存地址。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetStructAddress(System.Object)">
+            <summary>
+            获取已装箱的值类型实例的结构地址。
+            </summary>
+            <param name="obj">已装箱的值类型实例</param>
+            <returns>返回结构地址</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetStructAddress(System.TypedReference)">
+            <summary>
+            获取引用的结构地址。
+            </summary>
+            <param name="typedRef">引用</param>
+            <returns>返回结构地址</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.IsEmptyValue``1(``0)">
+            <summary>
+            判断一个值是否为空。
+            </summary>
+            <typeparam name="T">值的类型</typeparam>
+            <param name="value">值</param>
+            <returns>返回一个 bool 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.GetBasicType(System.Type)">
+            <summary>
+            获取类型的 BasicTypes 值。
+            </summary>
+            <param name="type">类型信息</param>
+            <returns>返回 BasicTypes 值。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.ParametersCompares(System.Type[],System.Object[])">
+            <summary>
+            比较参数类型集合和参数集合是否兼容。
+            </summary>
+            <param name="parametersTypes">参数类型集合。</param>
+            <param name="inputParameters">参数集合。</param>
+            <returns>返回兼容或不兼容。</returns>
+        </member>
+        <member name="M:Swifter.Tools.TypeHelper.ParametersCompares(System.Type[],System.Type[])">
+            <summary>
+            比较两个参数类型集合是否一致。
+            </summary>
+            <param name="parametersTypes">参数类型集合。</param>
+            <param name="inputParameters">参数类型集合。</param>
+            <returns>返回一致或不一致。</returns>
+        </member>
+        <member name="T:Swifter.Tools.TypeInfo`1">
+            <summary>
+            快速获取泛型类型的信息。
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="F:Swifter.Tools.TypeInfo`1.Int64TypeHandle">
+            <summary>
+            获取 Int64 类型的 TypeHandle。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.TypeInfo`1.BasicType">
+            <summary>
+            获取 BasicTypes 值。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.TypeInfo`1.IsValueType">
+            <summary>
+            判断是否为值类型。
+            </summary>
+        </member>
+        <member name="F:Swifter.Tools.TypeInfo`1.IsInterface">
+            <summary>
+            判断是否为接口。
+            </summary>
+        </member>
+        <member name="T:Swifter.Tools.XConvert">
+            <summary>
+            提供任意类型转换到任意类型的方法。
+            
+            此方法考虑以下方式转换
+            (0) : 内部实现的快速方法。
+            (1) : System.Convert 的方法。
+            (2) : 隐式转换和显式转换方法。
+            (3) : 静态的 Parse 和 ValueOf 方法。
+            (4) : To, Get, get_ 开头并且后续与目标类型名称一致的实例方法。
+            (5) : 目标类型名称一致的实例方法。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.XConvert.Convert``2(``0)">
+            <summary>
+            明确双向类型的转换方法。
+            </summary>
+            <typeparam name="TSource">原类型</typeparam>
+            <typeparam name="TDestination">目标类型</typeparam>
+            <param name="source">值</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="M:Swifter.Tools.XConvert.Convert``1(System.Object)">
+            <summary>
+            明确目标类型的转换方法。
+            </summary>
+            <typeparam name="TDestination">目标类型</typeparam>
+            <param name="source">值</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="M:Swifter.Tools.XConvert.Convert``1(``0,System.Type)">
+            <summary>
+            明确原类型的转换方法。
+            </summary>
+            <typeparam name="TSource">原类型</typeparam>
+            <param name="source">值</param>
+            <param name="type">目标类型</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="M:Swifter.Tools.XConvert.Convert(System.Object,System.Type)">
+            <summary>
+            不明确类型的转换方法。
+            </summary>
+            <param name="source">值</param>
+            <param name="type">目标类型</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="T:Swifter.Tools.XConvert`2">
+            <summary>
+            提供任意类型转换到任意类型的方法。
+            
+            此方法考虑以下方式转换
+            (0) : 内部实现的快速方法。
+            (1) : System.Convert 的方法。
+            (2) : 隐式转换和显式转换方法。
+            (3) : 静态的 Parse 和 ValueOf 方法。
+            (4) : To, Get, get_ 开头并且后续与目标类型名称一致的实例方法。
+            (5) : 目标类型名称一致的实例方法。
+            </summary>
+            <typeparam name="TSource">原类型</typeparam>
+            <typeparam name="TDestination">目标目标</typeparam>
+        </member>
+        <member name="M:Swifter.Tools.XConvert`2.SetConvert(System.Reflection.MethodInfo)">
+            <summary>
+            设置该映射的转换方法。
+            </summary>
+            <param name="methodInfo">转换方法</param>
+        </member>
+        <member name="M:Swifter.Tools.XConvert`2.Convert(`0)">
+            <summary>
+            转换方法。
+            </summary>
+            <param name="source">值</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="M:Swifter.Tools.XConvert`2.Convert(`0@)">
+            <summary>
+            值类型的优先转换方法。
+            </summary>
+            <param name="source">值</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="T:Swifter.Tools.DConvert`1">
+            <summary>
+            明确目标类型的转换类。
+            </summary>
+            <typeparam name="TDestination"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.DConvert`1.Convert(System.Object)">
+            <summary>
+            转换方法。
+            </summary>
+            <param name="obj">值</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="T:Swifter.Tools.SConvert`1">
+            <summary>
+            明确原类型的转换方法。
+            </summary>
+            <typeparam name="TSource"></typeparam>
+        </member>
+        <member name="M:Swifter.Tools.SConvert`1.Convert(`0,System.Type)">
+            <summary>
+            转换方法。
+            </summary>
+            <param name="source">值</param>
+            <param name="type">目标类型</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="T:Swifter.Tools.NConvert">
+            <summary>
+            未知类型的转换类。
+            </summary>
+        </member>
+        <member name="M:Swifter.Tools.NConvert.Convert(System.Object,System.Type)">
+            <summary>
+            转换方法。
+            </summary>
+            <param name="source">值</param>
+            <param name="type">目标类型</param>
+            <returns>返回新值</returns>
+        </member>
+        <member name="T:Swifter.VersionDifferences">
+            <summary>
+            该文档用于解决版本差异性。
+            </summary>
+        </member>
+        <member name="M:Swifter.VersionDifferences.GetTypeHandle(System.Object)">
+            <summary>
+            获取对象的 TypeHandle 值。
+            </summary>
+            <param name="obj">对象</param>
+            <returns>返回一个 IntPtr 值。</returns>
+        </member>
+        <member name="F:Swifter.VersionDifferences.ObjectHandleEqualsTypeHandle">
+            <summary>
+            获取对象 Handle 和 TypeHandle 是否一致。
+            </summary>
+        </member>
+        <member name="F:Swifter.VersionDifferences.AggressiveInlining">
+            <summary>
+            表示该方法尽量内敛。
+            </summary>
+        </member>
+        <member name="M:Swifter.VersionDifferences.DefineDynamicAssembly(System.Reflection.AssemblyName,System.Reflection.Emit.AssemblyBuilderAccess)">
+            <summary>
+            定义动态程序集。
+            </summary>
+            <param name="assName">程序集名称</param>
+            <param name="access">程序集的可访问性</param>
+            <returns>返回动态程序集生成器</returns>
+        </member>
+        <member name="T:Swifter.VirtualViews.ArrayView`1">
+            <summary>
+            数组视图。
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(`0[],System.Int32)">
+            <summary>
+            创建从 0 索引开始具有指定长度的数组的视图。
+            </summary>
+            <param name="array">数组</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个数组视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(`0[],System.Int32,System.Int32)">
+            <summary>
+            创建指定索引和长度的数组的视图。
+            </summary>
+            <param name="array">数组</param>
+            <param name="index">指定索引</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个数组视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(System.Collections.Generic.List{`0},System.Int32)">
+            <summary>
+            创建指定长度的 List 的视图。
+            </summary>
+            <param name="list">List</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个 List 的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(System.Collections.Generic.List{`0},System.Int32,System.Int32)">
+            <summary>
+            创建指定索引和长度的 List 的视图。
+            </summary>
+            <param name="list">List</param>
+            <param name="index">指定索引</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个 List 的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.CreateIndexView(System.Int32)">
+            <summary>
+            创建指定长度的索引的视图。
+            </summary>
+            <param name="length">指定长度</param>
+            <returns>返回一个索引的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.CreateIndexView(System.Int32,System.Int32)">
+            <summary>
+            创建指定索引和长度的索引的视图。
+            </summary>
+            <param name="index">指定索引</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个索引的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(System.Func{System.Int32,`0},System.Int32)">
+            <summary>
+            创建指定长度的索引器的视图。
+            </summary>
+            <param name="getValue">索引器</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个索引器的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(System.Func{System.Int32,`0},System.Int32,System.Int32)">
+            <summary>
+            创建指定索引和长度的索引器的视图。
+            </summary>
+            <param name="getValue">索引器</param>
+            <param name="index">指定索引</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个索引器的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(System.Func{System.Int32,`0},System.Action{System.Int32,`0},System.Int32)">
+            <summary>
+            创建指定长度的索引器的视图。
+            </summary>
+            <param name="getValue">索引器 get 方法</param>
+            <param name="setValue">索引器 set 方法</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个索引器的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Create(System.Func{System.Int32,`0},System.Action{System.Int32,`0},System.Int32,System.Int32)">
+            <summary>
+            创建指定索引和长度的索引器的视图。
+            </summary>
+            <param name="getValue">索引器 get 方法</param>
+            <param name="setValue">索引器 set 方法</param>
+            <param name="index">指定索引</param>
+            <param name="length">指定长度</param>
+            <returns>返回一个索引器的视图</returns>
+        </member>
+        <member name="P:Swifter.VirtualViews.ArrayView`1.Count">
+            <summary>
+            获取该集合的数量。
+            </summary>
+        </member>
+        <member name="P:Swifter.VirtualViews.ArrayView`1.IsReadOnly">
+            <summary>
+            获取该集合是否为只读。
+            </summary>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.#ctor(Swifter.VirtualViews.IArrayViewImpl{`0},System.Int32,System.Int32)">
+            <summary>
+            初始化数组视图。
+            </summary>
+            <param name="viewImpl"></param>
+            <param name="first"></param>
+            <param name="last"></param>
+        </member>
+        <member name="P:Swifter.VirtualViews.ArrayView`1.Item(System.Int32)">
+            <summary>
+            获取或设置索引处的元素。
+            </summary>
+            <param name="index">索引</param>
+            <returns>返回该元素</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Fill(`0)">
+            <summary>
+            填充视图范围内的元素。
+            </summary>
+            <param name="value">元素</param>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Clear">
+            <summary>
+            清空视图范围内的元素。
+            </summary>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Convert``1">
+            <summary>
+            使用 XConvert 转换视图。
+            </summary>
+            <typeparam name="TD">目标元素类型</typeparam>
+            <returns>返回新的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Reverse">
+            <summary>
+            反转视图。
+            </summary>
+            <returns>返回新的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Slice(System.Int32)">
+            <summary>
+            切割视图。
+            </summary>
+            <param name="index">切割索引</param>
+            <returns>返回新的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.Slice(System.Int32,System.Int32)">
+            <summary>
+            切割视图。
+            </summary>
+            <param name="index">切割索引</param>
+            <param name="length">切割长度</param>
+            <returns>返回新的视图</returns>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.CopyTo(`0[],System.Int32)">
+            <summary>
+            将视图元素 Copy 到空间足够的数组中。
+            </summary>
+            <param name="array">数组</param>
+            <param name="arrayIndex">开始写入的位置</param>
+        </member>
+        <member name="M:Swifter.VirtualViews.ArrayView`1.ToArray">
+            <summary>
+            将视图转换为数组。
+            </summary>
+            <returns>返回数组。</returns>
+        </member>
+        <member name="T:Swifter.VirtualViews.IArrayViewImpl`1">
+            <summary>
+            视图数据源实现。
+            </summary>
+            <typeparam name="T">元素类型</typeparam>
+        </member>
+        <member name="P:Swifter.VirtualViews.IArrayViewImpl`1.Item(System.Int32)">
+            <summary>
+            获取或设置索引处的元素。
+            </summary>
+            <param name="index">索引</param>
+            <returns>返回该元素</returns>
+        </member>
+        <member name="P:Swifter.VirtualViews.IArrayViewImpl`1.IsReadOnly">
+            <summary>
+            获取视图是否为只读。
+            </summary>
+        </member>
+        <member name="T:Swifter.VirtualViews.AsEnumerate`2">
+            <summary>
+            元素类型转换迭代器。
+            </summary>
+            <typeparam name="TSource">原元素类型</typeparam>
+            <typeparam name="TDestination">目标元素类型</typeparam>
+        </member>
+        <member name="M:Swifter.VirtualViews.AsEnumerate`2.#ctor(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            创建默认转换的迭代器。
+            </summary>
+            <param name="enumerable">原迭代器</param>
+        </member>
+        <member name="M:Swifter.VirtualViews.AsEnumerate`2.#ctor(System.Collections.Generic.IEnumerable{`0},Swifter.VirtualViews.AsEnumerate{`0,`1}.IAsValue)">
+            <summary>
+            创建指定转换的迭代器。
+            </summary>
+            <param name="enumerable">原迭代器</param>
+            <param name="asValue">转换接口实现</param>
+        </member>
+        <member name="M:Swifter.VirtualViews.AsEnumerate`2.#ctor(System.Collections.Generic.IEnumerable{`0},System.Func{`0,`1})">
+            <summary>
+            创建指定转换的迭代器。
+            </summary>
+            <param name="enumerable">原迭代器</param>
+            <param name="asValue">转换委托</param>
+        </member>
+        <member name="T:Swifter.VirtualViews.AsEnumerate`2.IAsValue">
+            <summary>
+            转换接口。
+            </summary>
+        </member>
+        <member name="M:Swifter.VirtualViews.AsEnumerate`2.IAsValue.AsValue(`0)">
+            <summary>
+            将原元素转换为目标元素的方法。
+            </summary>
+            <param name="source">原元素</param>
+            <returns>返回目标元素</returns>
+        </member>
+        <member name="T:Swifter.VirtualViews.ExtensionMethods">
+            <summary>
+            提供虚拟视图的扩展方法。
+            </summary>
+        </member>
+        <member name="M:Swifter.VirtualViews.ExtensionMethods.CopyTo``1(System.Collections.Generic.IEnumerable{``0},``0[],System.Int32)">
+            <summary>
+            将迭代器中的元素复制到空间足够的数组中。
+            </summary>
+            <typeparam name="TElement">迭代器元素</typeparam>
+            <param name="elements">迭代器</param>
+            <param name="array">空间足够的数组</param>
+            <param name="arrayIndex">开始写入的位置</param>
+        </member>
+        <member name="M:Swifter.VirtualViews.ExtensionMethods.CopyTo(System.Collections.IEnumerable,System.Array,System.Int32)">
+            <summary>
+            将迭代器中的元素复制到空间足够的数组中。
+            </summary>
+            <param name="elements">迭代器</param>
+            <param name="array">空间足够的数组</param>
+            <param name="arrayIndex">开始写入的位置</param>
+        </member>
+        <member name="T:Swifter.Writers.IAsDataWriter">
+            <summary>
+            数据写入器键类型转换的接口。
+            </summary>
+        </member>
+        <member name="T:Swifter.Writers.AsDataWriter`2">
+            <summary>
+            数据写入器键类型转换的类型。
+            </summary>
+            <typeparam name="TIn">输入类型</typeparam>
+            <typeparam name="TOut">输出类型</typeparam>
+        </member>
+        <member name="F:Swifter.Writers.AsDataWriter`2.dataWriter">
+            <summary>
+            原始数据写入器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.AsDataWriter`2.#ctor(Swifter.Writers.IDataWriter{`0})">
+            <summary>
+            创建数据写入器键类型转换类的实例。
+            </summary>
+            <param name="dataWriter">原始数据写入器</param>
+        </member>
+        <member name="P:Swifter.Writers.AsDataWriter`2.Item(`1)">
+            <summary>
+            转换键，并返回该键对应的值写入器。
+            </summary>
+            <param name="key">键</param>
+            <returns>返回值写入器</returns>
+        </member>
+        <member name="P:Swifter.Writers.AsDataWriter`2.Keys">
+            <summary>
+            获取转换后的键集合。
+            </summary>
+        </member>
+        <member name="P:Swifter.Writers.AsDataWriter`2.Count">
+            <summary>
+            获取数据源键的数量。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.AsDataWriter`2.Initialize">
+            <summary>
+            初始化数据源。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.AsDataWriter`2.Initialize(System.Int32)">
+            <summary>
+            初始化具有指定容量的数据源。
+            </summary>
+            <param name="capacity">指定容量</param>
+        </member>
+        <member name="M:Swifter.Writers.AsDataWriter`2.OnWriteValue(`1,Swifter.Readers.IValueReader)">
+            <summary>
+            从值读取器中读取一个值设置到指定键的值中。
+            </summary>
+            <param name="key">指定键</param>
+            <param name="valueReader">值读取器</param>
+        </member>
+        <member name="T:Swifter.Writers.DataFilterWriter`1">
+            <summary>
+            数据筛选的辅助数据写入器。
+            </summary>
+            <typeparam name="TKey"></typeparam>
+        </member>
+        <member name="M:Swifter.Writers.DataFilterWriter`1.#ctor(Swifter.Writers.IDataWriter{`0},Swifter.Readers.IValueFilter{`0})">
+            <summary>
+            初始化辅助数据写入器。
+            </summary>
+            <param name="dataWriter">原始数据写入器</param>
+            <param name="valueFilter">数据筛选器</param>
+        </member>
+        <member name="P:Swifter.Writers.DataFilterWriter`1.Item(`0)">
+            <summary>
+            获取指定键对应的值写入器。
+            </summary>
+            <param name="key">指定键</param>
+            <returns>返回值写入器</returns>
+        </member>
+        <member name="P:Swifter.Writers.DataFilterWriter`1.Keys">
+            <summary>
+            获取原始数据写入器的键集合。
+            </summary>
+        </member>
+        <member name="P:Swifter.Writers.DataFilterWriter`1.Count">
+            <summary>
+            获取原始数据写入器的键的数量。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.DataFilterWriter`1.As``1">
+            <summary>
+            将此数据写入器转换为具有键的类型的具体数据写入器。
+            </summary>
+            <typeparam name="T">键的类型</typeparam>
+            <returns>返回具体数据写入器</returns>
+        </member>
+        <member name="M:Swifter.Writers.DataFilterWriter`1.Initialize">
+            <summary>
+            初始化原始写入器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.DataFilterWriter`1.Initialize(System.Int32)">
+            <summary>
+            初始化具有指定容量的原始写入器。
+            </summary>
+            <param name="capacity">指定容量</param>
+        </member>
+        <member name="M:Swifter.Writers.DataFilterWriter`1.OnWriteValue(`0,Swifter.Readers.IValueReader)">
+            <summary>
+            从值读取器中读取一个值设置到原始写入器的指定键的值中。
+            </summary>
+            <param name="key">指定键</param>
+            <param name="valueReader">值读取器</param>
+        </member>
+        <member name="T:Swifter.Writers.IDataWriter`1">
+            <summary>
+            提供数据的写入方法。
+            </summary>
+            <typeparam name="TKey">键的类型</typeparam>
+        </member>
+        <member name="M:Swifter.Writers.IDataWriter`1.OnWriteValue(`0,Swifter.Readers.IValueReader)">
+            <summary>
+            从值读取器中读取一个值设置到指定键的值中。
+            </summary>
+            <param name="key">指定键</param>
+            <param name="valueReader">值读取器</param>
+        </member>
+        <member name="P:Swifter.Writers.IDataWriter`1.Item(`0)">
+            <summary>
+            获取指定键的值写入器实例。
+            </summary>
+            <param name="key">指定键</param>
+            <returns>返回值写入器实例</returns>
+        </member>
+        <member name="P:Swifter.Writers.IDataWriter`1.Keys">
+            <summary>
+            获取该数据所有的键。
+            </summary>
+        </member>
+        <member name="T:Swifter.Writers.IDataWriter">
+            <summary>
+            表示一个数据写入器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.IDataWriter.Initialize">
+            <summary>
+            初始化数据源。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.IDataWriter.Initialize(System.Int32)">
+            <summary>
+            初始化具有指定容量的数据源。
+            </summary>
+            <param name="capacity">指定容量</param>
+        </member>
+        <member name="P:Swifter.Writers.IDataWriter.Count">
+            <summary>
+            获取数据源键的数量
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.IDataWriter.As``1">
+            <summary>
+            将此数据写入器转换为具有键的类型的具体数据写入器。
+            </summary>
+            <typeparam name="T">键的类型</typeparam>
+            <returns>返回具体数据写入器</returns>
+        </member>
+        <member name="T:Swifter.Writers.ITableWriter">
+            <summary>
+            表格数据写入器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.ITableWriter.Next">
+            <summary>
+            开始写入下一行数据。初始为没有行。
+            </summary>
+        </member>
+        <member name="T:Swifter.Writers.IValueWriter">
+            <summary>
+            基础类型的值写入器。
+            </summary>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteBoolean(System.Boolean)">
+            <summary>
+            写入一个 Boolean 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteByte(System.Byte)">
+            <summary>
+            写入一个 Byte 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteSByte(System.SByte)">
+            <summary>
+            写入一个 SByte 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteInt16(System.Int16)">
+            <summary>
+            写入一个 Int16 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteChar(System.Char)">
+            <summary>
+            写入一个 Char 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteUInt16(System.UInt16)">
+            <summary>
+            写入一个 UInt16 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteInt32(System.Int32)">
+            <summary>
+            写入一个 Int32 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteSingle(System.Single)">
+            <summary>
+            写入一个 Boolean 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteUInt32(System.UInt32)">
+            <summary>
+            写入一个 UInt32 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteInt64(System.Int64)">
+            <summary>
+            写入一个 Int64 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteDouble(System.Double)">
+            <summary>
+            写入一个 Double 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteUInt64(System.UInt64)">
+            <summary>
+            写入一个 UInt64 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteString(System.String)">
+            <summary>
+            写入一个 String 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteDateTime(System.DateTime)">
+            <summary>
+            写入一个 DateTime 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteDecimal(System.Decimal)">
+            <summary>
+            写入一个 Decimal 值
+            </summary>
+            <param name="value">bool 值</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteObject(Swifter.Readers.IDataReader{System.String})">
+            <summary>
+            写入一个对象结构的值
+            </summary>
+            <param name="dataReader">对象结构读取器</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.WriteArray(Swifter.Readers.IDataReader{System.Int32})">
+            <summary>
+            写入一个数组结构的值
+            </summary>
+            <param name="dataReader">数组结构读取器</param>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter.DirectWrite(System.Object)">
+            <summary>
+            直接写入一个对象。
+            </summary>
+            <param name="value">对象 值</param>
+        </member>
+        <member name="T:Swifter.Writers.IValueWriter`1">
+            <summary>
+            指定类型的值写入器
+            </summary>
+            <typeparam name="T">指定类型</typeparam>
+        </member>
+        <member name="M:Swifter.Writers.IValueWriter`1.WriteValue(`0)">
+            <summary>
+            写入该类型的值
+            </summary>
+            <param name="value">值</param>
+        </member>
+        <member name="T:TypeMethods">
+            <summary>
+            提供类型的扩展方法。
+            </summary>
+        </member>
+        <member name="M:TypeMethods.CreateType(System.Reflection.Emit.TypeBuilder)">
+            <summary>
+            类型生成器的 CreateType 扩展方法，返回 TypeInfo。
+            </summary>
+            <param name="typeBuilder">类型生成器</param>
+            <returns>返回一个 TypeInfo。</returns>
+        </member>
+    </members>
+</doc>

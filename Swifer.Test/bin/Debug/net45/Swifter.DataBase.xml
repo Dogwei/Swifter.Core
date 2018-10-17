@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Swifter.DataBase</name>
+    </assembly>
+    <members>
+        <member name="T:Swifter.DataBase.DBHelper">
+            <summary>
+            提供数据库操作的工具方法
+            </summary>
+        </member>
+        <member name="M:Swifter.DataBase.DBHelper.CreateConnection(System.String)">
+            <summary>
+            创建数据库连接。
+            </summary>
+            <param name="providerName">数据库连接的包名</param>
+            <returns>返回一个数据库连接</returns>
+        </member>
+        <member name="M:Swifter.DataBase.DBHelper.CreateConnection(System.String,System.String)">
+            <summary>
+            创建数据库连接。
+            </summary>
+            <param name="providerName">数据库连接的包名</param>
+            <param name="connectionString">连接字符串</param>
+            <returns>返回一个数据库连接</returns>
+        </member>
+        <member name="M:Swifter.DataBase.DBHelper.SetParameters``1(System.Data.Common.DbCommand,``0)">
+            <summary>
+            将指定对象作为参数集合传递给 T-SQL 命令。
+            </summary>
+            <typeparam name="T">参数集合类型</typeparam>
+            <param name="dbCommand">T-SQL 命令</param>
+            <param name="obj">参数集合</param>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,12 @@
+E:\Swifter\Swifter.Json\bin\Release\net40\Swifter.Json.dll
+E:\Swifter\Swifter.Json\bin\Release\net40\Swifter.Json.pdb
+E:\Swifter\Swifter.Json\bin\Release\net40\Swifter.Json.xml
+E:\Swifter\Swifter.Json\bin\Release\net40\Swifter.Core.dll
+E:\Swifter\Swifter.Json\bin\Release\net40\Swifter.Pointer.dll
+E:\Swifter\Swifter.Json\obj\Release\net40\Swifter.Json.csprojAssemblyReference.cache
+E:\Swifter\Swifter.Json\obj\Release\net40\Swifter.Json.csproj.CoreCompileInputs.cache
+E:\Swifter\Swifter.Json\obj\Release\net40\Swifter.Json.AssemblyInfoInputs.cache
+E:\Swifter\Swifter.Json\obj\Release\net40\Swifter.Json.AssemblyInfo.cs
+E:\Swifter\Swifter.Json\obj\Release\net40\Swifter.Json.csproj.CopyComplete
+E:\Swifter\Swifter.Json\obj\Release\net40\Swifter.Json.dll
+E:\Swifter\Swifter.Json\obj\Release\net40\Swifter.Json.pdb

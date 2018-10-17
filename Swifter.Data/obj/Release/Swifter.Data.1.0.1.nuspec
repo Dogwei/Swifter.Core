@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Swifter.Data</id>
+    <version>1.0.1</version>
+    <authors>Dogwei</authors>
+    <owners>Dogwei</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Swifter Database Tools.</description>
+    <dependencies>
+      <group targetFramework=".NETFramework2.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework3.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework3.5">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.0">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.5">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETFramework4.5.1">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETCoreApp2.1">
+        <dependency id="Swifter.Core" version="1.0.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net20\Swifter.Data.dll" target="lib\net20\Swifter.Data.dll" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net20\Swifter.Data.xml" target="lib\net20\Swifter.Data.xml" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net30\Swifter.Data.dll" target="lib\net30\Swifter.Data.dll" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net30\Swifter.Data.xml" target="lib\net30\Swifter.Data.xml" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net35\Swifter.Data.dll" target="lib\net35\Swifter.Data.dll" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net35\Swifter.Data.xml" target="lib\net35\Swifter.Data.xml" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net40\Swifter.Data.dll" target="lib\net40\Swifter.Data.dll" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net40\Swifter.Data.xml" target="lib\net40\Swifter.Data.xml" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net45\Swifter.Data.dll" target="lib\net45\Swifter.Data.dll" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net45\Swifter.Data.xml" target="lib\net45\Swifter.Data.xml" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net451\Swifter.Data.dll" target="lib\net451\Swifter.Data.dll" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\net451\Swifter.Data.xml" target="lib\net451\Swifter.Data.xml" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\netcoreapp2.1\Swifter.Data.dll" target="lib\netcoreapp2.1\Swifter.Data.dll" />
+    <file src="E:\Swifter\Swifter.Data\bin\Release\netcoreapp2.1\Swifter.Data.xml" target="lib\netcoreapp2.1\Swifter.Data.xml" />
+  </files>
+</package>
