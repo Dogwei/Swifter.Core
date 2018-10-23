@@ -2345,11 +2345,11 @@
   "project": {
     "version": "1.0.1",
     "restore": {
-      "projectUniqueName": "E:\\Swifter\\Swifter.Reflection\\Swifter.Reflection.csproj",
+      "projectUniqueName": "E:\\Swifter.Github\\Swifter.Reflection\\Swifter.Reflection.csproj",
       "projectName": "Swifter.Reflection",
-      "projectPath": "E:\\Swifter\\Swifter.Reflection\\Swifter.Reflection.csproj",
+      "projectPath": "E:\\Swifter.Github\\Swifter.Reflection\\Swifter.Reflection.csproj",
       "packagesPath": "C:\\Users\\M\\.nuget\\packages\\",
-      "outputPath": "E:\\Swifter\\Swifter.Reflection\\obj\\",
+      "outputPath": "E:\\Swifter.Github\\Swifter.Reflection\\obj\\",
       "projectStyle": "PackageReference",
       "crossTargeting": true,
       "fallbackFolders": [

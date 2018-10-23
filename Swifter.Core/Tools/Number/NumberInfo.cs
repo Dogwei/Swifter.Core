@@ -19,6 +19,7 @@ namespace Swifter.Tools
 
         internal char* chars;
         internal bool isFloat;
+        internal bool haveFractional;
         internal bool isNegative;
         internal bool exponentIsNegative;
         internal int integerBegin;
@@ -28,6 +29,7 @@ namespace Swifter.Tools
         internal int exponentBegin;
         internal int exponentCount;
         internal byte radix;
+        internal int end;
 
         /// <summary>
         /// 获取该数字是否为浮点数。
@@ -67,7 +69,7 @@ namespace Swifter.Tools
             [MethodImpl(VersionDifferences.AggressiveInlining)]
             get
             {
-                return integerCount > 0 && (!isFloat || fractionalCount > 0) && (exponentBegin == -1 || exponentCount != 0);
+                return integerCount > 0 && (!haveFractional || fractionalCount > 0) && (exponentBegin == -1 || exponentCount != 0);
             }
         }
 
@@ -92,22 +94,7 @@ namespace Swifter.Tools
             [MethodImpl(VersionDifferences.AggressiveInlining)]
             get
             {
-                if (exponentCount != 0)
-                {
-                    return exponentBegin + exponentCount;
-                }
-
-                if (fractionalCount != 0)
-                {
-                    return fractionalBegin + fractionalCount;
-                }
-
-                if (integerCount != 0)
-                {
-                    return integerBegin + integerCount;
-                }
-
-                return 0;
+                return end;
             }
         }
 
@@ -129,7 +116,7 @@ namespace Swifter.Tools
 
                 index += integerCount;
 
-                if (isFloat && fractionalCount != 0)
+                if (haveFractional && fractionalCount != 0)
                 {
                     chars[index] = NumberHelper.DotSign;
 
@@ -175,7 +162,7 @@ namespace Swifter.Tools
             {
                 if (IsNumber)
                 {
-                    return (isNegative ? 1 : 0) + integerCount + ((isFloat && fractionalBegin != -1 && fractionalCount != 0) ? 1 + fractionalCount : 0) + ((exponentBegin != -1 && exponentCount != 0) ? (exponentIsNegative ? 1 : 0) + 1 + exponentCount : 0);
+                    return (isNegative ? 1 : 0) + integerCount + ((haveFractional && fractionalBegin != -1 && fractionalCount != 0) ? 1 + fractionalCount : 0) + ((exponentBegin != -1 && exponentCount != 0) ? (exponentIsNegative ? 1 : 0) + 1 + exponentCount : 0);
                 }
 
                 return NumberHelper.NaNSign.Length;

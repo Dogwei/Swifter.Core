@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Optimize>false</Optimize>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClearScript.V8" Version="5.5.2" />
+    <PackageReference Include="DynamicExpresso.Core" Version="2.1.0" />
+    <PackageReference Include="ExpressionEvaluator" Version="2.0.4" />
+    <PackageReference Include="fastJSON" Version="2.2.0" />
+    <PackageReference Include="JavaScriptEngineSwitcher.V8" Version="3.0.0-rc1" />
+    <PackageReference Include="JavaScriptEngineSwitcher.V8.Native.win-x64" Version="3.0.0-rc1" />
+    <PackageReference Include="Jil" Version="2.16.0" />
+    <PackageReference Include="LitJson" Version="0.13.0" />
+    <PackageReference Include="NetJSON" Version="1.2.7" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="ServiceStack" Version="5.4.0" />
+    <PackageReference Include="Utf8Json" Version="1.3.7" />
+    <PackageReference Include="Swifter.Json" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Swifter.NewScript\Swifter.NewScript.csproj" />
+  </ItemGroup>
+</Project>

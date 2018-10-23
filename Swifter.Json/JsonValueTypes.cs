@@ -10,6 +10,6 @@
         False = 6,
         Null = 7,
         Reference = 8,
-        Undefiend = 0
+        Undefined = 0
     }
 }

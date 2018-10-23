@@ -18,13 +18,13 @@ namespace Swifter.Json
         private readonly JsonFormatterOptions options;
         private readonly char* chars;
 
-        private int begin;
-        private readonly int end;
+        private int index;
+        private readonly int length;
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public JsonDeserializer(char* chars, int begin, int end, JsonFormatterOptions options)
+        public JsonDeserializer(char* chars, int index, int length, JsonFormatterOptions options)
         {
-            if (begin >= end)
+            if (index >= length)
             {
                 throw new ArgumentException("Json text cannot be empty.");
             }
@@ -36,22 +36,22 @@ namespace Swifter.Json
 
             this.options = options;
             this.chars = chars;
-            this.begin = begin;
-            this.end = end;
+            this.index = index;
+            this.length = length;
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         private string InternalReadString()
         {
-            char textChar = chars[begin];
+            char textChar = chars[this.index];
 
             int textLength = 0;
 
-            ++begin;
+            ++this.index;
 
-            int index = begin;
+            int index = this.index;
 
-            while (index < end)
+            while (index < length)
             {
                 if (chars[index] == textChar)
                 {
@@ -59,7 +59,7 @@ namespace Swifter.Json
                 }
                 else if (chars[index] == '\\')
                 {
-                    if (index + 1 < end && chars[index + 1] == 'u')
+                    if (index + 1 < length && chars[index + 1] == 'u')
                     {
                         index += 6;
                     }
@@ -83,11 +83,11 @@ namespace Swifter.Json
             string result;
 
             /* 内容没有转义符，直接截取返回。 */
-            if (index - begin == textLength)
+            if (index - this.index == textLength)
             {
-                result = new string(chars, begin, textLength);
+                result = new string(chars, this.index, textLength);
 
-                begin = index + 1;
+                this.index = index + 1;
 
                 return result;
             }
@@ -96,18 +96,18 @@ namespace Swifter.Json
 
             fixed (char* pResult = result)
             {
-                for (int i = 0; begin < index; ++i, ++begin)
+                for (int i = 0; this.index < index; ++i, ++this.index)
                 {
-                    if (chars[begin] == '\\')
+                    if (chars[this.index] == '\\')
                     {
-                        ++begin;
+                        ++this.index;
 
-                        if (begin >= index)
+                        if (this.index >= index)
                         {
                             throw GetException();
                         }
 
-                        switch (chars[begin])
+                        switch (chars[this.index])
                         {
                             case 'b':
                                 pResult[i] = '\b';
@@ -126,29 +126,29 @@ namespace Swifter.Json
                                 break;
                             case 'u':
 
-                                if (begin + 4 >= index)
+                                if (this.index + 4 >= index)
                                 {
                                     throw GetException();
                                 }
 
-                                pResult[i] = (char)((GetDigital(chars[begin + 1]) << 12) | (GetDigital(chars[begin + 2]) << 8) | (GetDigital(chars[begin + 3]) << 4) | (GetDigital(chars[begin + 4])));
+                                pResult[i] = (char)((GetDigital(chars[this.index + 1]) << 12) | (GetDigital(chars[this.index + 2]) << 8) | (GetDigital(chars[this.index + 3]) << 4) | (GetDigital(chars[this.index + 4])));
 
-                                begin += 4;
+                                this.index += 4;
 
                                 break;
                             default:
-                                pResult[i] = chars[begin];
+                                pResult[i] = chars[this.index];
                                 break;
                         }
                     }
                     else
                     {
-                        pResult[i] = chars[begin];
+                        pResult[i] = chars[this.index];
                     }
                 }
             }
 
-            ++begin;
+            ++this.index;
 
             return result;
         }
@@ -177,11 +177,11 @@ namespace Swifter.Json
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         private double InternalReadDouble()
         {
-            var index = NumberHelper.Decimal.TryParse(chars + begin, end - begin, out double r);
+            var index = NumberHelper.Decimal.TryParse(chars + this.index, length - this.index, out double r);
 
             if (index != 0)
             {
-                begin += index;
+                this.index += index;
 
                 return r;
             }
@@ -192,11 +192,11 @@ namespace Swifter.Json
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         private Exception GetException()
         {
-            var begin = this.begin;
+            var begin = this.index;
 
-            if (begin >= end)
+            if (begin >= length)
             {
-                begin = end - 1;
+                begin = length - 1;
             }
 
             int line = 1;
@@ -228,7 +228,7 @@ namespace Swifter.Json
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public JsonValueTypes GetValueType()
         {
-            switch (chars[begin])
+            switch (chars[index])
             {
                 case '"':
                 case '\'':
@@ -239,35 +239,35 @@ namespace Swifter.Json
                     return JsonValueTypes.Array;
                 case 't':
                 case 'T':
-                    if (StringHelper.IgnoreCaseEquals(chars, begin, end, "TRUE"))
+                    if (StringHelper.IgnoreCaseEquals(chars, index, length, "TRUE"))
                     {
                         return JsonValueTypes.True;
                     }
                     break;
                 case 'f':
                 case 'F':
-                    if (StringHelper.IgnoreCaseEquals(chars, begin, end, "FALSE"))
+                    if (StringHelper.IgnoreCaseEquals(chars, index, length, "FALSE"))
                     {
                         return JsonValueTypes.False;
                     }
                     break;
                 case 'n':
                 case 'N':
-                    if (StringHelper.IgnoreCaseEquals(chars, begin, end, "NULL"))
+                    if (StringHelper.IgnoreCaseEquals(chars, index, length, "NULL"))
                     {
                         return JsonValueTypes.Null;
                     }
                     break;
                 case 'u':
                 case 'U':
-                    if (StringHelper.IgnoreCaseEquals(chars, begin, end, "UNDEFINED"))
+                    if (StringHelper.IgnoreCaseEquals(chars, index, length, "UNDEFINED"))
                     {
-                        return JsonValueTypes.Undefiend;
+                        return JsonValueTypes.Undefined;
                     }
                     break;
                 case 'r':
                 case 'R':
-                    if (StringHelper.IgnoreCaseEquals(chars, begin, end, "REF_"))
+                    if (StringHelper.IgnoreCaseEquals(chars, index, length, "REF_"))
                     {
                         return JsonValueTypes.Reference;
                     }
@@ -294,11 +294,11 @@ namespace Swifter.Json
         public long ReadInt64()
         {
             //var index = NumberHelper.Decimal.TryParse(chars + begin, end - begin, out long r); // Faster.
-            var index = NumberHelper.Decimal.TryParseExp(chars + begin, end - begin, out long r); // JSON Standard.
+            var index = NumberHelper.Decimal.TryParseExp(chars + this.index, length - this.index, out long r); // JSON Standard.
 
             if (index != 0)
             {
-                begin += index;
+                this.index += index;
 
                 return r;
             }
@@ -312,15 +312,15 @@ namespace Swifter.Json
                 case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
-                    begin += 4;
+                    this.index += 4;
                     return 1;
                 case JsonValueTypes.False:
-                    begin += 5;
+                    this.index += 5;
                     return 0;
                 case JsonValueTypes.Null:
                     throw new InvalidCastException("Cannot convert NULL to Number.");
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    this.index += 9;
                     return 0;
             }
 
@@ -339,15 +339,15 @@ namespace Swifter.Json
                 case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
-                    begin += 4;
+                    index += 4;
                     return 1;
                 case JsonValueTypes.False:
-                    begin += 5;
+                    index += 5;
                     return 0;
                 case JsonValueTypes.Null:
                     throw new InvalidCastException("Cannot convert NULL to Number.");
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    index += 9;
                     return 0;
             }
 
@@ -365,25 +365,25 @@ namespace Swifter.Json
                 case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to String.");
                 case JsonValueTypes.True:
-                    begin += 4;
+                    this.index += 4;
                     return "true";
                 case JsonValueTypes.False:
-                    begin += 5;
+                    this.index += 5;
                     return "false";
                 case JsonValueTypes.Null:
-                    begin += 4;
+                    this.index += 4;
                     return null;
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    this.index += 9;
                     return null;
             }
 
             return InternalReadString();
             Number:
 
-            int index = begin;
+            int index = this.index;
 
-            while (index < end)
+            while (index < length)
             {
                 switch (chars[index])
                 {
@@ -411,9 +411,9 @@ namespace Swifter.Json
             }
 
             Return:
-            var r = new string(chars, begin, index - begin);
+            var r = new string(chars, this.index, index - this.index);
 
-            begin = index;
+            this.index = index;
 
             return r;
         }
@@ -431,19 +431,19 @@ namespace Swifter.Json
                 case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Boolean.");
                 case JsonValueTypes.True:
-                    begin += 4;
+                    index += 4;
 
                     return true;
                 case JsonValueTypes.False:
-                    begin += 5;
+                    index += 5;
 
                     return false;
                 case JsonValueTypes.Null:
-                    begin += 4;
+                    index += 4;
 
                     return false;
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    index += 9;
 
                     return false;
             }
@@ -475,19 +475,19 @@ namespace Swifter.Json
                 case JsonValueTypes.False:
                     throw new InvalidCastException("Cannot convert Boolean to DateTime.");
                 case JsonValueTypes.Null:
-                case JsonValueTypes.Undefiend:
+                case JsonValueTypes.Undefined:
                     throw new InvalidCastException("Cannot convert Null to DateTime.");
             }
 
-            char textChar = chars[begin];
+            char textChar = chars[this.index];
 
             int textLength = 0;
 
-            int index = begin + 1;
+            int index = this.index + 1;
 
             int right = index;
 
-            while (right < end)
+            while (right < length)
             {
                 if (chars[right] == textChar)
                 {
@@ -509,14 +509,14 @@ namespace Swifter.Json
 
             if (DateTimeHelper.TryParseISODateTime(chars + index, right - index, out result))
             {
-                begin = right + 1;
+                this.index = right + 1;
 
                 return result;
             }
 
             result = DateTime.Parse(new string(chars, index, right - index));
 
-            begin = right + 1;
+            this.index = right + 1;
 
             return result;
 
@@ -529,11 +529,11 @@ namespace Swifter.Json
 
         public decimal ReadDecimal()
         {
-            var index = NumberHelper.TryParse(chars + begin, end - begin, out decimal r);
+            var index = NumberHelper.TryParse(chars + this.index, length - this.index, out decimal r);
 
             if (index != 0)
             {
-                begin += index;
+                this.index += index;
 
                 return r;
             }
@@ -547,16 +547,16 @@ namespace Swifter.Json
                 case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
-                    begin += 4;
+                    this.index += 4;
                     return 1;
                 case JsonValueTypes.False:
-                    begin += 5;
+                    this.index += 5;
                     return 0;
                 case JsonValueTypes.Null:
-                    begin += 4;
+                    this.index += 4;
                     return 0;
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    this.index += 9;
                     return 0;
             }
 
@@ -596,11 +596,11 @@ namespace Swifter.Json
         public ulong ReadUInt64()
         {
             // var index = NumberHelper.Decimal.TryParse(chars + begin, end - begin, out ulong r); // Faster.
-            var index = NumberHelper.Decimal.TryParseExp(chars + begin, end - begin, out ulong r); // JSON Standard.
+            var index = NumberHelper.Decimal.TryParseExp(chars + this.index, length - this.index, out ulong r); // JSON Standard.
 
             if (index != 0)
             {
-                begin += index;
+                this.index += index;
 
                 return r;
             }
@@ -614,15 +614,15 @@ namespace Swifter.Json
                 case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
-                    begin += 4;
+                    this.index += 4;
                     return 1;
                 case JsonValueTypes.False:
-                    begin += 5;
+                    this.index += 5;
                     return 0;
                 case JsonValueTypes.Null:
                     throw new InvalidCastException("Cannot convert NULL to Number.");
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    this.index += 9;
                     return 0;
             }
 
@@ -645,26 +645,26 @@ namespace Swifter.Json
                     throw new InvalidCastException("Cannot convert Boolean to object.");
                 case JsonValueTypes.Null:
                     /* 空对象直接返回 */
-                    begin += 4;
+                    index += 4;
                     return;
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    index += 9;
                     return;
                 case JsonValueTypes.Reference:
                     ReadReference(valueWriter);
                     return;
             }
 
-            while (begin < end)
+            while (index < length)
             {
-                switch (chars[begin])
+                switch (chars[index])
                 {
 
                     case ' ':
                     case '\n':
                     case '\r':
                     case '\t':
-                        ++begin;
+                        ++index;
 
                         continue;
                     case '{':
@@ -676,17 +676,17 @@ namespace Swifter.Json
                         goto case ',';
                     case '}':
                         EndCase:
-                        ++begin;
+                        ++index;
 
                         goto ReturnValue;
                     case ',':
 
                         Loop:
-                        ++begin;
+                        ++index;
 
-                        if (begin < end)
+                        if (index < length)
                         {
-                            char c = chars[begin];
+                            char c = chars[index];
 
                             string name;
 
@@ -705,13 +705,13 @@ namespace Swifter.Json
                                 case '\'':
                                     name = InternalReadString();
 
-                                    flag = StringHelper.IndexOf(chars, ':', begin, end);
+                                    flag = StringHelper.IndexOf(chars, ':', index, length);
 
                                     break;
                                 default:
-                                    flag = StringHelper.IndexOf(chars, ':', begin, end);
+                                    flag = StringHelper.IndexOf(chars, ':', index, length);
 
-                                    name = StringHelper.Trim(chars, begin, flag);
+                                    name = StringHelper.Trim(chars, index, flag);
 
                                     break;
 
@@ -722,17 +722,17 @@ namespace Swifter.Json
                                 throw GetException();
                             }
 
-                            begin = flag + 1;
+                            index = flag + 1;
 
-                            while (begin < end)
+                            while (index < length)
                             {
-                                switch (chars[begin])
+                                switch (chars[index])
                                 {
                                     case ' ':
                                     case '\n':
                                     case '\r':
                                     case '\t':
-                                        ++begin;
+                                        ++index;
                                         continue;
                                     default:
                                         goto ReadValue;
@@ -777,10 +777,10 @@ namespace Swifter.Json
                     throw new InvalidCastException("Cannot convert Boolean to array.");
                 case JsonValueTypes.Null:
                     /* 空对象直接返回 */
-                    begin += 4;
+                    this.index += 4;
                     return;
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    this.index += 9;
                     return;
                 case JsonValueTypes.Reference:
                     ReadReference(valueWriter);
@@ -789,16 +789,16 @@ namespace Swifter.Json
 
             int index = 0;
 
-            while (begin < end)
+            while (this.index < length)
             {
-                switch (chars[begin])
+                switch (chars[this.index])
                 {
                     case ' ':
                     case '\n':
                     case '\r':
                     case '\t':
 
-                        ++begin;
+                        ++this.index;
 
                         continue;
 
@@ -812,23 +812,23 @@ namespace Swifter.Json
 
                     case ']':
                         EndCase:
-                        ++begin;
+                        ++this.index;
 
                         goto ReturnValue;
 
                     case ',':
 
-                        ++begin;
+                        ++this.index;
 
-                        while (begin < end)
+                        while (this.index < length)
                         {
-                            switch (chars[begin])
+                            switch (chars[this.index])
                             {
                                 case ' ':
                                 case '\n':
                                 case '\r':
                                 case '\t':
-                                    ++begin;
+                                    ++this.index;
                                     continue;
                                 case ']':
                                     goto EndCase;
@@ -871,24 +871,24 @@ namespace Swifter.Json
                 case JsonValueTypes.Reference:
                     return ReadReference();
                 case JsonValueTypes.True:
-                    begin += 4;
+                    index += 4;
                     return true;
                 case JsonValueTypes.False:
-                    begin += 5;
+                    index += 5;
                     return false;
                 case JsonValueTypes.Null:
-                    begin += 4;
+                    index += 4;
                     return null;
-                case JsonValueTypes.Undefiend:
-                    begin += 9;
+                case JsonValueTypes.Undefined:
+                    index += 9;
                     return null;
                 case JsonValueTypes.Number:
 
-                    var numberInfo = NumberHelper.Decimal.GetNumberInfo(chars + begin, end - begin);
+                    var numberInfo = NumberHelper.Decimal.GetNumberInfo(chars + index, length - index);
 
                     if (numberInfo.IsNumber)
                     {
-                        begin += numberInfo.End;
+                        index += numberInfo.End;
 
                         if (numberInfo.HaveExponent)
                         {
@@ -960,7 +960,7 @@ namespace Swifter.Json
         {
             if ((options & JsonFormatterOptions.MultiReferencingReference) != 0)
             {
-                begin += 4;
+                index += 4;
 
                 var objectId = ReadInt32();
 
@@ -1021,11 +1021,11 @@ namespace Swifter.Json
                 case JsonValueTypes.False:
                     throw new InvalidCastException("Cannot convert Boolean to Guid.");
                 case JsonValueTypes.Null:
-                case JsonValueTypes.Undefiend:
+                case JsonValueTypes.Undefined:
                     throw new InvalidCastException("Cannot convert Null to Guid.");
             }
 
-            var index = begin;
+            var index = this.index;
 
             var textChar = chars[index];
 
@@ -1033,15 +1033,15 @@ namespace Swifter.Json
 
             Guid r;
 
-            index = NumberHelper.TryParse(chars + index, end, out r);
+            index = NumberHelper.TryParse(chars + index, length, out r);
 
             if (index >= 32)
             {
-                begin += index + 1;
+                this.index += index + 1;
 
-                if (chars[begin] == textChar)
+                if (chars[this.index] == textChar)
                 {
-                    ++begin;
+                    ++this.index;
                 }
 
 

@@ -3649,6 +3649,7 @@ namespace Swifter.Tools
 
                     if (fractionalCount != 0)
                     {
+
                         for (int fractionalRight = fractionalBegin + fractionalCount - 1; fractionalRight >= 0; --fractionalRight)
                         {
                             if (chars[fractionalRight] != DigitalsZeroValue)
@@ -3659,7 +3660,7 @@ namespace Swifter.Tools
                             --fractionalCount;
                         }
 
-                        r.isFloat = fractionalCount != 0;
+                        r.haveFractional = fractionalCount != 0;
                         r.fractionalBegin = fractionalBegin;
                         r.fractionalCount = fractionalCount;
                     }
@@ -3724,6 +3725,8 @@ namespace Swifter.Tools
                         }
                     }
                 }
+
+                r.end = index;
             }
 
             return r;

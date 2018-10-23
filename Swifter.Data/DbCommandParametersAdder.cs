@@ -53,6 +53,11 @@ namespace Swifter.Data
         {
             var item = dbCommand.CreateParameter();
 
+            if (value == null)
+            {
+                value = DBNull.Value;
+            }
+
             item.ParameterName = name;
             item.Value = value;
 
