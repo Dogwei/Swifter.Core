@@ -15,7 +15,7 @@ namespace Swifter.Data
         /// <summary>
         /// 默认命令超时时间。
         /// </summary>
-        public const int CommandTimeout = 30;
+        private const int CommandTimeout = 30;
 
 
 
@@ -49,7 +49,7 @@ namespace Swifter.Data
         {
             DbProviderFactory = DbHelper.GetProviderFactory(providerName);
 
-            this.DbConnectionString = dbConnectionString;
+            DbConnectionString = dbConnectionString;
         }
 
         /// <summary>
@@ -76,7 +76,17 @@ namespace Swifter.Data
             return OpenConnection().BeginTransaction();
         }
 
-        private DbCommand CreateCommand<T>(string sql, T parameters, DbTransaction dbTransaction, int commandTimeout, CommandType commandType)
+        /// <summary>
+        /// 创建一个命令
+        /// </summary>
+        /// <typeparam name="T">参数类型</typeparam>
+        /// <param name="sql">SQL 代码</param>
+        /// <param name="parameters">参数</param>
+        /// <param name="dbTransaction">事务</param>
+        /// <param name="commandTimeout">超时时间（秒）</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns>返回一个命令</returns>
+        public DbCommand CreateCommand<T>(string sql, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbConnection = dbTransaction?.Connection;
 
@@ -97,48 +107,84 @@ namespace Swifter.Data
 
             if (parameters != null)
             {
-                DbHelper.SetParameters(dbCommand, parameters);
+                dbCommand.SetParameters(parameters);
             }
 
             return dbCommand;
         }
 
+        /// <summary>
+        /// 创建一个命令
+        /// </summary>
+        /// <param name="sql">SQL 代码</param>
+        /// <param name="dbTransaction">事务</param>
+        /// <param name="commandTimeout">超时时间（秒）</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns>返回一个命令</returns>
+        public DbCommand CreateCommand(string sql, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        {
+            return CreateCommand<object>(sql, null, dbTransaction, commandTimeout, commandType);
+        }
+
         private T ReadScalar<T>(DbDataReader dbDataReader)
         {
-            using (dbDataReader)
+            if (typeof(T).IsAssignableFrom(dbDataReader.GetFieldType(0)))
             {
-                if (typeof(T).IsAssignableFrom(dbDataReader.GetFieldType(0)))
+                if (dbDataReader.Read())
                 {
-                    if (dbDataReader.Read())
-                    {
-                        return (T)dbDataReader[0];
-                    }
-
-                    return default(T);
-                }
-
-                var overrideDbDataReader = new OverrideDbDataReader(dbDataReader);
-
-                var dataWriter = RWHelper.CreateWriter<T>();
-
-                dataWriter.Initialize();
-
-                if (dataWriter is IDataWriter<int>)
-                {
-                    RWHelper.Copy(overrideDbDataReader, dataWriter);
-
-                    return RWHelper.GetContent<T>(dataWriter);
-                }
-
-                if (overrideDbDataReader.Read())
-                {
-                    RWHelper.Copy((IDataReader<string>)overrideDbDataReader, dataWriter);
-
-                    return RWHelper.GetContent<T>(dataWriter);
+                    return (T)dbDataReader[0];
                 }
 
                 return default(T);
             }
+
+            var overrideDbDataReader = new OverrideDbDataReader(dbDataReader);
+
+            var dataWriter = RWHelper.CreateWriter<T>();
+
+            dataWriter.Initialize();
+
+            if (dataWriter is IDataWriter<int>)
+            {
+                RWHelper.Copy(overrideDbDataReader, dataWriter);
+
+                return RWHelper.GetContent<T>(dataWriter);
+            }
+
+            if (overrideDbDataReader.Read())
+            {
+                RWHelper.Copy((IDataReader<string>)overrideDbDataReader, dataWriter);
+
+                return RWHelper.GetContent<T>(dataWriter);
+            }
+
+            return default(T);
+        }
+
+        private Tuple<T1, T2> ReadScalar<T1, T2>(DbDataReader dbDataReader)
+        {
+            var item1 = ReadScalar<T1>(dbDataReader);
+
+            dbDataReader.NextResult();
+
+            var item2 = ReadScalar<T2>(dbDataReader);
+
+            return new Tuple<T1, T2>(item1, item2);
+        }
+
+        private Tuple<T1, T2, T3> ReadScalar<T1, T2, T3>(DbDataReader dbDataReader)
+        {
+            var item1 = ReadScalar<T1>(dbDataReader);
+
+            dbDataReader.NextResult();
+
+            var item2 = ReadScalar<T2>(dbDataReader);
+
+            dbDataReader.NextResult();
+
+            var item3 = ReadScalar<T3>(dbDataReader);
+
+            return new Tuple<T1, T2, T3>(item1, item2, item3);
         }
 
         /// <summary>
@@ -176,6 +222,7 @@ namespace Swifter.Data
             return ExecuteReader(sql, (object)null, dbTransaction, commandTimeout, commandType);
         }
 
+
         /// <summary>
         /// 执行一条查询语句，并返回指定类型的结果。
         /// 如果返回值类型等于结果集的第一行第一列的值的类型，则返回第一行第一列的值，
@@ -183,64 +230,105 @@ namespace Swifter.Data
         /// 否则返回第一行的数据对象。
         /// </summary>
         /// <typeparam name="T">返回值类型</typeparam>
-        /// <typeparam name="TParameters">参数类型</typeparam>
         /// <param name="sql">SQL 代码</param>
         /// <param name="parameters">参数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回指定类型的值</returns>
-        public T ExecuteScalar<T, TParameters>(string sql, TParameters parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        public T ExecuteScalar<T>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
 
             if (dbTransaction != null)
             {
-                return ReadScalar<T>(dbCommand.ExecuteReader());
+                using (var dataReader = dbCommand.ExecuteReader())
+                {
+                    return ReadScalar<T>(dataReader);
+                }
             }
 
             using (dbCommand.Connection)
             {
                 using (dbCommand)
                 {
-                    return ReadScalar<T>(dbCommand.ExecuteReader());
+                    using (var dataReader = dbCommand.ExecuteReader())
+                    {
+                        return ReadScalar<T>(dataReader);
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// 执行一条查询语句，并返回指定类型的结果。
-        /// 如果返回值类型等于结果集的第一行第一列的值的类型，则返回第一行第一列的值，
-        /// 如果返回值类型是一个集合，则返回所有行的数据。
-        /// 否则返回第一行的数据对象。
+        /// 执行一个 T-SQL 代码，并返回两个表的返回值。
         /// </summary>
-        /// <typeparam name="T">返回值类型</typeparam>
-        /// <param name="sql">SQL 代码</param>
+        /// <typeparam name="T1">表 1 返回值类型</typeparam>
+        /// <typeparam name="T2">表 2 返回值类型</typeparam>
+        /// <param name="sql">T-SQL 代码</param>
         /// <param name="parameters">参数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
-        /// <returns>返回指定类型的值</returns>
-        public T ExecuteScalar<T>(string sql, object parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        /// <returns>返回一个元组</returns>
+        public Tuple<T1, T2> ExecuteScalar<T1, T2>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            return ExecuteScalar<T, object>(sql, parameters, dbTransaction, commandTimeout, commandType);
+            var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
+
+            if (dbTransaction != null)
+            {
+                using (var dataReader = dbCommand.ExecuteReader())
+                {
+                    return ReadScalar<T1, T2>(dataReader);
+                }
+            }
+
+            using (dbCommand.Connection)
+            {
+                using (dbCommand)
+                {
+                    using (var dataReader = dbCommand.ExecuteReader())
+                    {
+                        return ReadScalar<T1, T2>(dataReader);
+                    }
+                }
+            }
         }
 
         /// <summary>
-        /// 执行一条查询语句，并返回指定类型的结果。
-        /// 如果返回值类型等于结果集的第一行第一列的值的类型，则返回第一行第一列的值，
-        /// 如果返回值类型是一个集合，则返回所有行的数据。
-        /// 否则返回第一行的数据对象。
+        /// 执行一个 T-SQL 代码，并返回两个表的返回值。
         /// </summary>
-        /// <typeparam name="T">返回值类型</typeparam>
-        /// <param name="sql">SQL 代码</param>
+        /// <typeparam name="T1">表 1 返回值类型</typeparam>
+        /// <typeparam name="T2">表 2 返回值类型</typeparam>
+        /// <typeparam name="T3">表 3 返回值类型</typeparam>
+        /// <param name="sql">T-SQL 代码</param>
+        /// <param name="parameters">参数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
-        /// <returns>返回指定类型的值</returns>
-        public T ExecuteScalar<T>(string sql, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        /// <returns>返回一个元组</returns>
+        public Tuple<T1, T2, T3> ExecuteScalar<T1, T2, T3>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            return ExecuteScalar<T, object>(sql, null, dbTransaction, commandTimeout, commandType);
+            var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
+
+            if (dbTransaction != null)
+            {
+                using (var dataReader = dbCommand.ExecuteReader())
+                {
+                    return ReadScalar<T1, T2, T3>(dataReader);
+                }
+            }
+
+            using (dbCommand.Connection)
+            {
+                using (dbCommand)
+                {
+                    using (var dataReader = dbCommand.ExecuteReader())
+                    {
+                        return ReadScalar<T1, T2, T3>(dataReader);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -272,7 +360,7 @@ namespace Swifter.Data
         {
             return ExecuteNonQuery(sql, (object)null, dbTransaction, commandTimeout, commandType);
         }
-        
+
         /// <summary>
         /// 异步执行一条查询语句。
         /// </summary>
@@ -283,7 +371,7 @@ namespace Swifter.Data
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
-        public void ExecuteReaderAsync<T>(string sql, T parameters, Action<Exception, DbDataReader> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        public void ExecuteReaderAsync<T>(string sql, Action<Exception, DbDataReader> asyncCallback, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             StartTask(() =>
             {
@@ -328,24 +416,23 @@ namespace Swifter.Data
         /// <param name="commandType">命令类型</param>
         public void ExecuteReaderAsync(string sql, Action<Exception, DbDataReader> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            ExecuteReaderAsync(sql,(object)null, asyncCallback, dbTransaction, commandTimeout, commandType);
+            ExecuteReaderAsync(sql, asyncCallback, (object)null, dbTransaction, commandTimeout, commandType);
         }
 
         /// <summary>
-        /// 执行一条查询语句，并返回指定类型的结果。
+        /// 异步执行一条查询语句，并返回指定类型的结果。
         /// 如果返回值类型等于结果集的第一行第一列的值的类型，则返回第一行第一列的值，
         /// 如果返回值类型是一个集合，则返回所有行的数据。
         /// 否则返回第一行的数据对象。
         /// </summary>
         /// <typeparam name="T">返回值类型</typeparam>
-        /// <typeparam name="TParameters">参数类型</typeparam>
         /// <param name="sql">SQL 语句</param>
         /// <param name="parameters">参数</param>
         /// <param name="asyncCallback">回调函数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
-        public void ExecuteScalarAsync<T, TParameters>(string sql, TParameters parameters, Action<Exception, T> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        public void ExecuteScalarAsync<T>(string sql, Action<Exception, T> asyncCallback, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             StartTask(() =>
             {
@@ -354,7 +441,7 @@ namespace Swifter.Data
 
                 try
                 {
-                    result = ExecuteScalar<T, TParameters>(sql, parameters, dbTransaction, commandTimeout, commandType);
+                    result = ExecuteScalar<T>(sql, parameters, dbTransaction, commandTimeout, commandType);
                 }
                 catch (Exception e)
                 {
@@ -368,40 +455,75 @@ namespace Swifter.Data
         }
 
         /// <summary>
-        /// 异步执行一条查询语句，并返回指定类型的结果。
-        /// 如果返回值类型等于结果集的第一行第一列的值的类型，则返回第一行第一列的值，
-        /// 如果返回值类型是一个集合，则返回所有行的数据。
-        /// 否则返回第一行的数据对象。
+        /// 异步执行一个 T-SQL 代码，并返回两个表的返回值。
         /// </summary>
-        /// <typeparam name="T">返回值类型</typeparam>
-        /// <param name="sql">SQL 语句</param>
+        /// <typeparam name="T1">表 1 返回值类型</typeparam>
+        /// <typeparam name="T2">表 2 返回值类型</typeparam>
+        /// <param name="sql">T-SQL 代码</param>
         /// <param name="parameters">参数</param>
         /// <param name="asyncCallback">回调函数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
-        public void ExecuteScalarAsync<T>(string sql, object parameters, Action<Exception, T> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        public void ExecuteScalarAsync<T1, T2>(string sql, Action<Exception, T1, T2> asyncCallback, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            ExecuteScalarAsync<T, object>(sql, parameters, asyncCallback, dbTransaction, commandTimeout, commandType);
+            StartTask(() =>
+            {
+                Exception exception = null;
+
+                var tuple = new Tuple<T1, T2>(default(T1), default(T2));
+
+                try
+                {
+                    tuple = ExecuteScalar<T1, T2>(sql, parameters, dbTransaction, commandTimeout, commandType);
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                }
+                finally
+                {
+                    asyncCallback(exception, tuple.Item1, tuple.Item2);
+                }
+            });
         }
 
         /// <summary>
-        /// 异步执行一条查询语句，并返回指定类型的结果。
-        /// 如果返回值类型等于结果集的第一行第一列的值的类型，则返回第一行第一列的值，
-        /// 如果返回值类型是一个集合，则返回所有行的数据。
-        /// 否则返回第一行的数据对象。
+        /// 异步执行一个 T-SQL 代码，并返回两个表的返回值。
         /// </summary>
-        /// <typeparam name="T">返回值类型</typeparam>
-        /// <param name="sql">SQL 语句</param>
+        /// <typeparam name="T1">表 1 返回值类型</typeparam>
+        /// <typeparam name="T2">表 2 返回值类型</typeparam>
+        /// <typeparam name="T3">表 3 返回值类型</typeparam>
+        /// <param name="sql">T-SQL 代码</param>
+        /// <param name="parameters">参数</param>
         /// <param name="asyncCallback">回调函数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
-        public void ExecuteScalarAsync<T>(string sql, Action<Exception, T> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        /// <returns>返回一个元组</returns>
+        public void ExecuteScalarAsync<T1, T2, T3>(string sql, Action<Exception, T1, T2, T3> asyncCallback, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            ExecuteScalarAsync<T, object>(sql, null, asyncCallback, dbTransaction, commandTimeout, commandType);
-        }
+            StartTask(() =>
+            {
+                Exception exception = null;
 
+                var tuple = new Tuple<T1, T2, T3>(default(T1), default(T2), default(T3));
+
+                try
+                {
+                    tuple = ExecuteScalar<T1, T2, T3>(sql, parameters, dbTransaction, commandTimeout, commandType);
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                }
+                finally
+                {
+                    asyncCallback(exception, tuple.Item1, tuple.Item2, tuple.Item3);
+                }
+            });
+        }
+        
         /// <summary>
         /// 异步执行一条非查询语句。
         /// </summary>
@@ -413,7 +535,7 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回受影响行数</returns>
-        public void ExecuteNonQueryAsync<T>(string sql, T parameters, Action<Exception, int> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        public void ExecuteNonQueryAsync<T>(string sql, Action<Exception, int> asyncCallback, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             StartTask(() =>
             {
@@ -446,7 +568,7 @@ namespace Swifter.Data
         /// <returns>返回受影响行数</returns>
         public void ExecuteNonQueryAsync(string sql, Action<Exception, int> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            ExecuteNonQueryAsync(sql, (object)null, asyncCallback, dbTransaction, commandTimeout, commandType);
+            ExecuteNonQueryAsync(sql, asyncCallback, (object)null, dbTransaction, commandTimeout, commandType);
         }
     }
 }

@@ -410,7 +410,7 @@ namespace Swifter.RW
             return dataRW.ToString() + "[\"" + key + "\"]";
         }
     }
-
+    
     /// <summary>
     /// 值暂存器。
     /// </summary>

@@ -164,5 +164,50 @@ namespace Swifter.Data
         {
             return dbDataReader.Read();
         }
+
+        public override int VisibleFieldCount => dbDataReader.VisibleFieldCount;
+
+        public override string ToString()
+        {
+            return dbDataReader.ToString();
+        }
+        
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Close();
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return dbDataReader.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return dbDataReader.GetHashCode();
+        }
+
+        public override Type GetProviderSpecificFieldType(int ordinal)
+        {
+            return dbDataReader.GetProviderSpecificFieldType(ordinal);
+        }
+
+        public override object GetProviderSpecificValue(int ordinal)
+        {
+            return dbDataReader.GetProviderSpecificValue(ordinal);
+        }
+
+        public override int GetProviderSpecificValues(object[] values)
+        {
+            return dbDataReader.GetProviderSpecificValues(values);
+        }
+
+        public override object InitializeLifetimeService()
+        {
+            return dbDataReader.InitializeLifetimeService();
+        }
     }
 }

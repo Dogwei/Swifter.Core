@@ -1,11 +1,12 @@
 ﻿using Swifter.Readers;
+using Swifter.RW;
 using Swifter.Tools;
 using System;
 using System.Collections.Generic;
 
 namespace Swifter.Writers
 {
-    internal sealed class TableToArrayWriter : IDataWriter<int>
+    internal sealed class TableToArrayWriter : IDataWriter<int> , IDirectContent
     {
         public readonly ITableWriter tableWriter;
 
@@ -20,7 +21,7 @@ namespace Swifter.Writers
         {
             get
             {
-                throw new NotSupportedException();
+                return new WriteCopyer<int>(this, key);
             }
         }
 
@@ -33,6 +34,22 @@ namespace Swifter.Writers
         }
 
         public int Count { get; private set; }
+
+        object IDirectContent.DirectContent
+        {
+            get => (tableWriter as IDirectContent)?.DirectContent ?? throw new NotSupportedException(StringHelper.Format("Unable Get Content By '{0}' RW.", tableWriter.ToString()));
+            set
+            {
+                if (tableWriter is IDirectContent directContent)
+                {
+                    directContent.DirectContent = value;
+                }
+                else
+                {
+                    throw new NotSupportedException(StringHelper.Format("Unable Set Content By '{0}' RW.", tableWriter.ToString()));
+                }
+            }
+        }
 
         public void Initialize()
         {

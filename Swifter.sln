@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swifter.Data", "Swifter.Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swifter.Test", "Swifter.Test\Swifter.Test.csproj", "{F112EC94-350C-4801-BC7F-6695BC2163DF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swifter.NewScript", "Swifter.NewScript\Swifter.NewScript.csproj", "{E223BCC8-A0BC-41F0-8019-C2D112F6295A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swifter.Script", "Swifter.Script\Swifter.Script.csproj", "{1DFE58D8-7FDB-4B7B-83AE-AD33AF4A6F00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,15 +47,15 @@ Global
 		{F112EC94-350C-4801-BC7F-6695BC2163DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F112EC94-350C-4801-BC7F-6695BC2163DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F112EC94-350C-4801-BC7F-6695BC2163DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E223BCC8-A0BC-41F0-8019-C2D112F6295A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E223BCC8-A0BC-41F0-8019-C2D112F6295A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E223BCC8-A0BC-41F0-8019-C2D112F6295A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E223BCC8-A0BC-41F0-8019-C2D112F6295A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DFE58D8-7FDB-4B7B-83AE-AD33AF4A6F00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DFE58D8-7FDB-4B7B-83AE-AD33AF4A6F00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DFE58D8-7FDB-4B7B-83AE-AD33AF4A6F00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DFE58D8-7FDB-4B7B-83AE-AD33AF4A6F00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {06BDA837-82DC-427C-B0F3-2ABD04DC0CCC}
+		SolutionGuid = {D3C12068-7C3B-465E-A2F0-9DF3A72F95BE}
 	EndGlobalSection
 EndGlobal

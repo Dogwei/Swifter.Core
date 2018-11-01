@@ -48,6 +48,11 @@
         /// <summary>
         /// 数组元素启用筛选
         /// </summary>
-        ArrayOnFilter = 0x40
+        ArrayOnFilter = 0x40,
+
+        /// <summary>
+        /// 启用筛选并筛选掉 "" 值 (空字符串)
+        /// </summary>
+        IgnoreEmptyString = 0x80,
     }
 }

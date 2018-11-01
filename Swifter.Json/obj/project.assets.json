@@ -197,7 +197,7 @@
           "build/netstandard2.0/NETStandard.Library.targets": {}
         }
       },
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -426,7 +426,7 @@
           "build/netstandard2.0/NETStandard.Library.targets": {}
         }
       },
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -449,7 +449,7 @@
       }
     },
     ".NETFramework,Version=v2.0": {
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -472,7 +472,7 @@
       }
     },
     ".NETFramework,Version=v3.0": {
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -495,7 +495,7 @@
       }
     },
     ".NETFramework,Version=v3.5": {
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -518,7 +518,7 @@
       }
     },
     ".NETFramework,Version=v4.0": {
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -541,7 +541,7 @@
       }
     },
     ".NETFramework,Version=v4.5": {
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -564,7 +564,7 @@
       }
     },
     ".NETFramework,Version=v4.5.1": {
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0"
@@ -620,7 +620,7 @@
           "build/netstandard2.0/NETStandard.Library.targets": {}
         }
       },
-      "Swifter.Core/1.0.1": {
+      "Swifter.Core/1.0.3": {
         "type": "package",
         "dependencies": {
           "Swifter.Pointer": "1.0.0",
@@ -1706,31 +1706,31 @@
         "netstandard.library.nuspec"
       ]
     },
-    "Swifter.Core/1.0.1": {
-      "sha512": "PtJGIDjwNxWnQSPDRTuAZxUIcTNfUIryjCT0ifUIiPb0N0sYDukUaxbhtww3pP4Ps5YsNw8h7fE21d/82R5XCw==",
+    "Swifter.Core/1.0.3": {
+      "sha512": "DEYM7z6Xt6ph2ZjoL0Q6Q/b3mgU6OQNtKR1nx3GCgcD30oIedKBLamVjwv+SXUbPdzk8PWwjFTN+IwKu7kzRkw==",
       "type": "package",
-      "path": "swifter.core/1.0.1",
+      "path": "swifter.core/1.0.3",
       "files": [
         ".signature.p7s",
         "lib/net20/Swifter.Core.dll",
-        "lib/net20/Swifter.DataBase.xml",
+        "lib/net20/Swifter.Core.xml",
         "lib/net30/Swifter.Core.dll",
-        "lib/net30/Swifter.DataBase.xml",
+        "lib/net30/Swifter.Core.xml",
         "lib/net35/Swifter.Core.dll",
-        "lib/net35/Swifter.DataBase.xml",
+        "lib/net35/Swifter.Core.xml",
         "lib/net40/Swifter.Core.dll",
-        "lib/net40/Swifter.DataBase.xml",
+        "lib/net40/Swifter.Core.xml",
         "lib/net45/Swifter.Core.dll",
-        "lib/net45/Swifter.DataBase.xml",
+        "lib/net45/Swifter.Core.xml",
         "lib/net451/Swifter.Core.dll",
-        "lib/net451/Swifter.DataBase.xml",
+        "lib/net451/Swifter.Core.xml",
         "lib/netcoreapp2.0/Swifter.Core.dll",
-        "lib/netcoreapp2.0/Swifter.DataBase.xml",
+        "lib/netcoreapp2.0/Swifter.Core.xml",
         "lib/netcoreapp2.1/Swifter.Core.dll",
-        "lib/netcoreapp2.1/Swifter.DataBase.xml",
+        "lib/netcoreapp2.1/Swifter.Core.xml",
         "lib/netstandard2.0/Swifter.Core.dll",
-        "lib/netstandard2.0/Swifter.DataBase.xml",
-        "swifter.core.1.0.1.nupkg.sha512",
+        "lib/netstandard2.0/Swifter.Core.xml",
+        "swifter.core.1.0.3.nupkg.sha512",
         "swifter.core.nuspec"
       ]
     },
@@ -2309,33 +2309,33 @@
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v2.0": [
       "Microsoft.NETCore.App >= 2.0.0",
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETCoreApp,Version=v2.1": [
       "Microsoft.NETCore.App >= 2.1.0",
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETFramework,Version=v2.0": [
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETFramework,Version=v3.0": [
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETFramework,Version=v3.5": [
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETFramework,Version=v4.0": [
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETFramework,Version=v4.5": [
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETFramework,Version=v4.5.1": [
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ],
     ".NETStandard,Version=v2.0": [
       "NETStandard.Library >= 2.0.3",
-      "Swifter.Core >= 1.0.1"
+      "Swifter.Core >= 1.0.3"
     ]
   },
   "packageFolders": {
@@ -2343,7 +2343,7 @@
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
-    "version": "1.0.1",
+    "version": "1.0.3",
     "restore": {
       "projectUniqueName": "E:\\Swifter.Github\\Swifter.Json\\Swifter.Json.csproj",
       "projectName": "Swifter.Json",
@@ -2420,7 +2420,7 @@
           },
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         },
         "imports": [
@@ -2439,7 +2439,7 @@
           },
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         },
         "imports": [
@@ -2452,7 +2452,7 @@
         "dependencies": {
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         }
       },
@@ -2460,7 +2460,7 @@
         "dependencies": {
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         }
       },
@@ -2468,7 +2468,7 @@
         "dependencies": {
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         }
       },
@@ -2476,7 +2476,7 @@
         "dependencies": {
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         }
       },
@@ -2484,7 +2484,7 @@
         "dependencies": {
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         }
       },
@@ -2492,7 +2492,7 @@
         "dependencies": {
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         }
       },
@@ -2506,7 +2506,7 @@
           },
           "Swifter.Core": {
             "target": "Package",
-            "version": "[1.0.1, )"
+            "version": "[1.0.3, )"
           }
         },
         "imports": [

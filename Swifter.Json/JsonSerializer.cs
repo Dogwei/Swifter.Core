@@ -334,6 +334,15 @@ namespace Swifter.Json
                 }
             }
 
+            if ((options & JsonFormatterOptions.IgnoreEmptyString) != 0)
+            {
+                switch (valueCopyer.GetBasicType())
+                {
+                    case BasicTypes.String:
+                        return valueCopyer.ReadString() != "";
+                }
+            }
+
             return true;
         }
 

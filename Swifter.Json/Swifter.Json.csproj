@@ -4,15 +4,16 @@
     <TargetFrameworks>net20;net30;net35;net40;net45;net451;netcoreapp2.0;netcoreapp2.1;netstandard2.0</TargetFrameworks>
     <Optimize>true</Optimize>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.0.1</Version>
+    <Version>1.0.3</Version>
     <Authors>Dogwei</Authors>
     <DocumentationFile>bin\Debug\$(TargetFramework)\Swifter.Json.xml</DocumentationFile>
     <Description>fastest JSON serialize and deserialize tool in the world.</Description>
   </PropertyGroup>
 
-
   <ItemGroup>
-    <PackageReference Include="Swifter.Core" Version="1.0.1" />
+    <PackageReference Include="Swifter.Core" Version="1.0.3" />
   </ItemGroup>
+
+
 
 </Project>

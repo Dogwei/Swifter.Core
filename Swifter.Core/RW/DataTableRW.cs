@@ -12,7 +12,7 @@ namespace Swifter.RW
     /// <summary>
     /// System.Data.DataTable Reader impl.
     /// </summary>
-    internal sealed class DataTableRW : ITableRW, IInitialize<DataTable>
+    internal sealed class DataTableRW : ITableRW, IInitialize<DataTable>,IDirectContent
     {
         private int readIndex;
         private int writeIndex;
@@ -89,7 +89,7 @@ namespace Swifter.RW
             }
         }
 
-        IEnumerable<int> IDataReader<int>.Keys=> ArrayView<int>.CreateIndexView(Count);
+        IEnumerable<int> IDataReader<int>.Keys => ArrayView<int>.CreateIndexView(Count);
 
         IEnumerable<int> IDataWriter<int>.Keys => ArrayView<int>.CreateIndexView(Count);
 
@@ -100,6 +100,18 @@ namespace Swifter.RW
             get
             {
                 return (long)Pointer.UnBox(Content);
+            }
+        }
+
+        object IDirectContent.DirectContent
+        {
+            get
+            {
+                return Content;
+            }
+            set
+            {
+                Content = (DataTable)value;
             }
         }
 
@@ -116,21 +128,15 @@ namespace Swifter.RW
             if (Content == null)
             {
                 Content = new DataTable();
-            }
 
-            readIndex = -1;
-            writeIndex = -1;
+                readIndex = -1;
+                writeIndex = -1;
+            }
         }
 
         public void Initialize(int capacity)
         {
-            if (Content == null)
-            {
-                Content = new DataTable();
-            }
-
-            readIndex = -1;
-            writeIndex = -1;
+            Initialize();
         }
 
         public void Next()
@@ -212,12 +218,19 @@ namespace Swifter.RW
 
         public void OnWriteValue(string key, IValueReader valueReader)
         {
-            Content.Rows[readIndex][key] = valueReader.DirectRead();
+            var index = Content.Columns.IndexOf(key);
+
+            if (index == -1)
+            {
+                index = Content.Columns.IndexOf(Content.Columns.Add(key));
+            }
+
+            OnWriteValue(index, valueReader);
         }
 
         public void OnWriteValue(int key, IValueReader valueReader)
         {
-            Content.Rows[readIndex][key] = valueReader.DirectRead();
+            Content.Rows[writeIndex][key] = valueReader.DirectRead();
         }
 
         public bool Read()

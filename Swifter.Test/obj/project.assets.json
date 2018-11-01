@@ -262,27 +262,6 @@
           "lib/net45/Sigil.dll": {}
         }
       },
-      "Swifter.Json/1.0.1": {
-        "type": "package",
-        "dependencies": {
-          "Swifter.Core": "1.0.1"
-        },
-        "compile": {
-          "lib/net451/Swifter.Json.dll": {}
-        },
-        "runtime": {
-          "lib/net451/Swifter.Json.dll": {}
-        }
-      },
-      "Swifter.Pointer/1.0.0": {
-        "type": "package",
-        "compile": {
-          "lib/net45/Swifter.Pointer.dll": {}
-        },
-        "runtime": {
-          "lib/net45/Swifter.Pointer.dll": {}
-        }
-      },
       "System.Buffers/4.4.0": {
         "type": "package",
         "compile": {
@@ -428,32 +407,6 @@
         "runtime": {
           "lib/net45/Utf8Json.dll": {}
         }
-      },
-      "Swifter.Core/1.0.1": {
-        "type": "project",
-        "framework": ".NETFramework,Version=v4.5.1",
-        "dependencies": {
-          "Swifter.Pointer": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/Swifter.Core.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Swifter.Core.dll": {}
-        }
-      },
-      "Swifter.NewScript/1.0.1": {
-        "type": "project",
-        "framework": ".NETFramework,Version=v4.5.1",
-        "dependencies": {
-          "Swifter.Core": "1.0.1"
-        },
-        "compile": {
-          "bin/placeholder/Swifter.NewScript.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Swifter.NewScript.dll": {}
-        }
       }
     }
   },
@@ -596,10 +549,11 @@
       ]
     },
     "Jil/2.16.0": {
-      "sha512": "BjLA8scukm2aUM4j43F4QYnrYX7NuCt8l2VpwtcVKaRrMks389Q6glYddx320T9LkCZyFzb0wfBucYqTCUVKDw==",
+      "sha512": "MaVTCe1LWYIMuXb3O7M9DVqeAVRTSk02m+VdQhTSTEpnjHbgOyZ0demWmSbDM3q4wH/RRC/O6UjYde4Sfn+MnA==",
       "type": "package",
       "path": "jil/2.16.0",
       "files": [
+        ".signature.p7s",
         "jil.2.16.0.nupkg.sha512",
         "jil.nuspec",
         "lib/net45/Jil.dll",
@@ -893,10 +847,11 @@
       ]
     },
     "Sigil/4.7.0": {
-      "sha512": "9jcSXlKJHpjiEFbg98qRdQKcY4IPUzpf52pbTVCvKlP0wLI/RlBiTmZ1+VY3rCKmiLQEgYQnXwD8imXXESWWog==",
+      "sha512": "FLFKjg9veDRCv/nYovkRSG8uxG3sABgCcgF3H8bD0XbUV8R1pYmBglzyAON0LGKyiv8SIuyfTjPYfpdSdxD+2w==",
       "type": "package",
       "path": "sigil/4.7.0",
       "files": [
+        ".signature.p7s",
         "lib/net20/Sigil.dll",
         "lib/net20/Sigil.xml",
         "lib/net30/Sigil.dll",
@@ -911,50 +866,6 @@
         "lib/netstandard1.5/Sigil.xml",
         "sigil.4.7.0.nupkg.sha512",
         "sigil.nuspec"
-      ]
-    },
-    "Swifter.Json/1.0.1": {
-      "sha512": "nlHyGlNWvdIuCzm35XvM4atwgWvJ3V8r+TDusDOHfDCaf3O5bT+hfH0AdNWi0iYDiazZ/8EwFav5GkPqwiRcMA==",
-      "type": "package",
-      "path": "swifter.json/1.0.1",
-      "files": [
-        ".signature.p7s",
-        "lib/net20/Swifter.Json.dll",
-        "lib/net20/Swifter.Json.xml",
-        "lib/net30/Swifter.Json.dll",
-        "lib/net30/Swifter.Json.xml",
-        "lib/net35/Swifter.Json.dll",
-        "lib/net35/Swifter.Json.xml",
-        "lib/net40/Swifter.Json.dll",
-        "lib/net40/Swifter.Json.xml",
-        "lib/net45/Swifter.Json.dll",
-        "lib/net45/Swifter.Json.xml",
-        "lib/net451/Swifter.Json.dll",
-        "lib/net451/Swifter.Json.xml",
-        "lib/netcoreapp2.0/Swifter.Json.dll",
-        "lib/netcoreapp2.0/Swifter.Json.xml",
-        "lib/netcoreapp2.1/Swifter.Json.dll",
-        "lib/netcoreapp2.1/Swifter.Json.xml",
-        "lib/netstandard2.0/Swifter.Json.dll",
-        "lib/netstandard2.0/Swifter.Json.xml",
-        "swifter.json.1.0.1.nupkg.sha512",
-        "swifter.json.nuspec"
-      ]
-    },
-    "Swifter.Pointer/1.0.0": {
-      "sha512": "8pPt0z2+w+1Xc8a7yYh60IdmWOSY1Io3eY+NW17aN4gCFcKwXSfxGHsE7f2D5WEoMJOyZERCkF0zikqr0fIZFA==",
-      "type": "package",
-      "path": "swifter.pointer/1.0.0",
-      "files": [
-        ".signature.p7s",
-        "lib/net20/Swifter.Pointer.dll",
-        "lib/net35/Swifter.Pointer.dll",
-        "lib/net40/Swifter.Pointer.dll",
-        "lib/net45/Swifter.Pointer.dll",
-        "lib/netcoreapp1.0/Swifter.Pointer.dll",
-        "lib/netstandard1.0/Swifter.Pointer.dll",
-        "swifter.pointer.1.0.0.nupkg.sha512",
-        "swifter.pointer.nuspec"
       ]
     },
     "System.Buffers/4.4.0": {
@@ -1435,16 +1346,6 @@
         "utf8json.1.3.7.nupkg.sha512",
         "utf8json.nuspec"
       ]
-    },
-    "Swifter.Core/1.0.1": {
-      "type": "project",
-      "path": "../Swifter.Core/Swifter.Core.csproj",
-      "msbuildProject": "../Swifter.Core/Swifter.Core.csproj"
-    },
-    "Swifter.NewScript/1.0.1": {
-      "type": "project",
-      "path": "../Swifter.NewScript/Swifter.NewScript.csproj",
-      "msbuildProject": "../Swifter.NewScript/Swifter.NewScript.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -1459,8 +1360,6 @@
       "NetJSON >= 1.2.7",
       "Newtonsoft.Json >= 11.0.2",
       "ServiceStack >= 5.4.0",
-      "Swifter.Json >= 1.0.1",
-      "Swifter.NewScript >= 1.0.1",
       "Utf8Json >= 1.3.7",
       "fastJSON >= 2.2.0"
     ]
@@ -1494,11 +1393,7 @@
       },
       "frameworks": {
         "net461": {
-          "projectReferences": {
-            "E:\\Swifter.Github\\Swifter.NewScript\\Swifter.NewScript.csproj": {
-              "projectPath": "E:\\Swifter.Github\\Swifter.NewScript\\Swifter.NewScript.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {
@@ -1549,10 +1444,6 @@
           "ServiceStack": {
             "target": "Package",
             "version": "[5.4.0, )"
-          },
-          "Swifter.Json": {
-            "target": "Package",
-            "version": "[1.0.1, )"
           },
           "Utf8Json": {
             "target": "Package",

@@ -17,17 +17,17 @@ namespace Swifter.Tools
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public unsafe static string Reverse(string text)
         {
-            string Result = new string('\0', text.Length);
+            string result = new string('\0', text.Length);
 
-            fixed (char* LpResult = Result)
+            fixed (char* pResult = result)
             {
                 for (int i = 0, j = text.Length - 1; j >= 0; i++, --j)
                 {
-                    LpResult[i] = text[j];
+                    pResult[i] = text[j];
                 }
             }
 
-            return Result;
+            return result;
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Swifter.Tools
 
                 int resultIndex = 0;
 
-                fixed (char* LpResult = result)
+                fixed (char* pResult = result)
                 {
                     FormatLoop:
                     index = IndexOf(pText, '\\', '{', begin, end);
@@ -216,7 +216,7 @@ namespace Swifter.Tools
 
                     for (; begin < index; ++begin)
                     {
-                        LpResult[resultIndex] = pText[begin];
+                        pResult[resultIndex] = pText[begin];
 
                         ++resultIndex;
                     }
@@ -235,7 +235,7 @@ namespace Swifter.Tools
                             return result;
                         }
 
-                        LpResult[resultIndex] = pText[index];
+                        pResult[resultIndex] = pText[index];
 
                         ++resultIndex;
 
@@ -247,25 +247,25 @@ namespace Swifter.Tools
 
                         if (index < end && pText[index] >= '0' && pText[index] <= '9')
                         {
-                            int Number = pText[index] - '0';
+                            int number = pText[index] - '0';
 
                             for (++index; index < end; ++index)
                             {
                                 if (pText[index] >= '0' && pText[index] <= '9')
                                 {
-                                    Number = Number * 10 + pText[index] - '0';
+                                    number = number * 10 + pText[index] - '0';
                                 }
                                 else if (pText[index] == '}')
                                 {
-                                    if (args[Number] != null)
+                                    if (args[number] != null)
                                     {
-                                        int ArgLength = args[Number].Length;
+                                        int argsLength = args[number].Length;
 
-                                        fixed (char* LpArg = args[Number])
+                                        fixed (char* pArg = args[number])
                                         {
-                                            for (int ArgIndex = 0; ArgIndex < ArgLength; ArgIndex++)
+                                            for (int argsIndex = 0; argsIndex < argsLength; argsIndex++)
                                             {
-                                                LpResult[resultIndex] = LpArg[ArgIndex];
+                                                pResult[resultIndex] = pArg[argsIndex];
 
                                                 ++resultIndex;
                                             }
@@ -285,7 +285,7 @@ namespace Swifter.Tools
 
                         for (; begin < index; ++begin)
                         {
-                            LpResult[resultIndex] = pText[begin];
+                            pResult[resultIndex] = pText[begin];
 
                             ++resultIndex;
                         }
@@ -533,62 +533,6 @@ namespace Swifter.Tools
             }
 
             return -1;
-        }
-
-        /// <summary>
-        /// 在字符串中找到第一个未被转义的指定字符的索引，没找到则返回 -1
-        /// </summary>
-        /// <param name="Text">字符串</param>
-        /// <param name="Char">字符</param>
-        /// <param name="Begin">开始查找的位置。</param>
-        /// <param name="End">结束查找的位置，不包含此值。</param>
-        /// <returns>返回一个 int 值。</returns>
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public unsafe static int NoEscapeIndexOf(char* Text, char Char, int Begin, int End)
-        {
-            while (Begin < End)
-            {
-                if (Text[Begin] == Char)
-                {
-                    return Begin;
-                }
-                else if (Text[Begin] == '\\')
-                {
-                    Begin += 2;
-                }
-                else
-                {
-                    ++Begin;
-                }
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// 获得字符在字符串中出现的次数。
-        /// </summary>
-        /// <param name="pText">字符串</param>
-        /// <param name="begin">字符串开始位置</param>
-        /// <param name="end">字符串结束位置，不包含此位置</param>
-        /// <param name="c">字符</param>
-        /// <returns>返回一个 int 值</returns>
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public unsafe static int CountOf(char* pText, int begin, int end, char c)
-        {
-            int result = 0;
-
-            while (begin < end)
-            {
-                if (pText[begin] == c)
-                {
-                    ++result;
-                }
-
-                ++begin;
-            }
-
-            return result;
         }
     }
 }

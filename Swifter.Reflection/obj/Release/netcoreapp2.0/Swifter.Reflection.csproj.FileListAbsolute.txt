@@ -1,9 +1,0 @@
-E:\Swifter\Swifter.Reflection\bin\Release\netcoreapp2.0\Swifter.Reflection.deps.json
-E:\Swifter\Swifter.Reflection\bin\Release\netcoreapp2.0\Swifter.Reflection.dll
-E:\Swifter\Swifter.Reflection\bin\Release\netcoreapp2.0\Swifter.Reflection.pdb
-E:\Swifter\Swifter.Reflection\bin\Release\netcoreapp2.0\Swifter.Reflection.xml
-E:\Swifter\Swifter.Reflection\obj\Release\netcoreapp2.0\Swifter.Reflection.csproj.CoreCompileInputs.cache
-E:\Swifter\Swifter.Reflection\obj\Release\netcoreapp2.0\Swifter.Reflection.AssemblyInfoInputs.cache
-E:\Swifter\Swifter.Reflection\obj\Release\netcoreapp2.0\Swifter.Reflection.AssemblyInfo.cs
-E:\Swifter\Swifter.Reflection\obj\Release\netcoreapp2.0\Swifter.Reflection.dll
-E:\Swifter\Swifter.Reflection\obj\Release\netcoreapp2.0\Swifter.Reflection.pdb
