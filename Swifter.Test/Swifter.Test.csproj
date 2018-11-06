@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
@@ -25,14 +25,25 @@
     <PackageReference Include="ClearScript.V8" Version="5.5.2" />
     <PackageReference Include="DynamicExpresso.Core" Version="2.1.0" />
     <PackageReference Include="ExpressionEvaluator" Version="2.0.4" />
-    <PackageReference Include="fastJSON" Version="2.2.0" />
     <PackageReference Include="JavaScriptEngineSwitcher.V8" Version="3.0.0-rc1" />
     <PackageReference Include="JavaScriptEngineSwitcher.V8.Native.win-x64" Version="3.0.0-rc1" />
+    <PackageReference Include="fastJSON" Version="2.2.0" />
     <PackageReference Include="Jil" Version="2.16.0" />
     <PackageReference Include="LitJson" Version="0.13.0" />
     <PackageReference Include="NetJSON" Version="1.2.7" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="ServiceStack" Version="5.4.0" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Swifter.Json\Swifter.Json.csproj" />
+    <ProjectReference Include="..\Swifter.Data\Swifter.Data.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="Microsoft.AnalysisServices.AdomdClient">
+      <HintPath>..\..\DLL\Microsoft.AnalysisServices.AdomdClient.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

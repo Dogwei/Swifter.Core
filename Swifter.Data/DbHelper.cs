@@ -1,6 +1,7 @@
 ﻿using Swifter.RW;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Reflection;
 
@@ -60,6 +61,60 @@ namespace Swifter.Data
             return dbProviderFactory;
         }
 
+        private static DbProviderFactory GetInstance(Type type)
+        {
+            var members = type.GetMembers(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
+
+            foreach (var item in members)
+            {
+                if (item.Name == ProviderFactoryInstance)
+                {
+                    if (item is FieldInfo field && field.FieldType == type)
+                    {
+                        var result = field.GetValue(null) as DbProviderFactory;
+
+                        if (result != null)
+                        {
+                            return result;
+                        }
+                    }
+                    else if (item is PropertyInfo property && property.PropertyType == type && property.GetIndexParameters().Length == 0)
+                    {
+                        var result = property.GetValue(null, null) as DbProviderFactory;
+
+                        if (result != null)
+                        {
+                            return result;
+                        }
+                    }
+                }
+            }
+
+            foreach (var item in members)
+            {
+                if (item is FieldInfo field && field.FieldType == type)
+                {
+                    var result = field.GetValue(null) as DbProviderFactory;
+
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+                else if (item is PropertyInfo property && property.PropertyType == type && property.GetIndexParameters().Length == 0)
+                {
+                    var result = property.GetValue(null, null) as DbProviderFactory;
+
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private static DbProviderFactory SearchFactory(string providerName)
         {
 #if NETFRAMEWORK || NETCOREAPP2_1
@@ -77,61 +132,70 @@ namespace Swifter.Data
             }
 #endif
 
+            try
+            {
+                Assembly.Load(providerName);
+            }
+            catch (Exception)
+            {
+            }
+
+            var providerClasses = new ProviderClasses();
+            
             foreach (var asembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var type in asembly.GetTypes())
                 {
-                    if (type.Namespace == providerName && typeof(DbProviderFactory).IsAssignableFrom(type))
+                    if (type.Namespace == providerName)
                     {
-                        var members = type.GetMembers(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
-
-                        foreach (var item in members)
+                        if (typeof(DbProviderFactory).IsAssignableFrom(type))
                         {
-                            if (item.Name == ProviderFactoryInstance)
+                            var result = GetInstance(type);
+
+                            if (result != null)
                             {
-                                if (item is FieldInfo field && field.FieldType == type)
-                                {
-                                    var result = field.GetValue(null) as DbProviderFactory;
-
-                                    if (result != null)
-                                    {
-                                        return result;
-                                    }
-                                }
-                                else if (item is PropertyInfo property && property.PropertyType == type && property.GetIndexParameters().Length == 0)
-                                {
-                                    var result = property.GetValue(null, null) as DbProviderFactory;
-
-                                    if (result != null)
-                                    {
-                                        return result;
-                                    }
-                                }
+                                return result;
                             }
                         }
-
-                        foreach (var item in members)
+                        else if (typeof(IDbConnection).IsAssignableFrom(type))
                         {
-                            if (item is FieldInfo field && field.FieldType == type)
-                            {
-                                var result = field.GetValue(null) as DbProviderFactory;
-
-                                if (result != null)
-                                {
-                                    return result;
-                                }
-                            }
-                            else if (item is PropertyInfo property && property.PropertyType == type && property.GetIndexParameters().Length == 0)
-                            {
-                                var result = property.GetValue(null, null) as DbProviderFactory;
-
-                                if (result != null)
-                                {
-                                    return result;
-                                }
-                            }
+                            providerClasses.tConnection = type;
+                        }
+                        else if (typeof(IDbCommand).IsAssignableFrom(type))
+                        {
+                            providerClasses.tCommand = type;
+                        }
+                        else if (typeof(IDataAdapter).IsAssignableFrom(type))
+                        {
+                            providerClasses.tDataAdapter = type;
+                        }
+                        else if (typeof(IDataReader).IsAssignableFrom(type))
+                        {
+                            providerClasses.tDataReader = type;
+                        }
+                        else if (typeof(IDataParameter).IsAssignableFrom(type))
+                        {
+                            providerClasses.tParameter = type;
+                        }
+                        else if (typeof(IDataParameterCollection).IsAssignableFrom(type))
+                        {
+                            providerClasses.tParameterCollection = type;
+                        }
+                        else if (typeof(IDbTransaction).IsAssignableFrom(type))
+                        {
+                            providerClasses.tTransaction = type;
                         }
                     }
+                }
+            }
+
+            if (providerClasses.tConnection != null)
+            {
+                var result = GetInstance(providerClasses.GetDynamicProviderFactoryType());
+
+                if (result != null)
+                {
+                    return result;
                 }
             }
 
