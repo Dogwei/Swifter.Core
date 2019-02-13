@@ -17,21 +17,9 @@ namespace Swifter.Writers
             Count = 0;
         }
 
-        public IValueWriter this[int key]
-        {
-            get
-            {
-                return new WriteCopyer<int>(this, key);
-            }
-        }
+        public IValueWriter this[int key]=> new WriteCopyer<int>(this, key);
 
-        public IEnumerable<int> Keys
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public IEnumerable<int> Keys => throw new NotSupportedException();
 
         public int Count { get; private set; }
 
@@ -53,9 +41,15 @@ namespace Swifter.Writers
 
         public void Initialize()
         {
+            tableWriter.Initialize();
         }
 
         public void Initialize(int capacity)
+        {
+            tableWriter.Initialize(capacity);
+        }
+
+        public void OnWriteAll(IDataReader<int> dataReader)
         {
         }
 
@@ -84,16 +78,6 @@ namespace Swifter.Writers
 
             ReadObject:
             valueReader.ReadObject(tableWriter);
-        }
-
-        IDataWriter<T> IDataWriter.As<T>()
-        {
-            if (this is IDataWriter<T>)
-            {
-                return (IDataWriter<T>)(object)this;
-            }
-
-            return new AsDataWriter<int, T>(this);
         }
     }
 }

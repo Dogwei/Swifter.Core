@@ -30,17 +30,7 @@ namespace Swifter.RW
 
             valueCopyer = new ValueCopyer();
         }
-
-        /// <summary>
-        /// 获取值的基础类型枚举。
-        /// </summary>
-        /// <returns>返回一个 BasicTypes 枚举值。</returns>
-        public BasicTypes GetBasicType()
-        {
-            dataRW.OnReadValue(key, valueCopyer);
-            return valueCopyer.GetBasicType();
-        }
-
+        
         /// <summary>
         /// 读取一个数组结构数据。
         /// </summary>
@@ -222,6 +212,17 @@ namespace Swifter.RW
         }
 
         /// <summary>
+        /// 读取一个可空类型的值。
+        /// </summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <returns>返回 Null 或该值类型的值</returns>
+        public T? ReadNullable<T>() where T : struct
+        {
+            dataRW.OnReadValue(key, valueCopyer);
+            return valueCopyer.ReadNullable<T>();
+        }
+
+        /// <summary>
         /// 写入一个数组结构数据。
         /// </summary>
         /// <param name="dataReader">数据读取器</param>
@@ -400,93 +401,29 @@ namespace Swifter.RW
             valueCopyer.WriteUInt64(value);
             dataRW.OnWriteValue(key, valueCopyer);
         }
-
-        /// <summary>
-        /// 获取值读写器的名称。
-        /// </summary>
-        /// <returns>返回一个名称</returns>
-        public override string ToString()
-        {
-            return dataRW.ToString() + "[\"" + key + "\"]";
-        }
     }
-    
+
     /// <summary>
     /// 值暂存器。
     /// </summary>
-    public sealed class ValueCopyer: IValueRW
+    public sealed class ValueCopyer : IValueRW
     {
         private OverlappedValue value;
 
-        private object objValue;
-
-        private BasicTypes valueType;
+        private ValueTypeCodes code;
 
         /// <summary>
         /// 初始化值暂存器。
         /// </summary>
         public ValueCopyer()
         {
-            valueType = BasicTypes.Null;
+            code = ValueTypeCodes.Null;
         }
 
         /// <summary>
-        /// 获取值的基础类型枚举。
+        /// 获取值的 TypeCode。
         /// </summary>
-        /// <returns>返回一个 BasicTypes 枚举值。</returns>
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public BasicTypes GetBasicType()
-        {
-            return valueType;
-        }
-
-        /// <summary>
-        /// 获取值的类型
-        /// </summary>
-        public Type Type
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                switch (valueType)
-                {
-                    case BasicTypes.Null:
-                        return typeof(object);
-                    case BasicTypes.Boolean:
-                        return typeof(bool);
-                    case BasicTypes.SByte:
-                        return typeof(sbyte);
-                    case BasicTypes.Int16:
-                        return typeof(short);
-                    case BasicTypes.Int32:
-                        return typeof(int);
-                    case BasicTypes.Int64:
-                        return typeof(long);
-                    case BasicTypes.Byte:
-                        return typeof(byte);
-                    case BasicTypes.UInt16:
-                        return typeof(ushort);
-                    case BasicTypes.UInt32:
-                        return typeof(uint);
-                    case BasicTypes.UInt64:
-                        return typeof(ulong);
-                    case BasicTypes.Single:
-                        return typeof(float);
-                    case BasicTypes.Double:
-                        return typeof(double);
-                    case BasicTypes.Decimal:
-                        return typeof(decimal);
-                    case BasicTypes.Char:
-                        return typeof(char);
-                    case BasicTypes.DateTime:
-                        return typeof(DateTime);
-                    case BasicTypes.String:
-                        return typeof(string);
-                }
-
-                return objValue.GetType();
-            }
-        }
+        public TypeCode TypeCode => code < ValueTypeCodes.Direct ? (TypeCode)code : TypeCode.Object;
 
         /// <summary>
         /// 获取值暂存器的值。
@@ -496,71 +433,44 @@ namespace Swifter.RW
             [MethodImpl(VersionDifferences.AggressiveInlining)]
             get
             {
-                switch (valueType)
+                switch (code)
                 {
-                    case BasicTypes.Null:
+                    case ValueTypeCodes.Null:
                         return null;
-                    case BasicTypes.Boolean:
+                    case ValueTypeCodes.Boolean:
                         return value.Boolean;
-                    case BasicTypes.SByte:
+                    case ValueTypeCodes.SByte:
                         return value.SByte;
-                    case BasicTypes.Int16:
+                    case ValueTypeCodes.Int16:
                         return value.Int16;
-                    case BasicTypes.Int32:
+                    case ValueTypeCodes.Int32:
                         return value.Int32;
-                    case BasicTypes.Int64:
+                    case ValueTypeCodes.Int64:
                         return value.Int64;
-                    case BasicTypes.Byte:
+                    case ValueTypeCodes.Byte:
                         return value.Byte;
-                    case BasicTypes.UInt16:
+                    case ValueTypeCodes.UInt16:
                         return value.UInt16;
-                    case BasicTypes.UInt32:
+                    case ValueTypeCodes.UInt32:
                         return value.UInt32;
-                    case BasicTypes.UInt64:
+                    case ValueTypeCodes.UInt64:
                         return value.UInt64;
-                    case BasicTypes.Single:
+                    case ValueTypeCodes.Single:
                         return value.Single;
-                    case BasicTypes.Double:
+                    case ValueTypeCodes.Double:
                         return value.Double;
-                    case BasicTypes.Decimal:
+                    case ValueTypeCodes.Decimal:
                         return value.Decimal;
-                    case BasicTypes.Char:
+                    case ValueTypeCodes.Char:
                         return value.Char;
-                    case BasicTypes.DateTime:
+                    case ValueTypeCodes.DateTime:
                         return value.DateTime;
+                    case ValueTypeCodes.String:
+                        return value.String;
                 }
 
-                return objValue;
+                return value.Object;
             }
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private bool TryDirectRead(object valueWriter)
-        {
-            if (valueType != BasicTypes.Direct)
-            {
-                return false;
-            }
-
-            if (valueWriter is IDirectContent)
-            {
-                ((IDirectContent)valueWriter).DirectContent = objValue;
-
-                return true;
-            }
-
-            if (objValue == null)
-            {
-                return true;
-            }
-
-            var objValueType = objValue.GetType();
-
-            var valueInterface = ValueInterface.GetInterface(objValueType);
-
-            valueInterface.WriteValue(this, objValueType);
-
-            return false;
         }
 
         /// <summary>
@@ -570,45 +480,53 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void ReadArray(IDataWriter<int> valueWriter)
         {
-            if (TryDirectRead(valueWriter))
+            switch (code)
             {
-                return;
-            }
-
-            switch (valueType)
-            {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return;
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     throw new InvalidCastException("Can't convert Boolean to Array.");
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
-                case BasicTypes.Single:
-                case BasicTypes.Double:
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
+                case ValueTypeCodes.Single:
+                case ValueTypeCodes.Double:
+                case ValueTypeCodes.Decimal:
                     throw new InvalidCastException("Can't convert Number to Array.");
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     throw new InvalidCastException("Can't convert Char to Array.");
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Array.");
-                case BasicTypes.String:
+                case ValueTypeCodes.String:
                     throw new InvalidCastException("Can't convert String to Array.");
-                case BasicTypes.Direct:
-                case BasicTypes.Object:
-                    throw new InvalidCastException("Can't convert Object to Array.");
             }
 
-            var arrayValue = (IDataReader<int>)objValue;
+            IDataReader<int> dataReader;
 
-            valueWriter.Initialize(arrayValue.Count);
+            if (code == ValueTypeCodes.Direct)
+            {
+                if (valueWriter is IDirectContent direct)
+                {
+                    direct.DirectContent = value.Object;
 
-            arrayValue.OnReadAll(valueWriter);
+                    return;
+                }
+
+                dataReader = RWHelper.CreateReader(value.Object).As<int>();
+            }
+            else
+            {
+                dataReader = value.DataReader.As<int>();
+            }
+
+            valueWriter.Initialize(dataReader.Count);
+
+            RWHelper.Copy(dataReader, valueWriter);
         }
 
         /// <summary>
@@ -618,38 +536,91 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public bool ReadBoolean()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     return value.Boolean;
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return false;
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
-                case BasicTypes.Single:
-                case BasicTypes.Double:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
+                case ValueTypeCodes.Single:
+                case ValueTypeCodes.Double:
                     return value.Int64 != 0;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return value.Decimal != 0;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     throw new InvalidCastException("Can't convert Char to Boolean.");
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Boolean.");
-                case BasicTypes.String:
-                    return bool.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (bool)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return bool.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (bool)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Boolean.");
             }
 
             throw new InvalidCastException("Can't convert Object to Boolean.");
+        }
+
+        /// <summary>
+        /// 获取值是否为空。
+        /// </summary>
+        /// <returns>返回一个 bool 值。</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public bool IsEmptyValue()
+        {
+            switch (code)
+            {
+                case ValueTypeCodes.Boolean:
+                    return value.Boolean == default;
+                case ValueTypeCodes.SByte:
+                    return value.SByte == default;
+                case ValueTypeCodes.Int16:
+                    return value.Int16 == default;
+                case ValueTypeCodes.Int32:
+                    return value.Int32 == default;
+                case ValueTypeCodes.Int64:
+                    return value.Int64 == default;
+                case ValueTypeCodes.Byte:
+                    return value.Byte == default;
+                case ValueTypeCodes.UInt16:
+                    return value.UInt16 == default;
+                case ValueTypeCodes.UInt32:
+                    return value.UInt32 == default;
+                case ValueTypeCodes.UInt64:
+                    return value.UInt64 == default;
+                case ValueTypeCodes.Single:
+                    return value.Single == default;
+                case ValueTypeCodes.Double:
+                    return value.Double == default;
+                case ValueTypeCodes.Decimal:
+                    return value.Decimal == default;
+                case ValueTypeCodes.Char:
+                    return value.Char == default;
+                case ValueTypeCodes.DateTime:
+                    return value.DateTime == default;
+                case ValueTypeCodes.String:
+                    return value.String == default;
+                case ValueTypeCodes.Null:
+                    return true;
+                case ValueTypeCodes.Direct:
+                    return TypeHelper.IsEmptyValue(value.Object);
+            }
+
+            if (value.DataReader is IDirectContent direct)
+            {
+                return TypeHelper.IsEmptyValue(direct.DirectContent);
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -659,34 +630,34 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public byte ReadByte()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
-                case BasicTypes.Char:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
+                case ValueTypeCodes.Char:
                     return value.Byte;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (byte)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (byte)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (byte)value.Decimal;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Byte.");
-                case BasicTypes.String:
-                    return byte.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (byte)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return byte.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (byte)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Byte.");
             }
 
@@ -700,34 +671,34 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public char ReadChar()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     throw new InvalidCastException("Can't convert Null to Char.");
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (char)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (char)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (char)value.Decimal;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
-                case BasicTypes.Char:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Char.");
-                case BasicTypes.String:
-                    return ((string)objValue)[0];
-                case BasicTypes.Direct:
-                    return (char)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return char.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (char)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Byte.");
             }
 
@@ -741,34 +712,34 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public DateTime ReadDateTime()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     throw new InvalidCastException("Can't convert Null to DateTime.");
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     throw new InvalidCastException("Can't convert Boolean to DateTime.");
-                case BasicTypes.UInt64:
-                case BasicTypes.Int64:
+                case ValueTypeCodes.UInt64:
+                case ValueTypeCodes.Int64:
                     return new DateTime(value.Int64);
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.Single:
-                case BasicTypes.Double:
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.Single:
+                case ValueTypeCodes.Double:
+                case ValueTypeCodes.Decimal:
                     throw new InvalidCastException("Can't convert Number to DateTime.");
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     throw new InvalidCastException("Can't convert Char to DateTime.");
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     return value.DateTime;
-                case BasicTypes.String:
-                    return DateTime.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (DateTime)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return DateTime.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (DateTime)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to DateTime.");
             }
 
@@ -782,43 +753,43 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public decimal ReadDecimal()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     return value.Byte;
-                case BasicTypes.SByte:
+                case ValueTypeCodes.SByte:
                     return value.SByte;
-                case BasicTypes.Int16:
+                case ValueTypeCodes.Int16:
                     return value.Int16;
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     return value.Int32;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return value.Int64;
-                case BasicTypes.Byte:
+                case ValueTypeCodes.Byte:
                     return value.Byte;
-                case BasicTypes.UInt16:
+                case ValueTypeCodes.UInt16:
                     return value.UInt16;
-                case BasicTypes.UInt32:
+                case ValueTypeCodes.UInt32:
                     return value.UInt32;
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.UInt64:
                     return value.UInt64;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (decimal)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (decimal)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Decimal.");
-                case BasicTypes.String:
-                    return decimal.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (decimal)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return decimal.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (decimal)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Decimal.");
             }
 
@@ -832,47 +803,47 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public object DirectRead()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return null;
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     return value.Boolean;
-                case BasicTypes.SByte:
+                case ValueTypeCodes.SByte:
                     return value.SByte;
-                case BasicTypes.Int16:
+                case ValueTypeCodes.Int16:
                     return value.Int16;
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     return value.Int32;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return value.Int64;
-                case BasicTypes.Byte:
+                case ValueTypeCodes.Byte:
                     return value.Byte;
-                case BasicTypes.UInt16:
+                case ValueTypeCodes.UInt16:
                     return value.UInt16;
-                case BasicTypes.UInt32:
+                case ValueTypeCodes.UInt32:
                     return value.UInt32;
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.UInt64:
                     return value.UInt64;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     return value.DateTime;
-                case BasicTypes.String:
-                    return (string)objValue;
-                case BasicTypes.Direct:
-                    return objValue;
+                case ValueTypeCodes.String:
+                    return value.String;
+                case ValueTypeCodes.Direct:
+                    return value.Object;
             }
 
-            if (objValue is IDirectContent)
+            if (value.Object is IDirectContent direct)
             {
-                return ((IDirectContent)objValue).DirectContent;
+                return direct.DirectContent;
             }
 
             throw new NotSupportedException("Can't ReadDirect by Object/Array.");
@@ -885,43 +856,43 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public double ReadDouble()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     return value.Byte;
-                case BasicTypes.SByte:
+                case ValueTypeCodes.SByte:
                     return value.SByte;
-                case BasicTypes.Int16:
+                case ValueTypeCodes.Int16:
                     return value.Int16;
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     return value.Int32;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return value.Int64;
-                case BasicTypes.Byte:
+                case ValueTypeCodes.Byte:
                     return value.Byte;
-                case BasicTypes.UInt16:
+                case ValueTypeCodes.UInt16:
                     return value.UInt16;
-                case BasicTypes.UInt32:
+                case ValueTypeCodes.UInt32:
                     return value.UInt32;
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.UInt64:
                     return value.UInt64;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (double)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Double.");
-                case BasicTypes.String:
-                    return double.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (double)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return double.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (double)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Double.");
             }
 
@@ -935,37 +906,37 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public short ReadInt16()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     return (short)value.Int32;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return (short)value.Int64;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
                     return value.Int16;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (short)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (short)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (short)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return (short)value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Int16.");
-                case BasicTypes.String:
-                    return short.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (short)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return short.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (short)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Int16.");
             }
 
@@ -979,36 +950,36 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public int ReadInt32()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
                     return value.Int32;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return (int)value.Int64;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (int)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (int)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (int)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Int32.");
-                case BasicTypes.String:
-                    return int.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (int)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return int.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (int)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Int32.");
             }
 
@@ -1022,35 +993,35 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public long ReadInt64()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
                     return value.Int64;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (long)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (long)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (long)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Int64.");
-                case BasicTypes.String:
-                    return long.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (long)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return long.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (long)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Int64.");
             }
 
@@ -1064,42 +1035,53 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void ReadObject(IDataWriter<string> valueWriter)
         {
-            if (TryDirectRead(valueWriter))
+            switch (code)
             {
-                return;
-            }
-
-            switch (valueType)
-            {
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Null:
+                    return;
+                case ValueTypeCodes.Boolean:
                     throw new InvalidCastException("Can't convert Boolean to Object.");
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
-                case BasicTypes.Single:
-                case BasicTypes.Double:
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
+                case ValueTypeCodes.Single:
+                case ValueTypeCodes.Double:
+                case ValueTypeCodes.Decimal:
                     throw new InvalidCastException("Can't convert Number to Object.");
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     throw new InvalidCastException("Can't convert Char to Object.");
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Object.");
-                case BasicTypes.String:
+                case ValueTypeCodes.String:
                     throw new InvalidCastException("Can't convert String to Object.");
-                case BasicTypes.Direct:
-                    throw new InvalidCastException("Can't convert DirectObject to Object.");
-                case BasicTypes.Array:
-                    throw new InvalidCastException("Can't convert Array to Object.");
             }
 
-            valueWriter.Initialize();
+            IDataReader<string> dataReader;
 
-            ((IDataReader<string>)objValue).OnReadAll(valueWriter);
+            if (code == ValueTypeCodes.Direct)
+            {
+                if (valueWriter is IDirectContent direct)
+                {
+                    direct.DirectContent = value.Object;
+
+                    return;
+                }
+
+                dataReader = RWHelper.CreateReader(value.Object).As<string>();
+            }
+            else
+            {
+                dataReader = value.DataReader.As<string>();
+            }
+
+            valueWriter.Initialize(dataReader.Count);
+
+            RWHelper.Copy(dataReader, valueWriter);
         }
 
         /// <summary>
@@ -1109,37 +1091,37 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public sbyte ReadSByte()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Int16:
+                case ValueTypeCodes.Int16:
                     return (sbyte)value.Int16;
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     return (sbyte)value.Int32;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return (sbyte)value.Int64;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
-                case BasicTypes.Char:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
+                case ValueTypeCodes.Char:
                     return value.SByte;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (sbyte)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (sbyte)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (sbyte)value.Decimal;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to SByte.");
-                case BasicTypes.String:
-                    return sbyte.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (sbyte)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return sbyte.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (sbyte)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to SByte.");
             }
 
@@ -1153,43 +1135,43 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public float ReadSingle()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     return value.Byte;
-                case BasicTypes.SByte:
+                case ValueTypeCodes.SByte:
                     return value.SByte;
-                case BasicTypes.Int16:
+                case ValueTypeCodes.Int16:
                     return value.Int16;
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     return value.Int32;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return value.Int64;
-                case BasicTypes.Byte:
+                case ValueTypeCodes.Byte:
                     return value.Byte;
-                case BasicTypes.UInt16:
+                case ValueTypeCodes.UInt16:
                     return value.UInt16;
-                case BasicTypes.UInt32:
+                case ValueTypeCodes.UInt32:
                     return value.UInt32;
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.UInt64:
                     return value.UInt64;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (float)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (float)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to Single.");
-                case BasicTypes.String:
-                    return float.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (float)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return float.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (float)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to Single.");
             }
 
@@ -1203,43 +1185,43 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public string ReadString()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return null;
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     return value.Boolean.ToString();
-                case BasicTypes.SByte:
+                case ValueTypeCodes.SByte:
                     return value.SByte.ToString();
-                case BasicTypes.Int16:
+                case ValueTypeCodes.Int16:
                     return value.Int16.ToString();
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     return value.Int32.ToString();
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     return value.Int64.ToString();
-                case BasicTypes.Byte:
+                case ValueTypeCodes.Byte:
                     return value.Byte.ToString();
-                case BasicTypes.UInt16:
+                case ValueTypeCodes.UInt16:
                     return value.UInt16.ToString();
-                case BasicTypes.UInt32:
+                case ValueTypeCodes.UInt32:
                     return value.UInt32.ToString();
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.UInt64:
                     return value.UInt64.ToString();
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return value.Single.ToString();
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return value.Double.ToString();
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return value.Decimal.ToString();
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char.ToString();
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     return value.DateTime.ToString();
-                case BasicTypes.String:
-                    return (string)objValue;
-                case BasicTypes.Direct:
-                    return (string)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return value.String;
+                case ValueTypeCodes.Direct:
+                    return value.String;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to String.");
             }
 
@@ -1253,35 +1235,35 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public ushort ReadUInt16()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
                     return value.UInt16;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (ushort)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (ushort)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (ushort)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to UInt16.");
-                case BasicTypes.String:
-                    return ushort.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (ushort)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return ushort.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (ushort)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to UInt16.");
             }
 
@@ -1295,35 +1277,35 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public uint ReadUInt32()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
                     return value.UInt32;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (uint)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (uint)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (uint)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to UInt32.");
-                case BasicTypes.String:
-                    return uint.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (uint)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return uint.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (uint)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to UInt32.");
             }
 
@@ -1337,39 +1319,54 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public ulong ReadUInt64()
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     return 0;
-                case BasicTypes.Boolean:
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.Boolean:
+                case ValueTypeCodes.SByte:
+                case ValueTypeCodes.Int16:
+                case ValueTypeCodes.Int32:
+                case ValueTypeCodes.Int64:
+                case ValueTypeCodes.Byte:
+                case ValueTypeCodes.UInt16:
+                case ValueTypeCodes.UInt32:
+                case ValueTypeCodes.UInt64:
                     return value.UInt64;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     return (ulong)value.Single;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     return (ulong)value.Double;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     return (ulong)value.Decimal;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     return value.Char;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     throw new InvalidCastException("Can't convert DateTime to UInt64.");
-                case BasicTypes.String:
-                    return ulong.Parse((string)objValue);
-                case BasicTypes.Direct:
-                    return (ulong)objValue;
-                case BasicTypes.Array:
+                case ValueTypeCodes.String:
+                    return ulong.Parse(value.String);
+                case ValueTypeCodes.Direct:
+                    return (ulong)value.Object;
+                case ValueTypeCodes.Array:
                     throw new InvalidCastException("Can't convert Array to UInt64.");
             }
 
             throw new InvalidCastException("Can't convert Object to UInt64.");
+        }
+
+        /// <summary>
+        /// 读取一个可空类型的值。
+        /// </summary>
+        /// <typeparam name="T">值类型</typeparam>
+        /// <returns>返回 Null 或该值类型的值</returns>
+        public T? ReadNullable<T>() where T : struct
+        {
+            if (code == ValueTypeCodes.Null)
+            {
+                return null;
+            }
+
+            return ValueInterface<T>.Content.ReadValue(this);
         }
 
         /// <summary>
@@ -1379,64 +1376,64 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteTo(IValueWriter valueWriter)
         {
-            switch (valueType)
+            switch (code)
             {
-                case BasicTypes.Null:
+                case ValueTypeCodes.Null:
                     valueWriter.DirectWrite(null);
                     break;
-                case BasicTypes.Boolean:
+                case ValueTypeCodes.Boolean:
                     valueWriter.WriteBoolean(value.Boolean);
                     break;
-                case BasicTypes.SByte:
+                case ValueTypeCodes.SByte:
                     valueWriter.WriteSByte(value.SByte);
                     break;
-                case BasicTypes.Int16:
+                case ValueTypeCodes.Int16:
                     valueWriter.WriteInt16(value.Int16);
                     break;
-                case BasicTypes.Int32:
+                case ValueTypeCodes.Int32:
                     valueWriter.WriteInt32(value.Int32);
                     break;
-                case BasicTypes.Int64:
+                case ValueTypeCodes.Int64:
                     valueWriter.WriteInt64(value.Int64);
                     break;
-                case BasicTypes.Byte:
+                case ValueTypeCodes.Byte:
                     valueWriter.WriteByte(value.Byte);
                     break;
-                case BasicTypes.UInt16:
+                case ValueTypeCodes.UInt16:
                     valueWriter.WriteUInt16(value.UInt16);
                     break;
-                case BasicTypes.UInt32:
+                case ValueTypeCodes.UInt32:
                     valueWriter.WriteUInt32(value.UInt32);
                     break;
-                case BasicTypes.UInt64:
+                case ValueTypeCodes.UInt64:
                     valueWriter.WriteUInt64(value.UInt64);
                     break;
-                case BasicTypes.Single:
+                case ValueTypeCodes.Single:
                     valueWriter.WriteSingle(value.Single);
                     break;
-                case BasicTypes.Double:
+                case ValueTypeCodes.Double:
                     valueWriter.WriteDouble(value.Double);
                     break;
-                case BasicTypes.Decimal:
+                case ValueTypeCodes.Decimal:
                     valueWriter.WriteDecimal(value.Decimal);
                     break;
-                case BasicTypes.Char:
+                case ValueTypeCodes.Char:
                     valueWriter.WriteChar(value.Char);
                     break;
-                case BasicTypes.DateTime:
+                case ValueTypeCodes.DateTime:
                     valueWriter.WriteDateTime(value.DateTime);
                     break;
-                case BasicTypes.String:
-                    valueWriter.WriteString((string)objValue);
+                case ValueTypeCodes.String:
+                    valueWriter.WriteString(value.String);
                     break;
-                case BasicTypes.Direct:
-                    valueWriter.DirectWrite(objValue);
+                case ValueTypeCodes.Direct:
+                    valueWriter.DirectWrite(value.Object);
                     break;
-                case BasicTypes.Array:
-                    valueWriter.WriteArray((IDataReader<int>)objValue);
+                case ValueTypeCodes.Array:
+                    valueWriter.WriteArray(value.DataReader.As<int>());
                     break;
-                case BasicTypes.Object:
-                    valueWriter.WriteObject((IDataReader<string>)objValue);
+                case ValueTypeCodes.Object:
+                    valueWriter.WriteObject(value.DataReader.As<string>());
                     break;
             }
         }
@@ -1448,9 +1445,9 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteArray(IDataReader<int> dataReader)
         {
-            valueType = BasicTypes.Array;
+            code = ValueTypeCodes.Array;
 
-            objValue = dataReader;
+            value.DataReader = dataReader;
         }
 
         /// <summary>
@@ -1460,7 +1457,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteBoolean(bool value)
         {
-            valueType = BasicTypes.Boolean;
+            code = ValueTypeCodes.Boolean;
 
             this.value.Boolean = value;
         }
@@ -1472,7 +1469,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteByte(byte value)
         {
-            valueType = BasicTypes.Byte;
+            code = ValueTypeCodes.Byte;
 
             this.value.Byte = value;
         }
@@ -1484,7 +1481,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteChar(char value)
         {
-            valueType = BasicTypes.Char;
+            code = ValueTypeCodes.Char;
 
             this.value.Char = value;
         }
@@ -1496,7 +1493,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteDateTime(DateTime value)
         {
-            valueType = BasicTypes.DateTime;
+            code = ValueTypeCodes.DateTime;
 
             this.value.DateTime = value;
         }
@@ -1508,7 +1505,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteDecimal(decimal value)
         {
-            valueType = BasicTypes.Decimal;
+            code = ValueTypeCodes.Decimal;
 
             this.value.Decimal = value;
         }
@@ -1522,14 +1519,16 @@ namespace Swifter.RW
         {
             if (value == null)
             {
-                valueType = BasicTypes.Null;
+                code = ValueTypeCodes.Null;
+
+                this.value.Object = null;
 
                 return;
             }
 
-            valueType = BasicTypes.Direct;
+            code = ValueTypeCodes.Direct;
 
-            objValue = value;
+            this.value.Object = value;
         }
 
         /// <summary>
@@ -1539,7 +1538,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteDouble(double value)
         {
-            valueType = BasicTypes.Double;
+            code = ValueTypeCodes.Double;
 
             this.value.Double = value;
         }
@@ -1551,7 +1550,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteInt16(short value)
         {
-            valueType = BasicTypes.Int16;
+            code = ValueTypeCodes.Int16;
 
             this.value.Int16 = value;
         }
@@ -1563,7 +1562,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteInt32(int value)
         {
-            valueType = BasicTypes.Int32;
+            code = ValueTypeCodes.Int32;
 
             this.value.Int32 = value;
         }
@@ -1575,7 +1574,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteInt64(long value)
         {
-            valueType = BasicTypes.Int64;
+            code = ValueTypeCodes.Int64;
 
             this.value.Int64 = value;
         }
@@ -1587,9 +1586,9 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteObject(IDataReader<string> dataReader)
         {
-            valueType = BasicTypes.Object;
+            code = ValueTypeCodes.Object;
 
-            objValue = dataReader;
+            value.DataReader = dataReader;
         }
 
         /// <summary>
@@ -1599,7 +1598,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteSByte(sbyte value)
         {
-            valueType = BasicTypes.SByte;
+            code = ValueTypeCodes.SByte;
 
             this.value.SByte = value;
         }
@@ -1611,7 +1610,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteSingle(float value)
         {
-            valueType = BasicTypes.Single;
+            code = ValueTypeCodes.Single;
 
             this.value.Single = value;
         }
@@ -1625,14 +1624,16 @@ namespace Swifter.RW
         {
             if (value == null)
             {
-                valueType = BasicTypes.Null;
+                code = ValueTypeCodes.Null;
+
+                this.value.String = null;
 
                 return;
             }
 
-            valueType = BasicTypes.String;
+            code = ValueTypeCodes.String;
 
-            objValue = value;
+            this.value.String = value;
         }
 
         /// <summary>
@@ -1642,7 +1643,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteUInt16(ushort value)
         {
-            valueType = BasicTypes.UInt16;
+            code = ValueTypeCodes.UInt16;
 
             this.value.UInt16 = value;
         }
@@ -1654,7 +1655,7 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteUInt32(uint value)
         {
-            valueType = BasicTypes.UInt32;
+            code = ValueTypeCodes.UInt32;
 
             this.value.UInt32 = value;
         }
@@ -1666,9 +1667,101 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteUInt64(ulong value)
         {
-            valueType = BasicTypes.UInt64;
+            code = ValueTypeCodes.UInt64;
 
             this.value.UInt64 = value;
+        }
+
+
+        /// <summary>
+        /// 基础类型枚举，此枚举不能按位合并值。
+        /// </summary>
+        enum ValueTypeCodes : byte
+        {
+            /// <summary>
+            /// Boolean, bool
+            /// </summary>
+            Boolean = TypeCode.Boolean,
+            /// <summary>
+            /// SByte, sbyte
+            /// </summary>
+            SByte = TypeCode.SByte,
+            /// <summary>
+            /// Int16, short
+            /// </summary>
+            Int16 = TypeCode.Int16,
+            /// <summary>
+            /// Int32, int
+            /// </summary>
+            Int32 = TypeCode.Int32,
+            /// <summary>
+            /// Int64, long
+            /// </summary>
+            Int64 = TypeCode.Int64,
+            /// <summary>
+            /// Byte, byte
+            /// </summary>
+            Byte = TypeCode.Byte,
+            /// <summary>
+            /// UInt16, ushort
+            /// </summary>
+            UInt16 = TypeCode.UInt16,
+            /// <summary>
+            /// UInt32, uint
+            /// </summary>
+            UInt32 = TypeCode.UInt32,
+            /// <summary>
+            /// UInt64, ulong
+            /// </summary>
+            UInt64 = TypeCode.UInt64,
+            /// <summary>
+            /// Single, float
+            /// </summary>
+            Single = TypeCode.Single,
+            /// <summary>
+            /// Double, double
+            /// </summary>
+            Double = TypeCode.Double,
+            /// <summary>
+            /// Decimal, decimal
+            /// </summary>
+            Decimal = TypeCode.Decimal,
+            /// <summary>
+            /// Char, char
+            /// </summary>
+            Char = TypeCode.Char,
+            /// <summary>
+            /// DateTime
+            /// </summary>
+            DateTime = TypeCode.DateTime,
+            /// <summary>
+            /// String, string
+            /// </summary>
+            String = TypeCode.String,
+            /// <summary>
+            /// Direct
+            /// 
+            /// 表示可以直接读写值的类型。
+            /// 通常是可以用字符串表示的值的类型。
+            /// 
+            /// Represents a type that can read and write value directly.
+            /// is typically the type of a value that can be represented by a string.
+            /// </summary>
+            Direct = 100,
+            /// <summary>
+            /// Array
+            /// </summary>
+            Array = 101,
+            /// <summary>
+            /// Object
+            /// 其他类型
+            /// Other types
+            /// </summary>
+            Object = 102,
+            /// <summary>
+            /// Null, DBNull
+            /// </summary>
+            Null = TypeCode.Empty
         }
     }
 }

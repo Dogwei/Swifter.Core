@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swifter.Readers;
+using System;
 using System.Runtime.InteropServices;
 
 namespace Swifter.Tools
@@ -37,5 +38,11 @@ namespace Swifter.Tools
         public char Char;
         [FieldOffset(0)]
         public DateTime DateTime;
+        [FieldOffset(16)]
+        public object Object;
+        [FieldOffset(16)]
+        public string String;
+        [FieldOffset(16)]
+        public IDataReader DataReader;
     }
 }

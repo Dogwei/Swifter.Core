@@ -3,26 +3,30 @@ using Swifter.Tools;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Swifter.RW
 {
     /// <summary>
-    /// ValueInterface/<T/> 提供在 ValueReader 中读取指定类型的值或在 ValueWriter 中写入指定类型的值。
+    /// ValueInterface&lt;T&gt; 提供在 ValueReader 中读取指定类型的值或在 ValueWriter 中写入指定类型的值。
     /// 此类型提供泛型方法，效率更高。
     /// <typeparam name="T">值的类型</typeparam>
     /// </summary>
     public sealed class ValueInterface<T> : ValueInterface
     {
+        private static object ContentLock;
         /// <summary>
         /// 此类型的具体读写方法实现。
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static IValueInterface<T> Content;
 
         /// <summary>
         /// 表示是否使用用户自定义的读写方法，如果为 True, FastObjectRW 将不优化基础类型的读写。
-        /// 基础类型型请参见枚举 BasicTypes。
         /// </summary>
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool IsNoModify;
 
         static ValueInterface()
@@ -67,6 +71,13 @@ namespace Swifter.RW
                 return;
             }
 
+            if (typeof(System.Reflection.Assembly).IsAssignableFrom(type))
+            {
+                Content = (IValueInterface<T>)Activator.CreateInstance((typeof(AssemblyInterface<>)).MakeGenericType(type));
+
+                return;
+            }
+
             if (typeof(IDataReader).IsAssignableFrom(type))
             {
                 foreach (var item in type.GetInterfaces())
@@ -75,11 +86,18 @@ namespace Swifter.RW
                     {
                         var keyType = item.GetGenericArguments()[0];
 
-                        Content = (IValueInterface<T>)Activator.CreateInstance((typeof(IDataReaderInterface<,>)).MakeGenericType(type, keyType));
+                        Content = (IValueInterface<T>)Activator.CreateInstance((typeof(DataReaderInterface<,>)).MakeGenericType(type, keyType));
 
                         return;
                     }
                 }
+            }
+
+            if (typeof(T).IsEnum)
+            {
+                Content = (IValueInterface<T>)Activator.CreateInstance(typeof(EnumInterface<>).MakeGenericType(type));
+
+                return;
             }
 
             if (type.IsArray)
@@ -111,12 +129,80 @@ namespace Swifter.RW
             Content = (IValueInterface<T>)Activator.CreateInstance(defaultObjectInterfaceType.MakeGenericType(type));
         }
 
+
+        /// <summary>
+        /// 往写入器中写入该类型值的方法。
+        /// </summary>
+        /// <param name="value">T 类型的值</param>
+        /// <param name="valueWriter">值写入器</param>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static void WriteValue(T value, IValueWriter valueWriter)
+        {
+            Content.WriteValue(valueWriter, value);
+        }
+
+        /// <summary>
+        /// 在读取器中读取该类型值的方法。
+        /// </summary>
+        /// <param name="valueReader">值读取器</param>
+        /// <returns>返回该类型的值</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static T ReadValue(IValueReader valueReader)
+        {
+            return Content.ReadValue(valueReader);
+        }
+
+        /// <summary>
+        /// 设置该类型的值读写接口实例。
+        /// </summary>
+        /// <param name="valueInterface">值读写接口实例</param>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void SetInterface(IValueInterface<T> valueInterface)
+        {
+            Content = valueInterface ?? throw new ArgumentNullException(nameof(valueInterface));
+
+            IsNoModify = false;
+        }
+
+        /// <summary>
+        /// 设置针对某一目标值读写器的读写接口实例。
+        /// </summary>
+        /// <param name="targetedId">针对目标的 Id</param>
+        /// <param name="valueInterface">读写接口实例</param>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void SetTargetedInterface(long targetedId, IValueInterface<T> valueInterface)
+        {
+            if (!(Content is TargetedValueInterface<T>))
+            {
+                if (ContentLock == null)
+                {
+                    lock (MapersLock)
+                    {
+                        if (ContentLock == null)
+                        {
+                            ContentLock = new object();
+                        }
+                    }
+                }
+
+                lock (ContentLock)
+                {
+                    if (!(Content is TargetedValueInterface<T>))
+                    {
+                        SetInterface(new TargetedValueInterface<T>(Content));
+                    }
+                }
+            }
+
+            TargetedValueInterface.Set(targetedId, valueInterface);
+        }
+
         /// <summary>
         /// 非泛型读取值方法。
         /// </summary>
         /// <param name="valueReader">值读取器。</param>
         /// <returns>返回一个 T 类型的值。</returns>
-        public override object ReadValue(IValueReader valueReader)
+        public override object Read(IValueReader valueReader)
         {
             return Content.ReadValue(valueReader);
         }
@@ -126,20 +212,9 @@ namespace Swifter.RW
         /// </summary>
         /// <param name="valueWriter">值写入器</param>
         /// <param name="value">T 类型的值</param>
-        public override void WriteValue(IValueWriter valueWriter, object value)
+        public override void Write(IValueWriter valueWriter, object value)
         {
             Content.WriteValue(valueWriter, (T)value);
-        }
-
-        /// <summary>
-        /// 参数反转写入值方法。
-        /// </summary>
-        /// <param name="value">T 类型的值</param>
-        /// <param name="valueWriter">值写入器</param>
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public static void ReverseWriteValue(T value, IValueWriter valueWriter)
-        {
-            Content.WriteValue(valueWriter, value);
         }
     }
 
@@ -275,11 +350,15 @@ namespace Swifter.RW
             ValueInterface<double>.Content = new DoubleInterface();
             ValueInterface<decimal>.Content = new DecimalInterface();
             ValueInterface<string>.Content = new StringInterface();
-            ValueInterface<object>.Content = new UnknowTypeInterface<object>();
+            ValueInterface<object>.Content = new ObjectInterface();
             ValueInterface<DateTime>.Content = new DateTimeInterface();
+            ValueInterface<DateTimeOffset>.Content = new DateTimeOffsetInterface();
             ValueInterface<TimeSpan>.Content = new TimeSpanInterface();
             ValueInterface<IntPtr>.Content = new IntPtrInterface();
+            ValueInterface<Version>.Content = new VersionInterface();
+            ValueInterface<DBNull>.Content = new DbNullInterface();
 
+            Mapers.Add(new EnumerableInterfaceMaper());
             Mapers.Add(new CollectionInterfaceMaper());
             Mapers.Add(new DictionaryInterfaceMaper());
             Mapers.Add(new ListInterfaceMaper());
@@ -301,7 +380,10 @@ namespace Swifter.RW
                 throw new ArgumentNullException(nameof(maper));
             }
 
-            Mapers.Add(maper);
+            lock (MapersLock)
+            {
+                Mapers.Add(maper);
+            }
         }
 
         /// <summary>
@@ -311,13 +393,12 @@ namespace Swifter.RW
         /// </summary>
         /// <param name="type">指定类型</param>
         /// <returns>返回一个 ValueInterface 实例。</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static ValueInterface GetInterface(Type type)
         {
-            ValueInterface result;
-
             var typeId = (long)type.TypeHandle.Value;
 
-            if (!TypedCache.TryGetValue(typeId, out result))
+            if (!TypedCache.TryGetValue(typeId, out ValueInterface result))
             {
                 lock (TypedCacheLock)
                 {
@@ -336,17 +417,16 @@ namespace Swifter.RW
         }
 
         /// <summary>
-        /// 非泛型方式获取实例的类型的 ValueInterface ，此方式效率比 ValueInterface.GetInterface(Tyoe) 高，但比 ValueInterface/<T/>.Content 低。
+        /// 非泛型方式获取实例的类型的 ValueInterface ，此方式效率比 ValueInterface.GetInterface(Type) 高，但比 ValueInterface&lt;T&gt;.Content 低。
         /// </summary>
         /// <param name="obj">指定一个实例，此实例不能为 Null。</param>
         /// <returns>返回一个 ValueInterface 实例。</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static ValueInterface GetInterface(object obj)
         {
-            ValueInterface result;
-
             var typeId = (long)Pointer.GetTypeHandle(obj);
 
-            if (!TypedCache.TryGetValue(typeId, out result))
+            if (!TypedCache.TryGetValue(typeId, out ValueInterface result))
             {
                 lock (TypedCacheLock)
                 {
@@ -367,18 +447,81 @@ namespace Swifter.RW
         }
 
         /// <summary>
+        /// 往写入器中写入一个未知类型值的方法。
+        /// </summary>
+        /// <param name="valueWriter">写入器</param>
+        /// <param name="value">一个对象值</param>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static void WriteValue(IValueWriter valueWriter, object value)
+        {
+            if (value == null)
+            {
+                valueWriter.DirectWrite(null);
+            }
+            else
+            {
+                GetInterface(value).Write(valueWriter, value);
+            }
+        }
+
+        /// <summary>
+        /// 在读取器中读取指定类型值的方法。
+        /// </summary>
+        /// <param name="valueReader">读取器</param>
+        /// <param name="type">指定类型</param>
+        /// <returns>返回一个对象值</returns>
+        public static object ReadValue(IValueReader valueReader, Type type)
+        {
+            return GetInterface(type).Read(valueReader);
+        }
+
+        /// <summary>
+        /// 在读取器中读取指定类型值的方法。
+        /// </summary>
+        /// <typeparam name="T">值的类型</typeparam>
+        /// <param name="valueReader">值读取器</param>
+        /// <returns>返回该类型的值</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static T ReadValue<T>(IValueReader valueReader)
+        {
+            return ValueInterface<T>.Content.ReadValue(valueReader);
+        }
+
+        /// <summary>
+        /// 往写入器中写入指定类型值的方法。
+        /// </summary>
+        /// <typeparam name="T">值的类型</typeparam>
+        /// <param name="valueWriter">值写入器</param>
+        /// <param name="value">值</param>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static void WriteValue<T>(IValueWriter valueWriter, T value)
+        {
+            ValueInterface<T>.Content.WriteValue(valueWriter, value);
+        }
+
+        /// <summary>
+        /// 移除针对某一目标读写器的读写接口实例。
+        /// </summary>
+        /// <param name="targetedId">目标 Id</param>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void RemoveTargetedInterface(long targetedId)
+        {
+            TargetedValueInterface.Remove(targetedId);
+        }
+
+        /// <summary>
         /// 在 IValueReader 中读取该类型的值。
         /// </summary>
         /// <param name="valueReader">值读取器</param>
         /// <returns>返回该类型的值</returns>
-        public abstract object ReadValue(IValueReader valueReader);
+        public abstract object Read(IValueReader valueReader);
 
         /// <summary>
         /// 在 IValueWriter 中写入该类型的值。
         /// </summary>
         /// <param name="valueWriter">值写入器</param>
         /// <param name="value">该类型的值</param>
-        public abstract void WriteValue(IValueWriter valueWriter, object value);
+        public abstract void Write(IValueWriter valueWriter, object value);
     }
 
     /// <summary>
@@ -523,7 +666,6 @@ namespace Swifter.RW
 
     internal sealed class UInt64Interface : IValueInterface<ulong>
     {
-
         public ulong ReadValue(IValueReader valueReader)
         {
             return valueReader.ReadUInt64();
@@ -622,7 +764,14 @@ namespace Swifter.RW
                 return intPtrReader.ReadValue();
             }
 
-            return (IntPtr)valueReader.ReadInt64();
+            var value = valueReader.ReadNullable<long>();
+
+            if (value == null)
+            {
+                return IntPtr.Zero;
+            }
+
+            return (IntPtr)value.Value;
         }
 
         public void WriteValue(IValueWriter valueWriter, IntPtr value)
@@ -634,6 +783,45 @@ namespace Swifter.RW
             else
             {
                 valueWriter.WriteInt64((long)value);
+            }
+        }
+    }
+
+    internal sealed class VersionInterface : IValueInterface<Version>
+    {
+        public Version ReadValue(IValueReader valueReader)
+        {
+            if (valueReader is IValueReader<Version> versionReader)
+            {
+                return versionReader.ReadValue();
+            }
+
+            var versionText = valueReader.ReadString();
+
+            if (versionText == null)
+            {
+                return null;
+            }
+
+            return new Version(versionText);
+        }
+
+        public void WriteValue(IValueWriter valueWriter, Version value)
+        {
+            if (value == null)
+            {
+                valueWriter.DirectWrite(null);
+
+                return;
+            }
+
+            if (valueWriter is IValueWriter<Version> versionReader)
+            {
+                versionReader.WriteValue(value);
+            }
+            else
+            {
+                valueWriter.WriteString(value.ToString());
             }
         }
     }
@@ -668,9 +856,9 @@ namespace Swifter.RW
 
     internal sealed class FastObjectInterface<T> : IValueInterface<T>
     {
-        private static readonly bool CheckChildrenInstance = typeof(T).IsClass && (!typeof(T).IsSealed);
-        private static readonly long Int64TypeHandle = TypeInfo<T>.Int64TypeHandle;
-
+        static readonly bool CheckChildrenInstance = !TypeInfo<T>.IsFinal;
+        static readonly long Int64TypeHandle = TypeInfo<T>.Int64TypeHandle;
+        
         public T ReadValue(IValueReader valueReader)
         {
             var fastObjectRW = FastObjectRW<T>.Create();
@@ -692,7 +880,7 @@ namespace Swifter.RW
             /* 父类引用，子类实例时使用 Type 获取写入器。 */
             if (CheckChildrenInstance && Int64TypeHandle != (long)TypeHelper.GetTypeHandle(value))
             {
-                ValueInterface.GetInterface(value).WriteValue(valueWriter, value);
+                ValueInterface.GetInterface(value).Write(valueWriter, value);
 
                 return;
             }
@@ -700,15 +888,51 @@ namespace Swifter.RW
             var fastObjectRW = FastObjectRW<T>.Create();
 
             fastObjectRW.Initialize(value);
-            
+
             valueWriter.WriteObject(fastObjectRW);
+        }
+    }
+
+    internal sealed class ObjectInterface : IValueInterface<object>
+    {
+        public object ReadValue(IValueReader valueReader)
+        {
+            return valueReader.DirectRead();
+        }
+
+        public void WriteValue(IValueWriter valueWriter, object value)
+        {
+            if (value == null)
+            {
+                valueWriter.DirectWrite(null);
+
+                return;
+            }
+
+            if (valueWriter is IValueWriter<object> writer)
+            {
+                writer.WriteValue(value);
+
+                return;
+            }
+
+            /* 父类引用，子类实例时使用 Type 获取写入器。 */
+
+            if (TypeInfo<object>.Int64TypeHandle != (long)TypeHelper.GetTypeHandle(value))
+            {
+                ValueInterface.GetInterface(value).Write(valueWriter, value);
+
+                return;
+            }
+
+            valueWriter.DirectWrite(value);
         }
     }
 
     internal sealed class UnknowTypeInterface<T> : IValueInterface<T>
     {
-        private static readonly long Int64TypeHandle = TypeInfo<T>.Int64TypeHandle;
-
+        static readonly long Int64TypeHandle = TypeInfo<T>.Int64TypeHandle;
+        
         public T ReadValue(IValueReader valueReader)
         {
             if (valueReader is IValueReader<T>)
@@ -722,7 +946,7 @@ namespace Swifter.RW
             {
                 return (T)directValue;
             }
-            
+
             return DConvert<T>.Convert(directValue);
         }
 
@@ -731,6 +955,13 @@ namespace Swifter.RW
             if (value == null)
             {
                 valueWriter.DirectWrite(null);
+
+                return;
+            }
+
+            if (valueWriter is IValueWriter<T> writer)
+            {
+                writer.WriteValue(value);
 
                 return;
             }
@@ -749,17 +980,47 @@ namespace Swifter.RW
                 return;
             }
 
-            if (valueWriter is IValueWriter<T>)
+            /* 父类引用，子类实例时使用 Type 获取写入器。 */
+            if (Int64TypeHandle != (long)TypeHelper.GetTypeHandle(value))
             {
-                ((IValueWriter<T>)valueWriter).WriteValue(value);
+                ValueInterface.GetInterface(value).Write(valueWriter, value);
 
                 return;
             }
 
-            /* 父类引用，子类实例时使用 Type 获取写入器。 */
-            if (Int64TypeHandle != (long)TypeHelper.GetTypeHandle(value))
+            valueWriter.DirectWrite(value);
+        }
+    }
+
+    internal sealed class DateTimeOffsetInterface : IValueInterface<DateTimeOffset>
+    {
+        public DateTimeOffset ReadValue(IValueReader valueReader)
+        {
+            if (valueReader is IValueReader<DateTimeOffset> dateTimeOffsetReader)
             {
-                ValueInterface.GetInterface(value).WriteValue(valueWriter, value);
+                return dateTimeOffsetReader.ReadValue();
+            }
+
+            object directValue = valueReader.DirectRead();
+
+            if (directValue is DateTimeOffset)
+            {
+                return (DateTimeOffset)directValue;
+            }
+
+            if (directValue is string)
+            {
+                return DateTimeOffset.Parse((string)directValue);
+            }
+
+            return DConvert<DateTimeOffset>.Convert(directValue);
+        }
+
+        public void WriteValue(IValueWriter valueWriter, DateTimeOffset value)
+        {
+            if (valueWriter is IValueWriter<DateTimeOffset> dateTimeOffsetWriter)
+            {
+                dateTimeOffsetWriter.WriteValue(value);
 
                 return;
             }
@@ -772,6 +1033,11 @@ namespace Swifter.RW
     {
         public TimeSpan ReadValue(IValueReader valueReader)
         {
+            if (valueReader is IValueReader<TimeSpan> timeSpanReader)
+            {
+                return timeSpanReader.ReadValue();
+            }
+
             object directValue = valueReader.DirectRead();
 
             if (directValue is TimeSpan)
@@ -783,12 +1049,19 @@ namespace Swifter.RW
             {
                 return TimeSpan.Parse((string)directValue);
             }
-            
+
             return DConvert<TimeSpan>.Convert(directValue);
         }
 
         public void WriteValue(IValueWriter valueWriter, TimeSpan value)
         {
+            if (valueWriter is IValueWriter<TimeSpan> timeSpanWriter)
+            {
+                timeSpanWriter.WriteValue(value);
+
+                return;
+            }
+
             valueWriter.DirectWrite(value);
         }
     }
@@ -797,19 +1070,7 @@ namespace Swifter.RW
     {
         public T? ReadValue(IValueReader valueReader)
         {
-            if (valueReader.GetBasicType() == BasicTypes.Null)
-            {
-                var directValue = valueReader.DirectRead();
-
-                if (directValue == null)
-                {
-                    return null;
-                }
-                
-                return DConvert<T>.Convert(directValue);
-            }
-
-            return ValueInterface<T>.Content.ReadValue(valueReader);
+            return valueReader.ReadNullable<T>();
         }
 
         public void WriteValue(IValueWriter valueWriter, T? value)
@@ -825,10 +1086,55 @@ namespace Swifter.RW
         }
     }
 
-    internal sealed class IDataReaderInterface<T, Key> : IValueInterface<T> where T : IDataReader<Key>
+    internal sealed class DataReaderInterface<T, TKey> : IValueInterface<T> where T : IDataReader<TKey>
     {
+        static readonly bool IsArray;
+
+        static DataReaderInterface()
+        {
+            switch (TypeInfo<TKey>.TypeCode)
+            {
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    IsArray = true;
+                    break;
+            }
+        }
+
         public T ReadValue(IValueReader valueReader)
         {
+            if (valueReader is IValueReader<T> tReader)
+            {
+                return tReader.ReadValue();
+            }
+
+            if (valueReader is IValueFiller<TKey> tFiller &&
+                typeof(IDataWriter<TKey>).IsAssignableFrom(typeof(T)))
+            {
+                T instance = default;
+
+                try
+                {
+                    instance = Activator.CreateInstance<T>(); ;
+                }
+                catch (Exception)
+                {
+                    goto Direct;
+                }
+
+                tFiller.FillValue((IDataWriter<TKey>)instance);
+
+                return instance;
+            }
+
+        Direct:
+
             var value = valueReader.DirectRead();
 
             if (value is T tValue)
@@ -836,29 +1142,39 @@ namespace Swifter.RW
                 return tValue;
             }
 
-            throw new NotSupportedException(StringHelper.Format("Cannot read a '{0}', It is a data reader.", typeof(T).Name));
+            var reader = RWHelper.CreateReader(value);
+
+            if (reader is T tResult)
+            {
+                return tResult;
+            }
+
+            throw new NotSupportedException(StringHelper.Format("Cannot read a '{0}', It is a data {1}.", typeof(T).Name, "reader"));
         }
 
         public void WriteValue(IValueWriter valueWriter, T value)
         {
-            switch (TypeInfo<Key>.BasicType)
+            if (valueWriter is IValueWriter<T> tWriter)
             {
-                case BasicTypes.SByte:
-                case BasicTypes.Int16:
-                case BasicTypes.Int32:
-                case BasicTypes.Int64:
-                case BasicTypes.Byte:
-                case BasicTypes.UInt16:
-                case BasicTypes.UInt32:
-                case BasicTypes.UInt64:
-                    valueWriter.WriteArray(value.As<int>());
-                    break;
-                case BasicTypes.Char:
-                case BasicTypes.String:
-                    valueWriter.WriteObject(value.As<string>());
-                    break;
-                default:
-                    throw new NotSupportedException(StringHelper.Format("Cannot write a '{0}', It's Key not supported.", typeof(T).Name));
+                tWriter.WriteValue(value);
+
+                return;
+            }
+
+            if (valueWriter is IValueWriter<IDataReader> iWriter)
+            {
+                iWriter.WriteValue(value);
+
+                return;
+            }
+
+            if (IsArray)
+            {
+                valueWriter.WriteArray(value.As<int>());
+            }
+            else
+            {
+                valueWriter.WriteObject(value.As<string>());
             }
         }
     }
@@ -921,6 +1237,157 @@ namespace Swifter.RW
             }
 
             valueWriter.WriteString(value.AssemblyQualifiedName);
+        }
+    }
+
+    internal sealed class AssemblyInterface<T> : IValueInterface<T> where T : System.Reflection.Assembly
+    {
+        public T ReadValue(IValueReader valueReader)
+        {
+            if (valueReader is IValueReader<T> tReader)
+            {
+                return tReader.ReadValue();
+            }
+
+            if (valueReader is IValueReader<System.Reflection.Assembly> assemblyReader)
+            {
+                return (T)assemblyReader.ReadValue();
+            }
+
+            var value = valueReader.DirectRead();
+
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (value is T tValue)
+            {
+                return tValue;
+            }
+
+            if (value is string sValue)
+            {
+                return (T)System.Reflection.Assembly.Load(sValue);
+            }
+
+            throw new NotSupportedException(StringHelper.Format("Cannot Read a 'Assembly' by '{0}'.", value.ToString()));
+        }
+
+        public void WriteValue(IValueWriter valueWriter, T value)
+        {
+            if (value == null)
+            {
+                valueWriter.DirectWrite(null);
+
+                return;
+            }
+
+            if (valueWriter is IValueWriter<T> tWriter)
+            {
+                tWriter.WriteValue(value);
+
+                return;
+            }
+
+            if (valueWriter is IValueWriter<System.Reflection.Assembly> assemblyWriter)
+            {
+                assemblyWriter.WriteValue(value);
+
+                return;
+            }
+
+            valueWriter.WriteString(value.FullName);
+        }
+    }
+
+    internal sealed class EnumInterface<T> : IValueInterface<T> where T : Enum
+    {
+        static readonly Type EnumType = typeof(T);
+        static readonly TypeCode TypeCode = Type.GetTypeCode(Enum.GetUnderlyingType(EnumType));
+        
+        public T ReadValue(IValueReader valueReader)
+        {
+            if (valueReader is IValueReader<T> tReader)
+            {
+                return tReader.ReadValue();
+            }
+
+            var value = valueReader.DirectRead();
+
+            if (value is string st)
+            {
+                return (T)Enum.Parse(EnumType, valueReader.ReadString());
+            }
+
+            return (T)Enum.ToObject(EnumType, value);
+        }
+
+        public void WriteValue(IValueWriter valueWriter, T value)
+        {
+            if (valueWriter is IValueWriter<T> tWriter)
+            {
+                tWriter.WriteValue(value);
+
+                return;
+            }
+
+            var name = Enum.GetName(EnumType, value);
+
+            if (name != null)
+            {
+                valueWriter.WriteString(name);
+            }
+            else
+            {
+                switch (TypeCode)
+                {
+                    case TypeCode.SByte:
+                        valueWriter.WriteSByte((sbyte)(object)value);
+                        break;
+                    case TypeCode.Byte:
+                        valueWriter.WriteByte((byte)(object)value);
+                        break;
+                    case TypeCode.Int16:
+                        valueWriter.WriteInt16((short)(object)value);
+                        break;
+                    case TypeCode.UInt16:
+                        valueWriter.WriteUInt16((ushort)(object)value);
+                        break;
+                    case TypeCode.UInt32:
+                        valueWriter.WriteUInt32((uint)(object)value);
+                        break;
+                    case TypeCode.Int64:
+                        valueWriter.WriteInt64((long)(object)value);
+                        break;
+                    case TypeCode.UInt64:
+                        valueWriter.WriteUInt64((ulong)(object)value);
+                        break;
+                    default:
+                        valueWriter.WriteInt32((int)(object)value);
+                        break;
+                }
+            }
+        }
+    }
+
+    internal sealed class DbNullInterface : IValueInterface<DBNull>
+    {
+        public DBNull ReadValue(IValueReader valueReader)
+        {
+            var value = valueReader.DirectRead();
+
+            if (value == null || value == DBNull.Value)
+            {
+                return DBNull.Value;
+            }
+
+            throw new NotSupportedException("Unable convert value to DbNull.");
+        }
+
+        public void WriteValue(IValueWriter valueWriter, DBNull value)
+        {
+            valueWriter.DirectWrite(null);
         }
     }
 }

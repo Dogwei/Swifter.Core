@@ -2,6 +2,7 @@
 using Swifter.Tools;
 using Swifter.Writers;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Swifter.RW
@@ -9,23 +10,12 @@ namespace Swifter.RW
     /// <summary>
     /// 读写器帮助类。
     /// </summary>
-    public static partial class RWHelper
+    public static class RWHelper
     {
-        [ThreadStatic]
-        private static HelperValueRW helperValueRW;
-
-        private static HelperValueRW HelperValueRW
-        {
-            get
-            {
-                if (helperValueRW == null)
-                {
-                    helperValueRW = new HelperValueRW();
-                }
-
-                return helperValueRW;
-            }
-        }
+        /// <summary>
+        /// 获取一个所有方法均为获取 default 值的读取器。
+        /// </summary>
+        public static IValueReader DefaultValueReader = RW.DefaultValueReader.Instance;
 
         /// <summary>
         /// 为实例创建读取器。
@@ -36,25 +26,15 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static IDataReader CreateReader<T>(T obj)
         {
-            var helperValueRW = HelperValueRW;
+            var auxiliaryValueRW = new AuxiliaryValueRW();
 
-            ValueInterface<T>.Content.WriteValue(helperValueRW, obj);
+            ValueInterface<T>.Content.WriteValue(auxiliaryValueRW, obj);
 
-            var value = helperValueRW.Content;
+            var value = auxiliaryValueRW.read_writer;
 
-            if (value == null)
+            if (value is IAsDataReader @as)
             {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataReader for BasicTypes '{0}'.", helperValueRW.GetBasicType().ToString()));
-            }
-
-            if (!(value is IDataReader))
-            {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataReader for '{0}'.", typeof(T).Name));
-            }
-
-            if (value is IAsDataReader)
-            {
-                value = ((IAsDataReader)value).Content;
+                return @as.Content;
             }
 
             return (IDataReader)value;
@@ -69,30 +49,15 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static IDataRW CreateRW<T>(T obj)
         {
-            var helperValueRW = HelperValueRW;
+            var auxiliaryValueRW = new AuxiliaryValueRW();
 
-            ValueInterface<T>.Content.WriteValue(helperValueRW, obj);
+            ValueInterface<T>.Content.WriteValue(auxiliaryValueRW, obj);
 
-            var value = helperValueRW.Content;
+            var value = auxiliaryValueRW.read_writer;
 
-            if (value == null)
+            if (value is IAsDataRW @as)
             {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataRW for BasicTypes '{0}'.", helperValueRW.GetBasicType().ToString()));
-            }
-
-            if (value is IAsDataReader)
-            {
-                value = ((IAsDataReader)value).Content;
-            }
-
-            if (value is IAsDataWriter)
-            {
-                value = ((IAsDataWriter)value).Content;
-            }
-
-            if (!(value is IDataRW))
-            {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataRW for '{0}'.", typeof(T).Name));
+                return @as.Content;
             }
 
             return (IDataRW)value;
@@ -106,25 +71,15 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static IDataWriter CreateWriter<T>()
         {
-            var helperValueRW = HelperValueRW;
+            var auxiliaryValueRW = new AuxiliaryValueRW();
 
-            ValueInterface<T>.Content.ReadValue(helperValueRW);
+            ValueInterface<T>.Content.ReadValue(auxiliaryValueRW);
 
-            var value = helperValueRW.Content;
+            var value = auxiliaryValueRW.read_writer;
 
-            if (value == null)
+            if (value is IAsDataWriter @as)
             {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataWriter for BasicTypes '{0}'.", helperValueRW.GetBasicType().ToString()));
-            }
-
-            if (!(value is IDataWriter))
-            {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataWriter for '{0}'.", typeof(T).Name));
-            }
-
-            if (value is IAsDataWriter)
-            {
-                value = ((IAsDataWriter)value).Content;
+                return @as.Content;
             }
 
             return (IDataWriter)value;
@@ -138,25 +93,15 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static IDataReader CreateReader(object obj)
         {
-            var helperValueRW = HelperValueRW;
+            var auxiliaryValueRW = new AuxiliaryValueRW();
 
-            ValueInterface.GetInterface(obj).WriteValue(helperValueRW, obj);
+            ValueInterface.GetInterface(obj).Write(auxiliaryValueRW, obj);
 
-            var value = helperValueRW.Content;
+            var value = auxiliaryValueRW.read_writer;
 
-            if (value == null)
+            if (value is IAsDataReader @as)
             {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataReader for BasicTypes '{0}'.", helperValueRW.GetBasicType().ToString()));
-            }
-
-            if (!(value is IDataReader))
-            {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataReader for '{0}'.", obj.GetType().Name));
-            }
-
-            if (value is IAsDataReader)
-            {
-                value = ((IAsDataReader)value).Content;
+                return @as.Content;
             }
 
             return (IDataReader)value;
@@ -170,30 +115,85 @@ namespace Swifter.RW
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static IDataRW CreateRW(object obj)
         {
-            var helperValueRW = HelperValueRW;
+            var auxiliaryValueRW = new AuxiliaryValueRW();
 
-            ValueInterface.GetInterface(obj).WriteValue(helperValueRW, obj);
+            ValueInterface.GetInterface(obj).Write(auxiliaryValueRW, obj);
 
-            var value = helperValueRW.Content;
+            var value = auxiliaryValueRW.read_writer;
 
-            if (value == null)
+            if (value is IAsDataRW @as)
             {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataRW for BasicTypes '{0}'.", helperValueRW.GetBasicType().ToString()));
+                return @as.Content;
             }
 
-            if (value is IAsDataReader)
+            return (IDataRW)value;
+        }
+
+        /// <summary>
+        /// 为类型创建一个写入器。
+        /// </summary>
+        /// <param name="type">类型</param>
+        /// <returns>返回一个写入器</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static IDataWriter CreateWriter(Type type)
+        {
+            var auxiliaryValueRW = new AuxiliaryValueRW();
+
+            ValueInterface.GetInterface(type).Read(auxiliaryValueRW);
+
+            var value = auxiliaryValueRW.read_writer;
+
+            if (value is IAsDataWriter @as)
             {
-                value = ((IAsDataReader)value).Content;
+                return @as.Content;
             }
 
-            if (value is IAsDataWriter)
+            return (IDataWriter)value;
+        }
+
+        /// <summary>
+        /// 为读取器中的字段创建数据读取器。
+        /// </summary>
+        /// <typeparam name="TKey">键的类型</typeparam>
+        /// <param name="dataReader">数据读取器</param>
+        /// <param name="key">字段的键</param>
+        /// <returns>返回一个读取器</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static IDataReader CreateItemReader<TKey>(IDataReader<TKey> dataReader, TKey key)
+        {
+            var auxiliaryValueRW = new AuxiliaryValueRW();
+
+            dataReader.OnReadValue(key, auxiliaryValueRW);
+
+            var value = auxiliaryValueRW.read_writer;
+
+            if (value is IAsDataReader @as)
             {
-                value = ((IAsDataWriter)value).Content;
+                return @as.Content;
             }
 
-            if (!(value is IDataRW))
+            return (IDataReader)value;
+        }
+
+        /// <summary>
+        /// 为读取器中的字段创建数据读写器。
+        /// </summary>
+        /// <typeparam name="TKey">键的类型</typeparam>
+        /// <param name="dataReader">数据读取器</param>
+        /// <param name="key">字段的键</param>
+        /// <returns>返回一个读写器</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static IDataRW CreateItemRW<TKey>(IDataReader<TKey> dataReader, TKey key)
+        {
+            var auxiliaryValueRW = new AuxiliaryValueRW();
+
+            dataReader.OnReadValue(key, auxiliaryValueRW);
+
+            var value = auxiliaryValueRW.read_writer;
+
+            if (value is IAsDataRW @as)
             {
-                throw new NotSupportedException(StringHelper.Format("Failure to create IDataRW for '{0}'.", obj.GetType().Name));
+                return @as.Content;
             }
 
             return (IDataRW)value;
@@ -324,77 +324,141 @@ namespace Swifter.RW
         }
 
         /// <summary>
-        /// 获取数据读取器的数据源。
+        /// 获取数据读取或写入器的数据源。
         /// </summary>
         /// <typeparam name="T">数据源类型</typeparam>
-        /// <param name="dataReader">数据读取器</param>
+        /// <param name="dataRW">数据读取器</param>
         /// <returns>返回该数据源</returns>
-        public static T GetContent<T>(IDataReader dataReader)
+        public static T GetContent<T>(object dataRW)
         {
-            if (dataReader is IInitialize<T> initialize)
+            if (dataRW is IInitialize<T> initialize)
             {
                 return initialize.Content;
             }
 
-            if (dataReader is IDirectContent directContent)
+            if (dataRW is IDirectContent directContent)
             {
                 return (T)directContent.DirectContent;
             }
 
-            throw new NotSupportedException(StringHelper.Format("Unable Get Content By '{0}' RW.", dataReader.GetType().FullName));
+            throw new NotSupportedException(StringHelper.Format("Unable {1} Content By '{0}' RW.", dataRW.GetType().FullName, "Get"));
         }
-
-
         /// <summary>
-        /// 获取数据写入器的数据源。
+        /// 设置数据读取或写入器的数据源。
         /// </summary>
         /// <typeparam name="T">数据源类型</typeparam>
-        /// <param name="dataWriter">数据写入器</param>
-        /// <returns>返回该数据源</returns>
-        public static T GetContent<T>(IDataWriter dataWriter)
+        /// <param name="dataRW">数据读取或写入器</param>
+        /// <param name="content">数据源</param>
+        public static void SetContent<T>(object dataRW, T content)
         {
-            if (dataWriter is IInitialize<T> initialize)
+            if (dataRW is IInitialize<T> initialize)
             {
-                return initialize.Content;
+                initialize.Initialize(content);
+
+                return;
             }
 
-            if (dataWriter is IDirectContent directContent)
+            if (dataRW is IDirectContent directContent)
             {
-                return (T)directContent.DirectContent;
+                directContent.DirectContent = content;
+
+                return;
             }
 
-            throw new NotSupportedException(StringHelper.Format("Unable Get Content By '{0}' RW.", dataWriter.GetType().FullName));
+            throw new NotSupportedException(StringHelper.Format("Unable {1} Content By '{0}' RW.", dataRW.GetType().FullName, "Set"));
         }
 
         /// <summary>
-        /// 获取数据读取器的数据源。
+        /// 将数据读取器转换为具有键的类型的具体数据读取器。
         /// </summary>
         /// <param name="dataReader">数据读取器</param>
-        /// <returns>返回该数据源</returns>
-        public static object GetContent(IDataReader dataReader)
+        /// <typeparam name="T">键的类型</typeparam>
+        /// <returns>返回具体数据读取器</returns>
+        public static IDataReader<T> As<T>(this IDataReader dataReader)
         {
-            if (dataReader is IDirectContent directContent)
+            if (dataReader is IDataReader<T> t)
             {
-                return directContent.DirectContent;
+                return t;
             }
 
-            throw new NotSupportedException(StringHelper.Format("Unable Get Content By '{0}' RW.", dataReader.GetType().FullName));
+            if (dataReader is IAsDataReader a)
+            {
+                return As<T>(a.Content);
+            }
+
+            if (dataReader is IDataReader<string> s)
+            {
+                return new AsDataReader<string, T>(s);
+            }
+
+            if (dataReader is IDataReader<int> i)
+            {
+                return new AsDataReader<int, T>(i);
+            }
+
+            return AsHelper.GetInstance(dataReader).As<T>(dataReader);
         }
 
-
         /// <summary>
-        /// 获取数据写入器的数据源。
+        /// 将数据写入器转换为具有键的类型的具体数据写入器。
         /// </summary>
         /// <param name="dataWriter">数据写入器</param>
-        /// <returns>返回该数据源</returns>
-        public static object GetContent(IDataWriter dataWriter)
+        /// <typeparam name="T">键的类型</typeparam>
+        /// <returns>返回具体数据写入器</returns>
+        public static IDataWriter<T> As<T>(this IDataWriter dataWriter)
         {
-            if (dataWriter is IDirectContent directContent)
+            if (dataWriter is IDataWriter<T> t)
             {
-                return directContent.DirectContent;
+                return t;
             }
 
-            throw new NotSupportedException(StringHelper.Format("Unable Get Content By '{0}' RW.", dataWriter.GetType().FullName));
+            if (dataWriter is IAsDataWriter a)
+            {
+                return As<T>(a.Content);
+            }
+
+            if (dataWriter is IDataWriter<string> s)
+            {
+                return new AsDataWriter<string, T>(s);
+            }
+
+            if (dataWriter is IDataWriter<int> i)
+            {
+                return new AsDataWriter<int, T>(i);
+            }
+
+            return AsHelper.GetInstance(dataWriter).As<T>(dataWriter);
+        }
+
+        /// <summary>
+        /// 将数据写入器转换为具有键的类型的具体数据写入器。
+        /// </summary>
+        /// <param name="dataRW">数据写入器</param>
+        /// <typeparam name="T">键的类型</typeparam>
+        /// <returns>返回具体数据写入器</returns>
+        public static IDataRW<T> As<T>(this IDataRW dataRW)
+        {
+            if (dataRW is IDataRW<T> t)
+            {
+                return t;
+            }
+
+            if (dataRW is IAsDataRW a)
+            {
+                return As<T>(a.Content);
+            }
+
+            if (dataRW is IDataRW<string> s)
+            {
+                return new AsDataRW<string, T>(s);
+            }
+
+            if (dataRW is IDataRW<int> i)
+            {
+                return new AsDataRW<int, T>(i);
+            }
+
+            return AsHelper.GetInstance(dataRW).As<T>(dataRW);
         }
     }
 }

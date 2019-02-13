@@ -25,6 +25,11 @@ namespace Swifter.RW
                 return (IValueInterface<T>)Activator.CreateInstance(typeof(DbDataReaderInterface<>).MakeGenericType(typeof(T)));
             }
 
+            if (typeof(DataRow).IsAssignableFrom(type))
+            {
+                return (IValueInterface<T>)Activator.CreateInstance(typeof(DataRowInterface<>).MakeGenericType(typeof(T)));
+            }
+
             if (typeof(DataTable).IsAssignableFrom(type))
             {
                 return (IValueInterface<T>)Activator.CreateInstance(typeof(DataTableInterface<>).MakeGenericType(typeof(T)));

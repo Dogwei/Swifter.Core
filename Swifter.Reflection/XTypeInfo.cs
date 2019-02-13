@@ -1,8 +1,10 @@
 ﻿using Swifter.RW;
 using Swifter.Tools;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Swifter.Reflection
 {
@@ -12,14 +14,7 @@ namespace Swifter.Reflection
     /// </summary>
     public sealed class XTypeInfo
     {
-        private static readonly Dictionary<CacheKey, XTypeInfo> InstanceCaches;
-        private static readonly object InstanceCachesLock;
-
-        static XTypeInfo()
-        {
-            InstanceCaches = new Dictionary<CacheKey, XTypeInfo>();
-            InstanceCachesLock = new object();
-        }
+        private static readonly XTypeInfoCache InstanceCaches = new XTypeInfoCache();
 
         private static Type[] ParametersToTypes(ParameterInfo[] parameters)
         {
@@ -61,25 +56,53 @@ namespace Swifter.Reflection
         /// <returns>返回一个 XTypeInfo 类型信息。</returns>
         public static XTypeInfo Create(Type type, XBindingFlags flags = XBindingFlags.Default)
         {
-            var cacheKey = new CacheKey(type, flags);
-
-            if (InstanceCaches.TryGetValue(cacheKey, out var value))
+            return InstanceCaches.GetOrCreate(new CacheKey(type, flags));
+        }
+        
+        private static void GetItems(Type type, XBindingFlags flags, List<XFieldInfo> fields, List<XPropertyInfo> properties, List<XIndexerInfo> indexers, List<XMethodInfo> methods)
+        {
+            if (type.BaseType != null)
             {
-                return value;
+                GetItems(type.BaseType, flags, fields, properties, indexers, methods);
             }
 
-            lock (InstanceCachesLock)
+            if ((flags & XBindingFlags.Field) != 0)
             {
-                if (InstanceCaches.TryGetValue(cacheKey, out value))
+                foreach (var item in type.GetFields(AsBindingFlags(flags)))
                 {
-                    return value;
+                    fields.Add(XFieldInfo.Create(item, flags));
                 }
+            }
 
-                value = new XTypeInfo(type, flags);
+            if ((flags & (XBindingFlags.Property | XBindingFlags.Indexer)) != 0)
+            {
+                foreach (var item in type.GetProperties(AsBindingFlags(flags)))
+                {
+                    var parameters = item.GetIndexParameters();
 
-                InstanceCaches.Add(cacheKey, value);
+                    if (parameters != null && parameters.Length != 0)
+                    {
+                        if ((flags & XBindingFlags.Indexer) != 0)
+                        {
+                            indexers.Add(XIndexerInfo.Create(item, flags));
+                        }
+                    }
+                    else
+                    {
+                        if ((flags & XBindingFlags.Property) != 0)
+                        {
+                            properties.Add(XPropertyInfo.Create(item, flags));
+                        }
+                    }
+                }
+            }
 
-                return value;
+            if ((flags & XBindingFlags.Method) != 0)
+            {
+                foreach (var item in type.GetMethods(AsBindingFlags(flags)))
+                {
+                    methods.Add(XMethodInfo.Create(item, flags));
+                }
             }
         }
 
@@ -95,71 +118,27 @@ namespace Swifter.Reflection
          * 
          */
 
-        readonly XDictionary<string, XFieldInfo> fields;
-        readonly XDictionary<string, XPropertyInfo> properties;
-        readonly XDictionary<RuntimeParamsSign, XIndexerInfo> indexers;
-        readonly XDictionary<RuntimeMethodSign, XMethodInfo> methods;
-        internal readonly Dictionary<string, IXFieldRW> rwFields;
-        internal readonly IXFieldRW[] rFields;
+        internal readonly NameCache<XFieldInfo> fieldsCache;
+        internal readonly NameCache<XPropertyInfo> propertiesCache;
+        internal readonly HashCache<RuntimeParamsSign, XIndexerInfo> indexersCache;
+        internal readonly HashCache<RuntimeMethodSign, XMethodInfo> methodsCache;
+        internal readonly NameCache<IXFieldRW> rwFieldsCache;
 
-        /// <summary>
-        /// 获取所有字段的集合。
-        /// </summary>
-        public ICollection<XFieldInfo> Fields
-        {
-            get
-            {
-                return fields.Values;
-            }
-        }
 
-        /// <summary>
-        /// 获取所有属性的集合。
-        /// </summary>
-        public ICollection<XPropertyInfo> Properties
-        {
-            get
-            {
-                return properties.Values;
-            }
-        }
 
-        /// <summary>
-        /// 获取所有索引器的集合
-        /// </summary>
-        public ICollection<XIndexerInfo> Indexers
-        {
-            get
-            {
-                return indexers.Values;
-            }
-        }
+        internal readonly XFieldInfo[] fields;
+        internal readonly XPropertyInfo[] properties;
+        internal readonly XIndexerInfo[] indexers;
+        internal readonly XMethodInfo[] methods;
+        internal readonly IXFieldRW[] rwFields;
 
-        /// <summary>
-        /// 获取所有方法的集合。
-        /// </summary>
-        public ICollection<XMethodInfo> Methods
-        {
-            get
-            {
-                return methods.Values;
-            }
-        }
-
-        /// <summary>
-        /// 获取表示当前 XTypeInfo 的类型。
-        /// </summary>
-        public Type Type { get; private set; }
-
-        /// <summary>
-        /// 获取创建 XTypeInfo 的绑定标识。
-        /// </summary>
-        public XBindingFlags Flags { get; private set; }
+        internal readonly Type type;
+        internal readonly XBindingFlags flags;
 
         private XTypeInfo(Type type, XBindingFlags flags)
         {
-            Type = type;
-            Flags = flags;
+            this.type = type;
+            this.flags = flags;
 
             IEqualityComparer<string> rwKeyComparer;
 
@@ -172,55 +151,24 @@ namespace Swifter.Reflection
                 rwKeyComparer = EqualityComparer<string>.Default;
             }
 
-            fields = new XDictionary<string, XFieldInfo>(XDictionaryOption.AllowRepeat);
-            properties = new XDictionary<string, XPropertyInfo>(XDictionaryOption.AllowRepeat);
-            indexers = new XDictionary<RuntimeParamsSign, XIndexerInfo>(XDictionaryOption.AllowRepeat);
-            methods = new XDictionary<RuntimeMethodSign, XMethodInfo>(XDictionaryOption.AllowRepeat);
-            rwFields = new Dictionary<string, IXFieldRW>(rwKeyComparer);
+            var fields = new List<XFieldInfo>();
+            var properties = new List<XPropertyInfo>();
+            var indexers = new List<XIndexerInfo>();
+            var methods = new List<XMethodInfo>();
+            var rwFields = new List<IXFieldRW>();
 
-            GetItems(type, flags);
-
-            var rwFieldList = new List<IXFieldRW>();
+            GetItems(type, flags, fields, properties, indexers, methods);
 
             foreach (var item in fields)
             {
-                var rwField = item.Value as IXFieldRW;
+                var rwField = item as IXFieldRW;
 
                 if (rwField == null)
                 {
                     continue;
                 }
 
-                var attributes = item.Value.FieldInfo.GetCustomAttributes(typeof(RWFieldAttribute), true);
-
-                if (attributes != null && attributes.Length !=0)
-                {
-                    foreach (RWFieldAttribute attribute in attributes)
-                    {
-                        var attributedFieldRW = new XAttributedFieldRW(rwField, attribute);
-
-                        if (attributedFieldRW.CanRead || attributedFieldRW.CanWrite)
-                        {
-                            rwFieldList.Add(attributedFieldRW);
-                        }
-                    }
-                }
-                else
-                {
-                    rwFieldList.Add(rwField);
-                }
-            }
-
-            foreach (var item in properties)
-            {
-                var rwField = item.Value as IXFieldRW;
-
-                if (rwField == null)
-                {
-                    continue;
-                }
-
-                var attributes = item.Value.PropertyInfo.GetCustomAttributes(typeof(RWFieldAttribute), true);
+                var attributes = item.FieldInfo.GetCustomAttributes(typeof(RWFieldAttribute), true);
 
                 if (attributes != null && attributes.Length != 0)
                 {
@@ -230,79 +178,110 @@ namespace Swifter.Reflection
 
                         if (attributedFieldRW.CanRead || attributedFieldRW.CanWrite)
                         {
-                            rwFieldList.Add(attributedFieldRW);
+                            rwFields.Add(attributedFieldRW);
                         }
                     }
                 }
                 else
                 {
-                    rwFieldList.Add(rwField);
+                    rwFields.Add(rwField);
                 }
             }
 
-            rwFieldList.Sort((x, y) => x.Order.CompareTo(y.Order));
-
-            foreach (var item in rwFieldList)
+            foreach (var item in properties)
             {
-                rwFields[item.Name] = item;
-            }
+                var rwField = item as IXFieldRW;
 
-            rFields = ArrayHelper.Filter(rwFieldList, item => item.CanRead, item => item);
-        }
-
-        void GetItems(Type type, XBindingFlags flags)
-        {
-            if (type.BaseType != null)
-            {
-                GetItems(type.BaseType, flags);
-            }
-
-            if ((flags & XBindingFlags.Field) != 0)
-            {
-                var fields = type.GetFields(AsBindingFlags(flags));
-
-                foreach (var item in fields)
+                if (rwField == null)
                 {
-                    this.fields[item.Name] = XFieldInfo.Create(item, flags);
+                    continue;
                 }
-            }
 
-            if ((flags & (XBindingFlags.Property | XBindingFlags.Indexer)) != 0)
-            {
-                var properties = type.GetProperties(AsBindingFlags(flags));
+                var attributes = item.PropertyInfo.GetCustomAttributes(typeof(RWFieldAttribute), true);
 
-                foreach (var item in properties)
+                if (attributes != null && attributes.Length != 0)
                 {
-                    var parameters = item.GetIndexParameters();
-
-                    if (parameters != null && parameters.Length != 0)
+                    foreach (RWFieldAttribute attribute in attributes)
                     {
-                        if ((flags & XBindingFlags.Indexer) != 0)
-                        {
-                            indexers[new RuntimeParamsSign(ParametersToTypes(parameters))] = XIndexerInfo.Create(item, flags);
-                        }
+                        var attributedFieldRW = new XAttributedFieldRW(rwField, attribute);
 
-                    }
-                    else
-                    {
-                        if ((flags & XBindingFlags.Property) != 0)
+                        if (attributedFieldRW.CanRead || attributedFieldRW.CanWrite)
                         {
-                            this.properties[item.Name] = XPropertyInfo.Create(item, flags);
+                            rwFields.Add(attributedFieldRW);
                         }
                     }
                 }
-            }
-
-            if ((flags & XBindingFlags.Method) != 0)
-            {
-                var methods = type.GetMethods(AsBindingFlags(flags));
-
-                foreach (var item in methods)
+                else
                 {
-                    this.methods[new RuntimeMethodSign(item.Name, ParametersToTypes(item.GetParameters()))] = XMethodInfo.Create(item, flags);
+                    rwFields.Add(rwField);
                 }
             }
+
+            rwFields.Sort((x, y) => x.Order.CompareTo(y.Order));
+
+            this.fields = fields.ToArray();
+            this.properties = properties.ToArray();
+            this.indexers = indexers.ToArray();
+            this.methods = methods.ToArray();
+            this.rwFields = rwFields.ToArray();
+
+            fieldsCache = new NameCache<XFieldInfo>();
+            propertiesCache = new NameCache<XPropertyInfo>();
+            indexersCache = new HashCache<RuntimeParamsSign, XIndexerInfo>();
+            methodsCache = new HashCache<RuntimeMethodSign, XMethodInfo>();
+            rwFieldsCache = new NameCache<IXFieldRW>();
+
+            foreach (var item in fields)
+            {
+                fieldsCache[item.name] = item;
+            }
+            foreach (var item in properties)
+            {
+                propertiesCache[item.name] = item;
+            }
+            foreach (var item in indexers)
+            {
+                indexersCache[new RuntimeParamsSign(ParametersToTypes(item.PropertyInfo.GetIndexParameters()))] = item;
+            }
+            foreach (var item in methods)
+            {
+                methodsCache[new RuntimeMethodSign(item.MethodInfo.Name, ParametersToTypes(item.MethodInfo.GetParameters()))] = item;
+            }
+            foreach (var item in rwFields)
+            {
+                rwFieldsCache[item.Name] = item;
+            }
         }
+
+        /// <summary>
+        /// 获取表示当前 XTypeInfo 的类型。
+        /// </summary>
+        public Type Type => type;
+
+        /// <summary>
+        /// 获取创建 XTypeInfo 的绑定标识。
+        /// </summary>
+        public XBindingFlags Flags => flags;
+
+        /// <summary>
+        /// 获取字段集合。
+        /// </summary>
+        public XMemberCollection<XFieldInfo> Fields => new XMemberCollection<XFieldInfo>(fields);
+
+        /// <summary>
+        /// 获取属性集合。
+        /// </summary>
+        public XMemberCollection<XPropertyInfo> Properties => new XMemberCollection<XPropertyInfo>(properties);
+
+        /// <summary>
+        /// 获取索引器集合。
+        /// </summary>
+        public XMemberCollection<XIndexerInfo> Indexers => new XMemberCollection<XIndexerInfo>(indexers);
+
+        /// <summary>
+        /// 获取方法集合。
+        /// </summary>
+        public XMemberCollection<XMethodInfo> Methods => new XMemberCollection<XMethodInfo>(methods);
 
         /// <summary>
         /// 获取指定名称的字段。
@@ -311,7 +290,7 @@ namespace Swifter.Reflection
         /// <returns>返回字段信息或 Null</returns>
         public XFieldInfo GetField(string name)
         {
-            fields.TryGetValue(name, out var value);
+            fieldsCache.TryGetValue(name, out var value);
 
             return value;
         }
@@ -323,7 +302,7 @@ namespace Swifter.Reflection
         /// <returns>返回属性信息或 Null</returns>
         public XPropertyInfo GetProperty(string name)
         {
-            properties.TryGetValue(name, out var value);
+            propertiesCache.TryGetValue(name, out var value);
 
             return value;
         }
@@ -335,7 +314,7 @@ namespace Swifter.Reflection
         /// <returns>返回索引器信息或 Null</returns>
         public XIndexerInfo GetIndexer(Type[] parameters)
         {
-            indexers.TryGetValue(new RuntimeParamsSign(parameters), out var value);
+            indexersCache.TryGetValue(new RuntimeParamsSign(parameters), out var value);
 
             return value;
         }
@@ -347,7 +326,7 @@ namespace Swifter.Reflection
         /// <returns>返回索引器信息或 Null</returns>
         public XIndexerInfo GetIndexer(object[] parameters)
         {
-            indexers.TryGetValue(new RuntimeParamsSign(parameters), out var value);
+            indexersCache.TryGetValue(new RuntimeParamsSign(parameters), out var value);
 
             return value;
         }
@@ -360,7 +339,7 @@ namespace Swifter.Reflection
         /// <returns>返回方法信息或 Null</returns>
         public XMethodInfo GetMethod(string name, Type[] parameters)
         {
-            methods.TryGetValue(new RuntimeMethodSign(name, parameters), out var value);
+            methodsCache.TryGetValue(new RuntimeMethodSign(name, parameters), out var value);
 
             return value;
         }
@@ -373,12 +352,12 @@ namespace Swifter.Reflection
         /// <returns>返回方法信息或 Null</returns>
         public XMethodInfo GetMethod(string name, object[] parameters)
         {
-            methods.TryGetValue(new RuntimeMethodSign(name, parameters), out var value);
+            methodsCache.TryGetValue(new RuntimeMethodSign(name, parameters), out var value);
 
             return value;
         }
-        
-        private sealed class CacheKey : IEquatable<CacheKey>
+
+        private sealed class CacheKey
         {
             public CacheKey(Type type, XBindingFlags flags)
             {
@@ -386,22 +365,39 @@ namespace Swifter.Reflection
                 this.flags = flags;
             }
 
-            private readonly Type type;
-            private readonly XBindingFlags flags;
+            public readonly Type type;
+            public readonly XBindingFlags flags;
+        }
 
-            public override bool Equals(object obj)
+        private sealed class XTypeInfoCache : BaseCache<CacheKey, XTypeInfo>, BaseCache<CacheKey, XTypeInfo>.IGetOrCreate<CacheKey>
+        {
+            public XTypeInfoCache() : base(0)
             {
-                return (obj is CacheKey cacheKey) && type == cacheKey.type && flags == cacheKey.flags;
             }
 
-            public override int GetHashCode()
+            public CacheKey AsKey(CacheKey token)
             {
-                return type.GetHashCode() ^ flags.GetHashCode();
+                return token;
             }
 
-            public bool Equals(CacheKey other)
+            public XTypeInfo AsValue(CacheKey token)
             {
-                return type == other.type && flags == other.flags;
+                return new XTypeInfo(token.type, token.flags);
+            }
+
+            public XTypeInfo GetOrCreate(CacheKey token)
+            {
+                return GetOrCreate<XTypeInfoCache>(this, token);
+            }
+
+            protected override int ComputeHashCode(CacheKey key)
+            {
+                return key.type.GetHashCode() ^ (int)key.flags;
+            }
+
+            protected override bool Equals(CacheKey key1, CacheKey key2)
+            {
+                return key1.type == key2.type && key1.flags == key2.flags;
             }
         }
     }

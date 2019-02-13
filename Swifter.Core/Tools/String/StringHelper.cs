@@ -1,4 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Swifter.RW;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Swifter.Tools
 {
@@ -94,6 +97,18 @@ namespace Swifter.Tools
         }
 
         /// <summary>
+        /// 获取字符串指定索引处字符的大写形式。
+        /// </summary>
+        /// <param name="st">字符串</param>
+        /// <param name="index">索引</param>
+        /// <returns>返回一个字符</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static char UpperCharAr(string st, int index)
+        {
+            return ToUpper(st[index]);
+        }
+
+        /// <summary>
         /// 匹配两个字符串。
         /// </summary>
         /// <param name="st1">字符串 1</param>
@@ -126,6 +141,7 @@ namespace Swifter.Tools
         /// <param name="text">字符串</param>
         /// <param name="args">数组</param>
         /// <returns>返回一个新的字符串。</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public unsafe static string Format(string text, params string[] args)
         {
             if (text == null)
@@ -294,6 +310,92 @@ namespace Swifter.Tools
                     goto FormatLoop;
                 }
             }
+        }
+
+        /// <summary>
+        /// 将字符串中的格式项 ({Index})替换为对象中相应的属性。
+        /// </summary>
+        /// <typeparam name="T">对象类型</typeparam>
+        /// <param name="text">字符串</param>
+        /// <param name="args">对象</param>
+        /// <returns>返回一个新的字符串。</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public unsafe static StringBuilder Format<T>(string text, T args)
+        {
+            if (text == null)
+            {
+                return null;
+            }
+
+            var reader = RWHelper.CreateReader(args).As<string>();
+
+            var builder = new StringBuilder();
+
+            fixed(char* pChars = text)
+            {
+                var length = text.Length;
+
+                var startIndex = 0;
+
+                for (int i = 0; i < length; i++)
+                {
+                    if (pChars[i] == '{')
+                    {
+                        if (length - i >= 3)
+                        {
+                            if (pChars[i + 1] == '{')
+                            {
+                                builder.Append(text, startIndex, i - startIndex);
+
+                                ++i;
+
+                                startIndex = i;
+
+                                continue;
+                            }
+
+
+                            builder.Append(text, startIndex, i - startIndex);
+
+
+                            startIndex = i;
+
+                            for (++i; i < length; i++)
+                            {
+                                if (pChars[i] == '}')
+                                {
+                                    var name = new string(pChars, startIndex + 1, i - startIndex - 1);
+
+                                    var value = reader[name].DirectRead();
+
+                                    if (value is StringBuilder sb)
+                                    {
+                                        var sbLength = sb.Length;
+
+                                        for (int s = 0; s < sbLength; s++)
+                                        {
+                                            builder.Append(sb[s]);
+                                        }
+                                    }
+                                    else if(value != null)
+                                    {
+                                        builder.Append(value.ToString());
+                                    }
+
+                                    startIndex = i + 1;
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                builder.Append(text, startIndex, length - startIndex);
+            }
+
+            return builder;
         }
 
         /// <summary>

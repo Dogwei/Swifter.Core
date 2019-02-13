@@ -18,6 +18,10 @@ namespace Swifter.Data
             this.dbCommand = dbCommand;
             this.dbDataReader = dbDataReader;
         }
+        ~ResultDbDataReader()
+        {
+            Close();
+        }
 
         public override object this[int ordinal] => dbDataReader[ordinal];
 

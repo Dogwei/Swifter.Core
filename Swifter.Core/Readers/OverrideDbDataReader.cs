@@ -1,6 +1,5 @@
 ﻿using Swifter.RW;
 using Swifter.Tools;
-using Swifter.VirtualViews;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
@@ -33,14 +32,7 @@ namespace Swifter.Readers
         /// </summary>
         /// <param name="key">指定索引</param>
         /// <returns>返回值读取器</returns>
-        public IValueReader this[int key]
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return new ValueReader(dbDataReader, key);
-            }
-        }
+        public IValueReader this[int key]=> new ValueReader(dbDataReader, key);
 
 
         /// <summary>
@@ -48,57 +40,24 @@ namespace Swifter.Readers
         /// </summary>
         /// <param name="key">指定名称</param>
         /// <returns>返回值读取器</returns>
-        public IValueReader this[string key]
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return this[dbDataReader.GetOrdinal(key)];
-            }
-        }
+        public IValueReader this[string key]=> this[dbDataReader.GetOrdinal(key)];
 
-        IEnumerable<int> IDataReader<int>.Keys
-        {
-            get
-            {
-                return ArrayView<int>.CreateIndexView(dbDataReader.FieldCount);
-            }
-        }
+        IEnumerable<int> IDataReader<int>.Keys => ArrayHelper.CreateLengthIterator(Count);
 
         /// <summary>
         /// 获取表格列的数量。
         /// </summary>
-        public int Count
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return dbDataReader.FieldCount;
-            }
-        }
+        public int Count => dbDataReader.FieldCount;
 
         /// <summary>
         /// 获取表格列的名称集合。
         /// </summary>
-        public IEnumerable<string> Keys
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return ArrayView<string>.Create(index => dbDataReader.GetName(index), Count);
-            }
-        }
+        public IEnumerable<string> Keys => ArrayHelper.CreateNamesIterator(dbDataReader);
 
         /// <summary>
         /// 获取数据源的 Id。
         /// </summary>
-        public long ObjectId
-        {
-            get
-            {
-                return (long)Pointer.UnBox(dbDataReader);
-            }
-        }
+        public object ReferenceToken => null;
 
         /// <summary>
         /// 读取所有值当前行的所有值，然后写入到数据写入器中。
@@ -138,28 +97,9 @@ namespace Swifter.Readers
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void OnReadValue(int key, IValueWriter valueWriter)
         {
-            if (dbDataReader.IsDBNull(key))
-            {
-                valueWriter.DirectWrite(null);
+            var value = dbDataReader[key];
 
-                return;
-            }
-
-            var typeHandle = (long)TypeHelper.GetTypeHandle(dbDataReader.GetFieldType(key));
-
-            if (typeHandle == TypeInfo<string>.Int64TypeHandle) ValueInterface<string>.Content.WriteValue(valueWriter, dbDataReader.GetString(key));
-            else if (typeHandle == TypeInfo<int>.Int64TypeHandle) ValueInterface<int>.Content.WriteValue(valueWriter, dbDataReader.GetInt32(key));
-            else if (typeHandle == TypeInfo<double>.Int64TypeHandle) ValueInterface<double>.Content.WriteValue(valueWriter, dbDataReader.GetDouble(key));
-            else if (typeHandle == TypeInfo<decimal>.Int64TypeHandle) ValueInterface<decimal>.Content.WriteValue(valueWriter, dbDataReader.GetDecimal(key));
-            else if (typeHandle == TypeInfo<DateTime>.Int64TypeHandle) ValueInterface<DateTime>.Content.WriteValue(valueWriter, dbDataReader.GetDateTime(key));
-            else if (typeHandle == TypeInfo<bool>.Int64TypeHandle) ValueInterface<bool>.Content.WriteValue(valueWriter, dbDataReader.GetBoolean(key));
-            else if (typeHandle == TypeInfo<Guid>.Int64TypeHandle) ValueInterface<Guid>.Content.WriteValue(valueWriter, dbDataReader.GetGuid(key));
-            else if (typeHandle == TypeInfo<long>.Int64TypeHandle) ValueInterface<long>.Content.WriteValue(valueWriter, dbDataReader.GetInt64(key));
-            else if (typeHandle == TypeInfo<short>.Int64TypeHandle) ValueInterface<short>.Content.WriteValue(valueWriter, dbDataReader.GetInt16(key));
-            else if (typeHandle == TypeInfo<byte>.Int64TypeHandle) ValueInterface<byte>.Content.WriteValue(valueWriter, dbDataReader.GetByte(key));
-            else if (typeHandle == TypeInfo<float>.Int64TypeHandle) ValueInterface<float>.Content.WriteValue(valueWriter, dbDataReader.GetFloat(key));
-            else if (typeHandle == TypeInfo<char>.Int64TypeHandle) ValueInterface<char>.Content.WriteValue(valueWriter, dbDataReader.GetChar(key));
-            else ValueInterface<object>.Content.WriteValue(valueWriter, dbDataReader.GetValue(key));
+            ValueInterface.GetInterface(value).Write(valueWriter, value);
         }
 
         /// <summary>
@@ -195,10 +135,12 @@ namespace Swifter.Readers
 
             for (int i = 0; i < length; i++)
             {
-                OnReadValue(i, valueInfo.ValueCopyer);
+                var value = dbDataReader[i];
+
+                ValueInterface.GetInterface(value).Write(valueInfo.ValueCopyer, value);
 
                 valueInfo.Key = dbDataReader.GetName(i);
-                valueInfo.Type = valueInfo.ValueCopyer.Type;
+                valueInfo.Type = dbDataReader.GetFieldType(i);
 
                 if (valueFilter.Filter(valueInfo))
                 {
@@ -220,26 +162,18 @@ namespace Swifter.Readers
 
             for (int i = 0; i < length; i++)
             {
-                OnReadValue(i, valueInfo.ValueCopyer);
+                var value = dbDataReader[i];
+
+                ValueInterface.GetInterface(value).Write(valueInfo.ValueCopyer, value);
 
                 valueInfo.Key = i;
-                valueInfo.Type = valueInfo.ValueCopyer.Type;
+                valueInfo.Type = dbDataReader.GetFieldType(i);
 
                 if (valueFilter.Filter(valueInfo))
                 {
-                    valueInfo.ValueCopyer.WriteTo(dataWriter[i]);
+                    valueInfo.ValueCopyer.WriteTo(dataWriter[valueInfo.Key]);
                 }
             }
-        }
-
-        IDataReader<T> IDataReader.As<T>()
-        {
-            if (this is IDataReader<T>)
-            {
-                return (IDataReader<T>)(object)this;
-            }
-
-            return new AsDataReader<string, T>(this);
         }
 
         private sealed class ValueReader : IValueReader
@@ -253,114 +187,59 @@ namespace Swifter.Readers
                 this.ordinal = ordinal;
             }
 
-            public BasicTypes GetBasicType()
-            {
-                if (dbDataReader.IsDBNull(ordinal))
-                {
-                    return BasicTypes.Null;
-                }
-
-                var type = dbDataReader.GetFieldType(ordinal);
-
-                var result = TypeHelper.GetBasicType(type);
-
-                if (result != BasicTypes.Object && result != BasicTypes.Array)
-                {
-                    return result;
-                }
-
-                return BasicTypes.Direct;
-            }
-
             public void ReadArray(IDataWriter<int> valueWriter)
             {
-                throw new NotSupportedException(StringHelper.Format("Type '{0}' not support '{1}'.", nameof(OverrideDbDataReader), nameof(ReadArray)));
+                throw new NotSupportedException($"Type '{nameof(OverrideDbDataReader)}' not support '{nameof(ReadArray)}'.");
             }
 
-            public bool ReadBoolean()
-            {
-                return dbDataReader.GetBoolean(ordinal);
-            }
+            public bool ReadBoolean() => Convert.ToBoolean(dbDataReader[ordinal]);
 
-            public byte ReadByte()
-            {
-                return dbDataReader.GetByte(ordinal);
-            }
+            public byte ReadByte() => Convert.ToByte(dbDataReader[ordinal]);
 
-            public char ReadChar()
-            {
-                return dbDataReader.GetChar(ordinal);
-            }
+            public char ReadChar() => Convert.ToChar(dbDataReader[ordinal]);
 
-            public DateTime ReadDateTime()
-            {
-                return dbDataReader.GetDateTime(ordinal);
-            }
+            public DateTime ReadDateTime() => Convert.ToDateTime(dbDataReader[ordinal]);
 
-            public decimal ReadDecimal()
-            {
-                return dbDataReader.GetDecimal(ordinal);
-            }
+            public decimal ReadDecimal() => Convert.ToDecimal(dbDataReader[ordinal]);
 
             public object DirectRead()
             {
-                return dbDataReader.GetValue(ordinal);
+                var value = dbDataReader[ordinal];
+
+                if (value == DBNull.Value)
+                {
+                    return null;
+                }
+
+                return value;
             }
 
-            public double ReadDouble()
-            {
-                return dbDataReader.GetDouble(ordinal);
-            }
+            public double ReadDouble() => Convert.ToDouble(dbDataReader[ordinal]);
 
-            public short ReadInt16()
-            {
-                return dbDataReader.GetInt16(ordinal);
-            }
+            public short ReadInt16() => Convert.ToInt16(dbDataReader[ordinal]);
 
-            public int ReadInt32()
-            {
-                return dbDataReader.GetInt32(ordinal);
-            }
+            public int ReadInt32() => Convert.ToInt32(dbDataReader[ordinal]);
 
-            public long ReadInt64()
-            {
-                return dbDataReader.GetInt64(ordinal);
-            }
+            public long ReadInt64() => Convert.ToInt64(dbDataReader[ordinal]);
 
             public void ReadObject(IDataWriter<string> valueWriter)
             {
-                throw new NotSupportedException(StringHelper.Format("Type '{0}' not support '{1}'.", nameof(OverrideDbDataReader), nameof(ReadObject)));
+                throw new NotSupportedException($"Type '{nameof(OverrideDbDataReader)}' not support '{nameof(ReadObject)}'.");
             }
 
-            public sbyte ReadSByte()
-            {
-                return (sbyte)dbDataReader.GetInt16(ordinal);
-            }
+            public sbyte ReadSByte() => Convert.ToSByte(dbDataReader[ordinal]);
 
-            public float ReadSingle()
-            {
-                return dbDataReader.GetFloat(ordinal);
-            }
+            public float ReadSingle() => Convert.ToSingle(dbDataReader[ordinal]);
 
-            public string ReadString()
-            {
-                return dbDataReader.GetString(ordinal);
-            }
+            public string ReadString() => Convert.ToString(dbDataReader[ordinal]);
 
-            public ushort ReadUInt16()
-            {
-                return (ushort)dbDataReader.GetInt32(ordinal);
-            }
+            public ushort ReadUInt16() => Convert.ToUInt16(dbDataReader[ordinal]);
 
-            public uint ReadUInt32()
-            {
-                return (uint)dbDataReader.GetInt64(ordinal);
-            }
+            public uint ReadUInt32() => Convert.ToUInt32(dbDataReader[ordinal]);
 
-            public ulong ReadUInt64()
-            {
-                return (ulong)dbDataReader.GetInt64(ordinal);
-            }
+            public ulong ReadUInt64() => Convert.ToUInt64(dbDataReader[ordinal]);
+
+            public T? ReadNullable<T>() where T : struct => XConvert.Convert<T>(DirectRead());
         }
     }
 

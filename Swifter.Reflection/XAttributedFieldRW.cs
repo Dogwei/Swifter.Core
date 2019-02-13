@@ -3,109 +3,79 @@ using Swifter.RW;
 using Swifter.Tools;
 using Swifter.Writers;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Swifter.Reflection
 {
     sealed class XAttributedFieldRW : IXFieldRW
     {
-        private readonly IXFieldRW fieldRW;
-        private readonly RWFieldAttribute attribute;
+        internal readonly IXFieldRW fieldRW;
+        internal readonly RWFieldAttribute attribute;
+        internal readonly bool canRead;
+        internal readonly bool canWrite;
+        internal readonly string name;
 
         public XAttributedFieldRW(IXFieldRW fieldRW, RWFieldAttribute attribute)
         {
             this.fieldRW = fieldRW;
             this.attribute = attribute;
+
+            canRead = !(attribute.Access != RWFieldAccess.RW && attribute.Access != RWFieldAccess.ReadOnly && !fieldRW.CanRead);
+            canWrite = !(attribute.Access != RWFieldAccess.RW && attribute.Access != RWFieldAccess.WriteOnly && !fieldRW.CanWrite);
+
+            name = attribute.Name ?? fieldRW.Name;
         }
 
-        void assert(bool err, string name)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        void Assert(bool err, string name)
         {
             if (!err)
             {
-                throw new MemberAccessException(StringHelper.Format("Attributed Property '{0}' Don't access '{1}' method.", Name, name));
+                Throw();
             }
-        }
 
-        public bool CanRead
-        {
-            get
+            void Throw()
             {
-                if (attribute.Access == RWFieldAccess.RW || attribute.Access == RWFieldAccess.ReadOnly)
-                {
-                    return fieldRW.CanRead;
-                }
-
-                return false;
+                throw new MemberAccessException($"Attributed Property '{Name}' Don't access '{name}' method.");
             }
         }
 
-        public bool CanWrite
-        {
-            get
-            {
-                if (attribute.Access == RWFieldAccess.RW || attribute.Access == RWFieldAccess.WriteOnly)
-                {
-                    return fieldRW.CanWrite;
-                }
+        public bool CanRead => canRead;
 
-                return false;
-            }
-        }
+        public bool CanWrite => canWrite;
 
         public Type FieldType => fieldRW.FieldType;
 
-        public BasicTypes BasicType => fieldRW.BasicType;
-
-        public string Name
-        {
-            get
-            {
-                if (attribute.Name != null)
-                {
-                    return attribute.Name;
-                }
-
-                return fieldRW.Name;
-            }
-        }
+        public string Name => name;
 
         public int Order => attribute.Order;
-
-        public XFieldValueRW CreateRW(XObjectRW objectRW)
+        
+        public void OnReadValue(object obj, IValueWriter valueWriter)
         {
-            return fieldRW.CreateRW(objectRW).SetFieldRW(this);
+            Assert(canRead, "read");
+
+            fieldRW.OnReadValue(obj, valueWriter);
         }
 
-        public void OnReadValue(XObjectRW objectRW, IValueWriter valueWriter)
+        public void OnWriteValue(object obj, IValueReader valueReader)
         {
-            assert(attribute.Access == RWFieldAccess.RW || attribute.Access == RWFieldAccess.ReadOnly, "read");
+            Assert(canWrite, "write");
 
-            fieldRW.OnReadValue(objectRW, valueWriter);
+            fieldRW.OnWriteValue(obj, valueReader);
         }
 
-        public void OnWriteValue(XObjectRW objectRW, IValueReader valueReader)
+        public T ReadValue<T>(object obj)
         {
-            assert(attribute.Access == RWFieldAccess.RW || attribute.Access == RWFieldAccess.WriteOnly, "write");
+            Assert(canRead, "read");
 
-            fieldRW.OnWriteValue(objectRW, valueReader);
+            return fieldRW.ReadValue<T>(obj);
         }
 
-        public T ReadValue<T>(XObjectRW objectRW)
+        public void WriteValue<T>(object obj, T value)
         {
-            assert(attribute.Access == RWFieldAccess.RW || attribute.Access == RWFieldAccess.ReadOnly, "get");
+            Assert(canWrite, "write");
 
-            return fieldRW.ReadValue<T>(objectRW);
-        }
-
-        public void WriteValue<T>(XObjectRW objectRW, T value)
-        {
-            assert(attribute.Access == RWFieldAccess.RW || attribute.Access == RWFieldAccess.WriteOnly, "write");
-
-            fieldRW.WriteValue(objectRW, value);
-        }
-
-        public void WriteTo(XObjectRW objectRW, IDataWriter<string> dataWriter)
-        {
-            fieldRW.WriteTo(objectRW, dataWriter);
+            fieldRW.WriteValue(obj, value);
         }
     }
 }

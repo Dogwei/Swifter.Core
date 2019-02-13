@@ -9,39 +9,34 @@ using System.Runtime.CompilerServices;
 
 namespace Swifter.Json
 {
-    internal sealed unsafe class JsonDeserializer : IValueReader, IValueReader<Guid>
+    internal unsafe class JsonDeserializer : IValueReader, IValueReader<Guid>,IValueReader<DateTimeOffset>, ITargetedBind
     {
-        private const NumberStyles NumberStyle = NumberStyles.AllowExponent | NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign;
+        public const NumberStyles NumberStyle = NumberStyles.AllowExponent | NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign;
 
-        private readonly List<IDataWriter> objects;
+        public readonly char* chars;
 
-        private readonly JsonFormatterOptions options;
-        private readonly char* chars;
+        public int index;
+        public readonly int length;
 
-        private int index;
-        private readonly int length;
+        public long id;
+
+        public long Id => id;
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public JsonDeserializer(char* chars, int index, int length, JsonFormatterOptions options)
+        public JsonDeserializer(char* chars, int index, int length)
         {
             if (index >= length)
             {
                 throw new ArgumentException("Json text cannot be empty.");
             }
 
-            if ((options & JsonFormatterOptions.MultiReferencingReference) != 0)
-            {
-                objects = new List<IDataWriter>();
-            }
-
-            this.options = options;
             this.chars = chars;
             this.index = index;
             this.length = length;
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private string InternalReadString()
+        public string InternalReadString()
         {
             char textChar = chars[this.index];
 
@@ -154,7 +149,7 @@ namespace Swifter.Json
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private int GetDigital(char c)
+        public int GetDigital(char c)
         {
             if (c >= '0' && c <= '9')
             {
@@ -175,24 +170,9 @@ namespace Swifter.Json
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private double InternalReadDouble()
+        public Exception GetException()
         {
-            var index = NumberHelper.Decimal.TryParse(chars + this.index, length - this.index, out double r);
-
-            if (index != 0)
-            {
-                this.index += index;
-
-                return r;
-            }
-
-            return double.Parse(ReadString(), NumberStyle);
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private Exception GetException()
-        {
-            var begin = this.index;
+            var begin = index;
 
             if (begin >= length)
             {
@@ -215,12 +195,13 @@ namespace Swifter.Json
 
             column = begin - lineBegin + 1;
 
-            var exception = new JsonDeserializeException();
-
-            exception.Line = line;
-            exception.Column = column;
-            exception.Index = begin;
-            exception.Text = chars[begin].ToString();
+            var exception = new JsonDeserializeException
+            {
+                Line = line,
+                Column = column,
+                Index = begin,
+                Text = chars[begin].ToString()
+            };
 
             return exception;
         }
@@ -265,13 +246,6 @@ namespace Swifter.Json
                         return JsonValueTypes.Undefined;
                     }
                     break;
-                case 'r':
-                case 'R':
-                    if (StringHelper.IgnoreCaseEquals(chars, index, length, "REF_"))
-                    {
-                        return JsonValueTypes.Reference;
-                    }
-                    break;
                 case '-':
                 case '+':
                 case '0':
@@ -288,6 +262,21 @@ namespace Swifter.Json
             }
 
             throw GetException();
+        }
+
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        private double InternalReadDouble()
+        {
+            var index = NumberHelper.Decimal.TryParse(chars + this.index, length - this.index, out double r);
+
+            if (index != 0)
+            {
+                this.index += index;
+
+                return r;
+            }
+
+            return double.Parse(ReadString(), NumberStyle);
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
@@ -309,7 +298,6 @@ namespace Swifter.Json
                     return long.Parse(InternalReadString());
                 case JsonValueTypes.Object:
                 case JsonValueTypes.Array:
-                case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
                     this.index += 4;
@@ -336,7 +324,6 @@ namespace Swifter.Json
                     return double.Parse(InternalReadString());
                 case JsonValueTypes.Object:
                 case JsonValueTypes.Array:
-                case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
                     index += 4;
@@ -362,7 +349,6 @@ namespace Swifter.Json
                     goto Number;
                 case JsonValueTypes.Object:
                 case JsonValueTypes.Array:
-                case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to String.");
                 case JsonValueTypes.True:
                     this.index += 4;
@@ -428,7 +414,6 @@ namespace Swifter.Json
                     return InternalReadDouble() != 0;
                 case JsonValueTypes.Object:
                 case JsonValueTypes.Array:
-                case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Boolean.");
                 case JsonValueTypes.True:
                     index += 4;
@@ -469,7 +454,6 @@ namespace Swifter.Json
                     throw new InvalidCastException("Cannot convert Number to DateTime.");
                 case JsonValueTypes.Object:
                 case JsonValueTypes.Array:
-                case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to DateTime.");
                 case JsonValueTypes.True:
                 case JsonValueTypes.False:
@@ -505,9 +489,8 @@ namespace Swifter.Json
                 ++textLength;
             }
 
-            DateTime result;
 
-            if (DateTimeHelper.TryParseISODateTime(chars + index, right - index, out result))
+            if (DateTimeHelper.TryParseISODateTime(chars + index, right - index, out DateTime result))
             {
                 this.index = right + 1;
 
@@ -544,7 +527,6 @@ namespace Swifter.Json
                     return decimal.Parse(InternalReadString());
                 case JsonValueTypes.Object:
                 case JsonValueTypes.Array:
-                case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
                     this.index += 4;
@@ -611,7 +593,6 @@ namespace Swifter.Json
                     return ulong.Parse(InternalReadString());
                 case JsonValueTypes.Object:
                 case JsonValueTypes.Array:
-                case JsonValueTypes.Reference:
                     throw new InvalidCastException("Cannot convert object/array to Number.");
                 case JsonValueTypes.True:
                     this.index += 4;
@@ -629,235 +610,6 @@ namespace Swifter.Json
             return ulong.Parse(ReadString(), NumberStyle);
         }
 
-        public void ReadObject(IDataWriter<string> valueWriter)
-        {
-            switch (GetValueType())
-            {
-                case JsonValueTypes.String:
-                    throw new InvalidCastException("Cannot convert String to object.");
-                case JsonValueTypes.Number:
-                    throw new InvalidCastException("Cannot convert Number to object.");
-                case JsonValueTypes.Array:
-                    ReadArray(valueWriter.As<int>());
-                    return;
-                case JsonValueTypes.True:
-                case JsonValueTypes.False:
-                    throw new InvalidCastException("Cannot convert Boolean to object.");
-                case JsonValueTypes.Null:
-                    /* 空对象直接返回 */
-                    index += 4;
-                    return;
-                case JsonValueTypes.Undefined:
-                    index += 9;
-                    return;
-                case JsonValueTypes.Reference:
-                    ReadReference(valueWriter);
-                    return;
-            }
-
-            while (index < length)
-            {
-                switch (chars[index])
-                {
-
-                    case ' ':
-                    case '\n':
-                    case '\r':
-                    case '\t':
-                        ++index;
-
-                        continue;
-                    case '{':
-
-                        valueWriter.Initialize();
-
-                        SaveReference(valueWriter);
-
-                        goto case ',';
-                    case '}':
-                        EndCase:
-                        ++index;
-
-                        goto ReturnValue;
-                    case ',':
-
-                        Loop:
-                        ++index;
-
-                        if (index < length)
-                        {
-                            char c = chars[index];
-
-                            string name;
-
-                            int flag;
-
-                            switch (c)
-                            {
-                                case ' ':
-                                case '\n':
-                                case '\r':
-                                case '\t':
-                                    goto Loop;
-                                case '}':
-                                    goto EndCase;
-                                case '"':
-                                case '\'':
-                                    name = InternalReadString();
-
-                                    flag = StringHelper.IndexOf(chars, ':', index, length);
-
-                                    break;
-                                default:
-                                    flag = StringHelper.IndexOf(chars, ':', index, length);
-
-                                    name = StringHelper.Trim(chars, index, flag);
-
-                                    break;
-
-                            }
-
-                            if (flag == -1)
-                            {
-                                throw GetException();
-                            }
-
-                            index = flag + 1;
-
-                            while (index < length)
-                            {
-                                switch (chars[index])
-                                {
-                                    case ' ':
-                                    case '\n':
-                                    case '\r':
-                                    case '\t':
-                                        ++index;
-                                        continue;
-                                    default:
-                                        goto ReadValue;
-                                }
-                            }
-
-                            ReadValue:
-
-                            valueWriter.OnWriteValue(name, this);
-
-                            continue;
-                        }
-                        else
-                        {
-                            goto Exception;
-                        }
-                    default:
-                        goto Exception;
-                }
-            }
-
-
-            Exception:
-            throw GetException();
-
-            ReturnValue:
-            return;
-        }
-
-        public void ReadArray(IDataWriter<int> valueWriter)
-        {
-            switch (GetValueType())
-            {
-                case JsonValueTypes.String:
-                    throw new InvalidCastException("Cannot convert String to array.");
-                case JsonValueTypes.Number:
-                    throw new InvalidCastException("Cannot convert Number to array.");
-                case JsonValueTypes.Object:
-                    ReadObject(valueWriter.As<string>());
-                    return;
-                case JsonValueTypes.True:
-                    throw new InvalidCastException("Cannot convert Boolean to array.");
-                case JsonValueTypes.Null:
-                    /* 空对象直接返回 */
-                    this.index += 4;
-                    return;
-                case JsonValueTypes.Undefined:
-                    this.index += 9;
-                    return;
-                case JsonValueTypes.Reference:
-                    ReadReference(valueWriter);
-                    return;
-            }
-
-            int index = 0;
-
-            while (this.index < length)
-            {
-                switch (chars[this.index])
-                {
-                    case ' ':
-                    case '\n':
-                    case '\r':
-                    case '\t':
-
-                        ++this.index;
-
-                        continue;
-
-                    case '[':
-
-                        valueWriter.Initialize();
-
-                        SaveReference(valueWriter);
-
-                        goto case ',';
-
-                    case ']':
-                        EndCase:
-                        ++this.index;
-
-                        goto ReturnValue;
-
-                    case ',':
-
-                        ++this.index;
-
-                        while (this.index < length)
-                        {
-                            switch (chars[this.index])
-                            {
-                                case ' ':
-                                case '\n':
-                                case '\r':
-                                case '\t':
-                                    ++this.index;
-                                    continue;
-                                case ']':
-                                    goto EndCase;
-                                default:
-                                    goto ReadValue;
-                            }
-                        }
-
-                        ReadValue:
-
-                        valueWriter.OnWriteValue(index, this);
-
-                        ++index;
-
-                        continue;
-
-                    default:
-
-                        goto FormatError;
-                }
-            }
-
-            FormatError:
-            throw GetException();
-
-            ReturnValue:
-            return;
-        }
-
         public object DirectRead()
         {
             switch (GetValueType())
@@ -868,8 +620,6 @@ namespace Swifter.Json
                     return ValueInterface<Dictionary<string, object>>.Content.ReadValue(this);
                 case JsonValueTypes.Array:
                     return ValueInterface<List<object>>.Content.ReadValue(this);
-                case JsonValueTypes.Reference:
-                    return ReadReference();
                 case JsonValueTypes.True:
                     index += 4;
                     return true;
@@ -941,74 +691,7 @@ namespace Swifter.Json
             throw GetException();
         }
 
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private void ReadReference(IDataWriter dataWriter)
-        {
-            if ((options & JsonFormatterOptions.MultiReferencingReference) != 0)
-            {
-                if (!(dataWriter is IDirectContent))
-                {
-                    throw new NotSupportedException("this DataWriter not support direct set Content. -- " + dataWriter);
-                }
-
-                ((IDirectContent)dataWriter).DirectContent = ReadReference();
-            }
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private object ReadReference()
-        {
-            if ((options & JsonFormatterOptions.MultiReferencingReference) != 0)
-            {
-                index += 4;
-
-                var objectId = ReadInt32();
-
-                var objectWriter = objects[objectId];
-
-                if (!(objectWriter is IDirectContent))
-                {
-                    throw new NotSupportedException("this DataWriter not support direct get Content. -- " + objectWriter);
-                }
-
-                return ((IDirectContent)objectWriter).DirectContent;
-            }
-
-            throw new NotSupportedException("Not set options -- " + nameof(JsonFormatterOptions.MultiReferencingReference) + ".");
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        private void SaveReference(IDataWriter dataWriter)
-        {
-            if ((options & JsonFormatterOptions.MultiReferencingReference) != 0)
-            {
-                objects.Add(dataWriter);
-            }
-        }
-
-        public BasicTypes GetBasicType()
-        {
-            switch (GetValueType())
-            {
-                case JsonValueTypes.String:
-                    return BasicTypes.String;
-                case JsonValueTypes.Number:
-                    return BasicTypes.Double;
-                case JsonValueTypes.Object:
-                    return BasicTypes.Object;
-                case JsonValueTypes.Array:
-                    return BasicTypes.Array;
-                case JsonValueTypes.True:
-                case JsonValueTypes.False:
-                    return BasicTypes.Boolean;
-                case JsonValueTypes.Reference:
-                    return BasicTypes.Object;
-            }
-
-            return BasicTypes.Null;
-        }
-
-        Guid IValueReader<Guid>.ReadValue()
+        public Guid ReadValue()
         {
             switch (GetValueType())
             {
@@ -1030,10 +713,8 @@ namespace Swifter.Json
             var textChar = chars[index];
 
             ++index;
-
-            Guid r;
-
-            index = NumberHelper.TryParse(chars + index, length, out r);
+            
+            index = NumberHelper.TryParse(chars + index, length, out Guid r);
 
             if (index >= 32)
             {
@@ -1049,6 +730,312 @@ namespace Swifter.Json
             }
 
             return new Guid(InternalReadString());
+        }
+
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public void ReadObject(IDataWriter<string> valueWriter)
+        {
+            switch (GetValueType())
+            {
+                case JsonValueTypes.String:
+                    throw new InvalidCastException("Cannot convert String to object.");
+                case JsonValueTypes.Number:
+                    throw new InvalidCastException("Cannot convert Number to object.");
+                case JsonValueTypes.Array:
+                    ReadArray(valueWriter.As<int>());
+                    return;
+                case JsonValueTypes.True:
+                case JsonValueTypes.False:
+                    throw new InvalidCastException("Cannot convert Boolean to object.");
+                case JsonValueTypes.Null:
+                    /* 空对象直接返回 */
+                    index += 4;
+                    return;
+                case JsonValueTypes.Undefined:
+                    index += 9;
+                    return;
+            }
+
+            while (index < length)
+            {
+                switch (chars[index])
+                {
+                    case ' ':
+                    case '\n':
+                    case '\r':
+                    case '\t':
+                        ++index;
+
+                        continue;
+                    case '{':
+
+                        valueWriter.Initialize();
+
+                        goto case ',';
+
+                    case '}':
+                        EndCase:
+
+                        ++index;
+
+                        goto ReturnValue;
+                    case ',':
+
+                        Loop:
+
+                        ++index;
+
+                        if (index >= length)
+                        {
+                            throw GetException();
+                        }
+
+                        char c = chars[index];
+
+                        string name;
+
+                        int flag;
+
+                        switch (c)
+                        {
+                            case ' ':
+                            case '\n':
+                            case '\r':
+                            case '\t':
+                                goto Loop;
+                            case '}':
+                                goto EndCase;
+                            case '"':
+                            case '\'':
+                                name = InternalReadString();
+
+                                flag = StringHelper.IndexOf(chars, ':', index, length);
+
+                                break;
+                            default:
+                                flag = StringHelper.IndexOf(chars, ':', index, length);
+
+                                name = StringHelper.Trim(chars, index, flag);
+
+                                break;
+
+                        }
+
+                        if (flag == -1)
+                        {
+                            goto Exception;
+                        }
+
+                        index = flag + 1;
+
+                        while (index < length)
+                        {
+                            switch (chars[index])
+                            {
+                                case ' ':
+                                case '\n':
+                                case '\r':
+                                case '\t':
+                                    ++index;
+                                    continue;
+                                default:
+                                    goto ReadValue;
+                            }
+                        }
+
+                        goto Exception;
+
+                        ReadValue:
+
+                        valueWriter.OnWriteValue(name, this);
+
+                        continue;
+                    default:
+                        goto Exception;
+                }
+            }
+
+
+            Exception:
+            throw GetException();
+
+            ReturnValue:
+
+            return;
+        }
+
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public void ReadArray(IDataWriter<int> valueWriter)
+        {
+            switch (GetValueType())
+            {
+                case JsonValueTypes.String:
+                    throw new InvalidCastException("Cannot convert String to array.");
+                case JsonValueTypes.Number:
+                    throw new InvalidCastException("Cannot convert Number to array.");
+                case JsonValueTypes.Object:
+                    ReadObject(valueWriter.As<string>());
+                    return;
+                case JsonValueTypes.True:
+                    throw new InvalidCastException("Cannot convert Boolean to array.");
+                case JsonValueTypes.Null:
+                    /* 空对象直接返回 */
+                    this.index += 4;
+                    return;
+                case JsonValueTypes.Undefined:
+                    this.index += 9;
+                    return;
+            }
+
+            int index = 0;
+
+            while (this.index < length)
+            {
+                switch (chars[this.index])
+                {
+                    case ' ':
+                    case '\n':
+                    case '\r':
+                    case '\t':
+
+                        ++this.index;
+
+                        continue;
+
+                    case '[':
+
+                        valueWriter.Initialize();
+
+                        goto case ',';
+
+                    case ']':
+                        EndCase:
+
+                        ++this.index;
+
+                        goto ReturnValue;
+
+                    case ',':
+
+                        ++this.index;
+
+                        while (this.index < length)
+                        {
+                            switch (chars[this.index])
+                            {
+                                case ' ':
+                                case '\n':
+                                case '\r':
+                                case '\t':
+                                    ++this.index;
+                                    continue;
+                                case ']':
+                                    goto EndCase;
+                                default:
+                                    goto ReadValue;
+                            }
+                        }
+
+                        goto Exception;
+
+                        ReadValue:
+
+                        valueWriter.OnWriteValue(index, this);
+
+                        ++index;
+
+                        continue;
+
+                    default:
+
+                        goto Exception;
+                }
+            }
+
+            Exception:
+            throw GetException();
+
+            ReturnValue:
+
+            return;
+        }
+
+        DateTimeOffset IValueReader<DateTimeOffset>.ReadValue()
+        {
+            switch (GetValueType())
+            {
+                case JsonValueTypes.Number:
+                    throw new InvalidCastException("Cannot convert Number to DateTimeOffset.");
+                case JsonValueTypes.Object:
+                case JsonValueTypes.Array:
+                    throw new InvalidCastException("Cannot convert object/array to DateTimeOffset.");
+                case JsonValueTypes.True:
+                case JsonValueTypes.False:
+                    throw new InvalidCastException("Cannot convert Boolean to DateTimeOffset.");
+                case JsonValueTypes.Null:
+                case JsonValueTypes.Undefined:
+                    throw new InvalidCastException("Cannot convert Null to DateTimeOffset.");
+            }
+
+            char textChar = chars[this.index];
+
+            int textLength = 0;
+
+            int index = this.index + 1;
+
+            int right = index;
+
+            while (right < length)
+            {
+                if (chars[right] == textChar)
+                {
+                    break;
+                }
+                else if (chars[right] == '\\')
+                {
+                    goto StringDecode;
+                }
+                else
+                {
+                    ++right;
+                }
+
+                ++textLength;
+            }
+            
+            if (DateTimeHelper.TryParseISODateTime(chars + index, right - index, out DateTimeOffset result))
+            {
+                this.index = right + 1;
+
+                return result;
+            }
+
+            result = DateTimeOffset.Parse(new string(chars, index, right - index));
+
+            this.index = right + 1;
+
+            return result;
+
+        StringDecode:
+
+            result = DateTimeOffset.Parse(InternalReadString());
+
+            return result;
+        }
+
+        public T? ReadNullable<T>() where T : struct
+        {
+            switch (GetValueType())
+            {
+                case JsonValueTypes.Null:
+                    index += 4;
+                    return null;
+                case JsonValueTypes.Undefined:
+                    index += 9;
+                    return null;
+            }
+
+            return ValueInterface<T>.Content.ReadValue(this);
         }
     }
 }

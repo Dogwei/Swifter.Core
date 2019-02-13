@@ -1,49 +1,46 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net471</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>7.3</LangVersion>
     <ApplicationIcon />
-    <OutputType>Exe</OutputType>
     <StartupObject />
   </PropertyGroup>
 
-  <PropertyGroup>
-    <Optimize>false</Optimize>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-
   <ItemGroup>
-    <Compile Remove="BasicTypes.cs" />
-    <Compile Remove="Catalog.cs" />
-    <Compile Remove="CommonData.cs" />
-    <Compile Remove="JsonTester.cs" />
-    <Compile Remove="_Package.cs" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="ClearScript.V8" Version="5.5.2" />
-    <PackageReference Include="DynamicExpresso.Core" Version="2.1.0" />
-    <PackageReference Include="ExpressionEvaluator" Version="2.0.4" />
-    <PackageReference Include="JavaScriptEngineSwitcher.V8" Version="3.0.0-rc1" />
-    <PackageReference Include="JavaScriptEngineSwitcher.V8.Native.win-x64" Version="3.0.0-rc1" />
-    <PackageReference Include="fastJSON" Version="2.2.0" />
+    <PackageReference Include="fastJSON" Version="2.2.0.1" />
     <PackageReference Include="Jil" Version="2.16.0" />
     <PackageReference Include="LitJson" Version="0.13.0" />
-    <PackageReference Include="NetJSON" Version="1.2.7" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="NetJSON" Version="1.2.9" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="ServiceStack" Version="5.4.0" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\Swifter.Json\Swifter.Json.csproj" />
+    <ProjectReference Include="..\Swifter.Core\Swifter.Core.csproj" />
     <ProjectReference Include="..\Swifter.Data\Swifter.Data.csproj" />
+    <ProjectReference Include="..\Swifter.Json\Swifter.Json.csproj" />
+    <ProjectReference Include="..\Swifter.Reflection\Swifter.Reflection.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="MyForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   
-  <ItemGroup>
-    <Reference Include="Microsoft.AnalysisServices.AdomdClient">
-      <HintPath>..\..\DLL\Microsoft.AnalysisServices.AdomdClient.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

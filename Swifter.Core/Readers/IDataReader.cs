@@ -53,17 +53,10 @@ namespace Swifter.Readers
         int Count { get; }
 
         /// <summary>
-        /// 获取数据源的 Id.
-        /// 要求全局唯一。
-        /// 不能是 HashCode 值。
+        /// 获取数据源的引用根。
+        /// 要求每个对象唯一。
+        /// 无引用关系的对象可以为 Null。
         /// </summary>
-        long ObjectId { get; }
-
-        /// <summary>
-        /// 将此数据读取器转换为具有键的类型的具体数据读取器。
-        /// </summary>
-        /// <typeparam name="T">键的类型</typeparam>
-        /// <returns>返回具体数据读取器</returns>
-        IDataReader<T> As<T>();
+        object ReferenceToken { get; }
     }
 }

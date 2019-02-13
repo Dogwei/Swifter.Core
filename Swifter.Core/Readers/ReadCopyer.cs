@@ -1,10 +1,9 @@
-﻿using Swifter.Readers;
-using Swifter.RW;
+﻿using Swifter.RW;
 using Swifter.Tools;
 using Swifter.Writers;
 using System;
 
-namespace Swifter.Core.Readers
+namespace Swifter.Readers
 {
     /// <summary>
     /// 值读取暂存器。
@@ -29,16 +28,6 @@ namespace Swifter.Core.Readers
             this.key = key;
 
             valueCopyer = new ValueCopyer();
-        }
-
-        /// <summary>
-        /// 获取值的基础类型枚举。
-        /// </summary>
-        /// <returns>返回一个 BasicTypes 枚举值。</returns>
-        public BasicTypes GetBasicType()
-        {
-            dataReader.OnReadValue(key, valueCopyer);
-            return valueCopyer.GetBasicType();
         }
 
         /// <summary>
@@ -222,12 +211,14 @@ namespace Swifter.Core.Readers
         }
 
         /// <summary>
-        /// 获取值读写器的名称。
+        /// 读取一个可空类型的值。
         /// </summary>
-        /// <returns>返回一个名称</returns>
-        public override string ToString()
+        /// <typeparam name="T">值类型</typeparam>
+        /// <returns>返回 Null 或该值类型的值</returns>
+        public T? ReadNullable<T>() where T : struct
         {
-            return dataReader.ToString() + "[\"" + key + "\"]";
+            dataReader.OnReadValue(key, valueCopyer);
+            return valueCopyer.ReadNullable<T>();
         }
     }
 }

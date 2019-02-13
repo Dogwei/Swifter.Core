@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+
+#pragma warning disable 1591
 
 namespace Swifter
 {
@@ -41,7 +44,7 @@ namespace Swifter
             }
             else
             {
-                // Unstable
+                // Stable
                 return obj.GetType().TypeHandle.Value;
             }
         }
@@ -88,21 +91,43 @@ namespace Swifter
             return AppDomain.CurrentDomain.DefineDynamicAssembly(assName, access);
         }
 #endif
+
+        /// <summary>
+        /// 往字符串写入器中写入一个字符串。
+        /// </summary>
+        /// <param name="textWriter">字符串写入器</param>
+        /// <param name="chars">字符串地址</param>
+        /// <param name="length">字符串长度</param>
+        [MethodImpl(AggressiveInlining)]
+        public static unsafe void WriteChars(TextWriter textWriter, char* chars, int length)
+        {
+#if NETCOREAPP2_1
+            textWriter.Write(new ReadOnlySpan<char>(chars, length));
+#else
+            const int bufferLength = 800;
+            
+            var buffer = new char[bufferLength];
+
+            for (int index = 0; index < length;)
+            {
+                var count = 0;
+
+                for (; count < bufferLength && index < length; ++count, ++index)
+                {
+                    buffer[count] = chars[index];
+                }
+
+                textWriter.Write(buffer, 0, count);
+            }
+#endif
+        }
     }
 }
 
 #if NETSTANDARD2_0
 
-/// <summary>
-/// 提供类型的扩展方法。
-/// </summary>
 public static class TypeMethods
 {
-    /// <summary>
-    /// 类型生成器的 CreateType 扩展方法，返回 TypeInfo。
-    /// </summary>
-    /// <param name="typeBuilder">类型生成器</param>
-    /// <returns>返回一个 TypeInfo。</returns>
     public static TypeInfo CreateType(this TypeBuilder typeBuilder)
     {
         return typeBuilder.CreateTypeInfo();
@@ -111,223 +136,200 @@ public static class TypeMethods
 
 #endif
 
-#if NET35 || NET30 || NET20
+#if NET451 || NET45 || NET40 || NET35 || NET30 || NET20
 namespace System
 {
-    /// <summary>
-    /// 类型访问异常。
-    /// </summary>
-    public class TypeAccessException : TypeLoadException
+    [Serializable]
+    public struct ValueTuple
     {
-        /// <summary>
-        /// 初始化类型访问异常。
-        /// </summary>
-        public TypeAccessException()
-        {
-
-        }
-
-
-        /// <summary>
-        /// 初始化具有指定消息的类型访问异常。
-        /// </summary>
-        /// <param name="message">指定消息</param>
-        public TypeAccessException(string message) : base(message)
-        {
-
-        }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
     [Serializable]
-    public class Tuple<T1>
+    public struct ValueTuple<T1>
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        public T1 Item1 { get; private set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item1"></param>
-        public Tuple(T1 item1)
+        public T1 Item1;
+        
+        public ValueTuple(T1 item1)
         {
             Item1 = item1;
         }
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
+    
     [Serializable]
-    public class Tuple<T1, T2>
+    public struct ValueTuple<T1, T2>
     {
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public T1 Item1 { get; private set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public T2 Item2 { get; private set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item1"></param>
-        /// <param name="item2"></param>
-        public Tuple(T1 item1, T2 item2)
+        public T1 Item1;
+        public T2 Item2;
+        
+        public ValueTuple(T1 item1, T2 item2)
         {
             Item1 = item1;
             Item2 = item2;
         }
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <typeparam name="T3"></typeparam>
+    
     [Serializable]
-    public class Tuple<T1, T2, T3>
+    public struct ValueTuple<T1, T2, T3, T4>
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        public T1 Item1 { get; private set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public T2 Item2 { get; private set; }
-        /// <summary>
-        /// 
-        /// </summary>
-        public T3 Item3 { get; private set; }
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="item1"></param>
-        /// <param name="item2"></param>
-        /// <param name="item3"></param>
-        public Tuple(T1 item1, T2 item2, T3 item3)
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+        }
+    }
+
+    [Serializable]
+    public struct ValueTuple<T1, T2, T3, T4, T5>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+        }
+    }
+
+    [Serializable]
+    public struct ValueTuple<T1, T2, T3,T4,T5,T6>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+        }
+    }
+
+    [Serializable]
+    public struct ValueTuple<T1, T2, T3,T4,T5,T6,T7>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+        }
+    }
+
+    [Serializable]
+    public struct ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+        public T4 Item4;
+        public T5 Item5;
+        public T6 Item6;
+        public T7 Item7;
+        public TRest Rest;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+            Item5 = item5;
+            Item6 = item6;
+            Item7 = item7;
+            Rest = rest;
+        }
+    }
+
+    [Serializable]
+    public struct ValueTuple<T1, T2, T3>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public T3 Item3;
+
+        public ValueTuple(T1 item1, T2 item2, T3 item3)
         {
             Item1 = item1;
             Item2 = item2;
             Item3 = item3;
         }
     }
+}
 
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// 指示应将所使用的成员上的值元组视为具有元素名称的元组。
+    /// </summary>
+    public sealed class TupleElementNamesAttribute : Attribute
+    {
+        /// <summary>
+        /// 指示在类型构造的深度优先前序遍历中，哪个值元组元素应具有元素名称。
+        /// </summary>
+        public IList<string> TransformNames { get; }
+
+        /// <summary>
+        /// 初始化 System.Runtime.CompilerServices.TupleElementNamesAttribute 类的新实例。
+        /// </summary>
+        /// <param name="transformNames">一个字符串数组，该数组指示在类型构造的深度优先前序遍历中，哪个值元组事件应具有元素名称。</param>
+        public TupleElementNamesAttribute(string[] transformNames)
+        {
+            TransformNames = transformNames;
+        }
+    }
 }
 #endif
 
 #if NET30 || NET20
 namespace System
 {
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
     public delegate void Action();
-
-    // public delegate void Action<T1>(T1 arg1);
-
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <param name="arg1"></param>
-    /// <param name="arg2"></param>
     public delegate void Action<T1, T2>(T1 arg1, T2 arg2);
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <typeparam name="T3"></typeparam>
-    /// <param name="arg1"></param>
-    /// <param name="arg2"></param>
-    /// <param name="arg3"></param>
     public delegate void Action<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3);
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <typeparam name="T3"></typeparam>
-    /// <typeparam name="T4"></typeparam>
-    /// <param name="arg1"></param>
-    /// <param name="arg2"></param>
-    /// <param name="arg3"></param>
-    /// <param name="arg4"></param>
     public delegate void Action<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="TResult"></typeparam>
-    /// <returns></returns>
     public delegate TResult Func<TResult>();
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="TResult"></typeparam>
-    /// <param name="arg1"></param>
-    /// <returns></returns>
     public delegate TResult Func<T1, TResult>(T1 arg1);
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <typeparam name="TResult"></typeparam>
-    /// <param name="arg1"></param>
-    /// <param name="arg2"></param>
-    /// <returns></returns>
     public delegate TResult Func<T1, T2, TResult>(T1 arg1, T2 arg2);
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <typeparam name="T3"></typeparam>
-    /// <typeparam name="TResult"></typeparam>
-    /// <param name="arg1"></param>
-    /// <param name="arg2"></param>
-    /// <param name="arg3"></param>
-    /// <returns></returns>
     public delegate TResult Func<T1, T2, T3, TResult>(T1 arg1, T2 arg2, T3 arg3);
-    /// <summary>
-    /// 为 .Net 2.0 和 3.0 提供必要的委托。
-    /// </summary>
-    /// <typeparam name="T1"></typeparam>
-    /// <typeparam name="T2"></typeparam>
-    /// <typeparam name="T3"></typeparam>
-    /// <typeparam name="T4"></typeparam>
-    /// <typeparam name="TResult"></typeparam>
-    /// <param name="arg1"></param>
-    /// <param name="arg2"></param>
-    /// <param name="arg3"></param>
-    /// <param name="arg4"></param>
-    /// <returns></returns>
     public delegate TResult Func<T1, T2, T3, T4, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
 }
 
 
 namespace System.Runtime.CompilerServices
 {
-    /// <summary>
-    /// 扩展方法的特性
-    /// </summary>
     public class ExtensionAttribute : Attribute
     {
     }

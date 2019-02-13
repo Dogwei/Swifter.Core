@@ -21,45 +21,15 @@ namespace Swifter.RW
             }
         }
 
-        public ValueCopyer<TKey> this[TKey key]
-        {
-            get
-            {
-                return new ValueCopyer<TKey>(this, key);
-            }
-        }
+        public ValueCopyer<TKey> this[TKey key]=> new ValueCopyer<TKey>(this, key);
 
-        IValueWriter IDataWriter<TKey>.this[TKey key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<TKey>.this[TKey key]=> this[key];
 
-        IValueReader IDataReader<TKey>.this[TKey key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<TKey>.this[TKey key]=> this[key];
 
-        public IEnumerable<TKey> Keys
-        {
-            get
-            {
-                return content.Keys;
-            }
-        }
+        public IEnumerable<TKey> Keys => content.Keys;
 
-        public int Count
-        {
-            get
-            {
-                return content.Count;
-            }
-        }
+        public int Count => content.Count;
 
         object IDirectContent.DirectContent
         {
@@ -73,13 +43,15 @@ namespace Swifter.RW
             }
         }
 
-        public long ObjectId
+        public object ReferenceToken
         {
             get
             {
-                return TypeInfo<T>.IsValueType ? 0 : (long)Pointer.UnBox(content);
+                return content;
             }
         }
+
+        IValueRW IDataRW<TKey>.this[TKey key] => this[key];
 
         public void Initialize()
         {
@@ -154,24 +126,25 @@ namespace Swifter.RW
             }
         }
 
-        IDataReader<TAsKey> IDataReader.As<TAsKey>()
+        public void OnWriteAll(IDataReader<TKey> dataReader)
         {
-            if (this is IDataReader<TAsKey>)
+            var buckets = new KeyValuePair<TKey, TValue>[content.Count];
+
+            var index = 0;
+
+            foreach (var item in content.Keys)
             {
-                return (IDataReader<TAsKey>)(object)this;
+                buckets[index] = new KeyValuePair<TKey, TValue>(item, ValueInterface<TValue>.Content.ReadValue(dataReader[item]));
+
+                ++index;
             }
 
-            return new AsDataReader<TKey, TAsKey>(this);
-        }
+            content.Clear();
 
-        IDataWriter<TAsKey> IDataWriter.As<TAsKey>()
-        {
-            if (this is IDataWriter<TAsKey>)
+            foreach (var item in buckets)
             {
-                return (IDataWriter<TAsKey>)(object)this;
+                content.Add(item);
             }
-
-            return new AsDataWriter<TKey, TAsKey>(this);
         }
     }
 
@@ -181,42 +154,21 @@ namespace Swifter.RW
 
         internal T content;
 
-        public T Content
-        {
-            get
-            {
-                return content;
-            }
-        }
+        public T Content => content;
 
-        public ValueCopyer<object> this[object key]
-        {
-            get
-            {
-                return new ValueCopyer<object>(this, key);
-            }
-        }
+        public ValueCopyer<object> this[object key]=> new ValueCopyer<object>(this, key);
 
-        IValueWriter IDataWriter<object>.this[object key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueRW IDataRW<object>.this[object key] => this[key];
 
-        IValueReader IDataReader<object>.this[object key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<object>.this[object key]=> this[key];
+
+        IValueReader IDataReader<object>.this[object key]=> this[key];
 
         public IEnumerable<object> Keys
         {
             get
             {
+                // TODO:
                 return (IEnumerable<object>)content.Keys;
             }
         }
@@ -241,11 +193,11 @@ namespace Swifter.RW
             }
         }
 
-        public long ObjectId
+        public object ReferenceToken
         {
             get
             {
-                return TypeInfo<T>.IsValueType ? 0 : (long)Pointer.UnBox(content);
+                return content;
             }
         }
 
@@ -288,7 +240,7 @@ namespace Swifter.RW
 
         public void OnReadAll(IDataWriter<object> dataWriter)
         {
-            foreach (IDictionaryEnumerator item in content)
+            foreach (DictionaryEntry item in content)
             {
                 ValueInterface<object>.Content.WriteValue(dataWriter[item.Key], item.Value);
             }
@@ -308,7 +260,7 @@ namespace Swifter.RW
         {
             var valueInfo = new ValueFilterInfo<object>();
 
-            foreach (IDictionaryEnumerator item in content)
+            foreach (DictionaryEntry item in content)
             {
                 ValueInterface<object>.Content.WriteValue(valueInfo.ValueCopyer, item.Value);
 
@@ -322,24 +274,25 @@ namespace Swifter.RW
             }
         }
 
-        IDataReader<TKey> IDataReader.As<TKey>()
+        public void OnWriteAll(IDataReader<object> dataReader)
         {
-            if (this is IDataReader<TKey>)
+            var buckets = new KeyValuePair<object, object>[content.Count];
+
+            var index = 0;
+
+            foreach (var item in content.Keys)
             {
-                return (IDataReader<TKey>)(object)this;
+                buckets[index] = new KeyValuePair<object, object>(item, ValueInterface<object>.Content.ReadValue(dataReader[item]));
+
+                ++index;
             }
 
-            return new AsDataReader<object, TKey>(this);
-        }
+            content.Clear();
 
-        IDataWriter<TKey> IDataWriter.As<TKey>()
-        {
-            if (this is IDataWriter<TKey>)
+            foreach (var item in buckets)
             {
-                return (IDataWriter<TKey>)(object)this;
+                content.Add(item.Key, item.Value);
             }
-
-            return new AsDataWriter<object, TKey>(this);
         }
     }
 
@@ -384,11 +337,42 @@ namespace Swifter.RW
 
     internal sealed class DictionaryInterface<T, TKey, TValue> : IValueInterface<T> where T : IDictionary<TKey, TValue>
     {
+        static readonly bool IsArray;
+
+        static DictionaryInterface()
+        {
+            switch (TypeInfo<TKey>.TypeCode)
+            {
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    IsArray = true;
+                    break;
+            }
+        }
+
         public T ReadValue(IValueReader valueReader)
         {
             var dictionaryRW = new DictionaryRW<T, TKey, TValue>();
 
-            valueReader.ReadObject(((IDataWriter)dictionaryRW).As<string>());
+            if (valueReader is IValueFiller<TKey> tFiller)
+            {
+                tFiller.FillValue(dictionaryRW);
+            }
+
+            if (IsArray)
+            {
+                valueReader.ReadArray(dictionaryRW.As<int>());
+            }
+            else
+            {
+                valueReader.ReadObject(dictionaryRW.As<string>());
+            }
 
             return dictionaryRW.Content;
         }
@@ -406,7 +390,14 @@ namespace Swifter.RW
 
             dictionaryRW.Initialize(value);
 
-            valueWriter.WriteObject(((IDataReader)dictionaryRW).As<string>());
+            if (IsArray)
+            {
+                valueWriter.WriteArray(dictionaryRW.As<int>());
+            }
+            else
+            {
+                valueWriter.WriteObject(dictionaryRW.As<string>());
+            }
         }
     }
 
@@ -416,7 +407,14 @@ namespace Swifter.RW
         {
             var dictionaryRW = new DictionaryRW<T>();
 
-            valueReader.ReadObject(((IDataWriter)dictionaryRW).As<string>());
+            if (valueReader is IValueFiller<object> tFiller)
+            {
+                tFiller.FillValue(dictionaryRW);
+            }
+            else
+            {
+                valueReader.ReadObject(dictionaryRW.As<string>());
+            }
 
             return dictionaryRW.Content;
         }
@@ -434,7 +432,7 @@ namespace Swifter.RW
 
             dictionaryRW.Initialize(value);
 
-            valueWriter.WriteObject(((IDataReader)dictionaryRW).As<string>());
+            valueWriter.WriteObject(dictionaryRW.As<string>());
         }
     }
 }

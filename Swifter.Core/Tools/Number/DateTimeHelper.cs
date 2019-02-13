@@ -135,6 +135,18 @@ namespace Swifter.Tools
         }
 
         /// <summary>
+        /// 将日期和时间点以 ISO8061 格式字符串写入到字符串中。
+        /// </summary>
+        /// <param name="value">日期和时间点</param>
+        /// <param name="chars">字符串</param>
+        /// <returns>返回写入结束位置，最后一个字符写入位置 + 1。</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public unsafe static int ToISOString(DateTimeOffset value, char* chars)
+        {
+            return ToISOString(value.DateTime, chars, value.Offset.Ticks);
+        }
+
+        /// <summary>
         /// 将日期和时间的 UTC 时间以 ISO8061 格式字符串写入到字符串中。
         /// </summary>
         /// <param name="value">日期和时间</param>
@@ -155,7 +167,21 @@ namespace Swifter.Tools
         {
             char* chars = stackalloc char[ISOStringMaxLength];
 
-            int length = ToISOString(value, chars, 0);
+            int length = ToISOString(value, chars, UTCDifference);
+
+            return new string(chars, 0, length);
+        }
+
+        /// <summary>
+        /// 将日期和时间点以 ISO8061 格式化字符串。
+        /// </summary>
+        /// <param name="value">日期和时间点</param>
+        /// <returns>返回一个字符串。</returns>
+        public unsafe static string ToISOString(DateTimeOffset value)
+        {
+            char* chars = stackalloc char[ISOStringMaxLength];
+
+            int length = ToISOString(value.DateTime, chars, value.Offset.Ticks);
 
             return new string(chars, 0, length);
         }
@@ -213,8 +239,9 @@ namespace Swifter.Tools
         /// <param name="chars">字符串</param>
         /// <param name="length">解析结束位置。</param>
         /// <param name="value">成功返回日期和时间对象，失败返回日期和时间最小值。</param>
+        /// <param name="difference">返回解析出的时间差</param>
         /// <returns>返回成功或失败。</returns>
-        public static bool TryParseISODateTime(char* chars, int length, out DateTime value)
+        public static bool TryParseISODateTime(char* chars, int length, out DateTime value, out long difference)
         {
             var index = 0;
 
@@ -227,7 +254,7 @@ namespace Swifter.Tools
                 millisecond = 0,
                 week = 0; // if 0 then no using.
 
-            long ticks = 0; // if 0 then no using.
+            difference = UTCDifference; // if 0 then no using.
 
             // Date
             // yyyy-MM-dd
@@ -521,9 +548,8 @@ namespace Swifter.Tools
             }
 
             goto False;
-            Difference:
 
-            ticks = UTCDifference;
+            Difference:
 
             bool isPlus;
 
@@ -536,6 +562,8 @@ namespace Swifter.Tools
                     isPlus = false;
                     break;
                 case 'Z':
+                    difference = 0;
+
                     goto True;
                 default:
                     goto False;
@@ -579,11 +607,11 @@ namespace Swifter.Tools
 
             if (isPlus)
             {
-                ticks -= (dHour * OneHour) + (dMinute * OneMinute);
+                difference = (dHour * OneHour) + (dMinute * OneMinute);
             }
             else
             {
-                ticks += (dHour * OneHour) + (dMinute * OneMinute);
+                difference = -((dHour * OneHour) + (dMinute * OneMinute));
             }
 
             True:
@@ -593,11 +621,6 @@ namespace Swifter.Tools
             if (week != 0)
             {
                 value = value.AddDays(week * 7);
-            }
-
-            if (ticks != 0)
-            {
-                value = value.AddTicks(ticks);
             }
 
             return true;
@@ -612,10 +635,76 @@ namespace Swifter.Tools
         /// <summary>
         /// 尝试解析 ISO8061 格式日期和时间字符串。
         /// </summary>
+        /// <param name="chars">字符串</param>
+        /// <param name="length">解析结束位置。</param>
+        /// <param name="value">成功返回日期和时间对象，失败返回日期和时间最小值。</param>
+        /// <returns>返回成功或失败。</returns>
+        public unsafe static bool TryParseISODateTime(char* chars, int length, out DateTime value)
+        {
+            var r = TryParseISODateTime(chars, length, out value, out var difference);
+
+            if (r)
+            {
+                value = value.AddTicks(UTCDifference - difference);
+
+                return true;
+            }
+
+            value = DateTime.MinValue;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 尝试解析 ISO8061 格式日期和时间字符串。
+        /// </summary>
         /// <param name="text">字符串</param>
         /// <param name="value">成功返回日期和时间对象，失败返回日期和时间最小值。</param>
         /// <returns>返回成功或失败。</returns>
         public unsafe static bool TryParseISODateTime(string text, out DateTime value)
+        {
+            if (text == null)
+            {
+                throw new NullReferenceException("text");
+            }
+
+            fixed (char* chars = text)
+            {
+                return TryParseISODateTime(chars, text.Length, out value);
+            }
+        }
+
+
+        /// <summary>
+        /// 尝试解析 ISO8061 格式日期和时间点字符串。
+        /// </summary>
+        /// <param name="chars">字符串</param>
+        /// <param name="length">解析结束位置。</param>
+        /// <param name="value">成功返回日期和时间点对象，失败返回日期和时间点最小值。</param>
+        /// <returns>返回成功或失败。</returns>
+        public unsafe static bool TryParseISODateTime(char* chars, int length, out DateTimeOffset value)
+        {
+            var r = TryParseISODateTime(chars, length, out var dateTime, out var difference);
+
+            if (r)
+            {
+                value = new DateTimeOffset(dateTime, new TimeSpan(difference));
+
+                return true;
+            }
+
+            value = DateTimeOffset.MinValue;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 尝试解析 ISO8061 格式日期和时间点字符串。
+        /// </summary>
+        /// <param name="text">字符串</param>
+        /// <param name="value">成功返回日期和时间点对象，失败返回日期和时间点最小值。</param>
+        /// <returns>返回成功或失败。</returns>
+        public unsafe static bool TryParseISODateTime(string text, out DateTimeOffset value)
         {
             if (text == null)
             {

@@ -1,6 +1,7 @@
 ﻿using Swifter.Readers;
+using Swifter.RW;
 using Swifter.Tools;
-using Swifter.VirtualViews;
+using System;
 using System.Collections.Generic;
 
 namespace Swifter.Writers
@@ -18,7 +19,7 @@ namespace Swifter.Writers
     /// </summary>
     /// <typeparam name="TIn">输入类型</typeparam>
     /// <typeparam name="TOut">输出类型</typeparam>
-    public sealed class AsDataWriter<TIn, TOut> : IDataWriter<TOut>, IAsDataWriter
+    internal sealed class AsDataWriter<TIn, TOut> : IDataWriter<TOut>, IAsDataWriter, IDirectContent
     {
         /// <summary>
         /// 原始数据写入器。
@@ -39,57 +40,42 @@ namespace Swifter.Writers
         /// </summary>
         /// <param name="key">键</param>
         /// <returns>返回值写入器</returns>
-        public IValueWriter this[TOut key]
-        {
-            get
-            {
-                return dataWriter[XConvert<TOut, TIn>.Convert(key)];
-            }
-        }
+        public IValueWriter this[TOut key] => dataWriter[XConvert<TOut, TIn>.Convert(key)];
 
         /// <summary>
         /// 获取转换后的键集合。
         /// </summary>
-        public IEnumerable<TOut> Keys
-        {
-            get
-            {
-                return new AsEnumerate<TIn, TOut>(dataWriter.Keys);
-            }
-        }
+        public IEnumerable<TOut> Keys => ArrayHelper.CreateAsIterator<TIn, TOut>(dataWriter.Keys);
 
         /// <summary>
         /// 获取数据源键的数量。
         /// </summary>
-        public int Count
+        public int Count => dataWriter.Count;
+
+        IDataWriter IAsDataWriter.Content => dataWriter;
+
+        object IDirectContent.DirectContent
         {
             get
             {
-                return dataWriter.Count;
-            }
-        }
+                if (dataWriter is IDirectContent directContent)
+                {
+                    return directContent.DirectContent;
+                }
 
-        IDataWriter IAsDataWriter.Content
-        {
-            get
+                throw new NotSupportedException(StringHelper.Format("This data {0} does not support direct {1} content.", "writer", "get"));
+            }
+            set
             {
-                return dataWriter;
-            }
-        }
+                if (dataWriter is IDirectContent directContent)
+                {
+                    directContent.DirectContent = value;
 
-        IDataWriter<Out> IDataWriter.As<Out>()
-        {
-            if (dataWriter is IDataWriter<Out>)
-            {
-                return (IDataWriter<Out>)dataWriter;
-            }
+                    return;
+                }
 
-            if (this is IDataWriter<Out>)
-            {
-                return (IDataWriter<Out>)(object)this;
+                throw new NotSupportedException(StringHelper.Format("This data {0} does not support direct {1} content.", "writer", "set"));
             }
-
-            return new AsDataWriter<TIn, Out>(dataWriter);
         }
 
         /// <summary>
@@ -117,6 +103,11 @@ namespace Swifter.Writers
         public void OnWriteValue(TOut key, IValueReader valueReader)
         {
             dataWriter.OnWriteValue(XConvert<TOut, TIn>.Convert(key), valueReader);
+        }
+
+        public void OnWriteAll(IDataReader<TOut> dataReader)
+        {
+            dataWriter.OnWriteAll(new AsWriteAllReader<TIn, TOut>(dataReader));
         }
     }
 }

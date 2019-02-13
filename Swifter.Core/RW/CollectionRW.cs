@@ -1,6 +1,5 @@
 ﻿using Swifter.Readers;
 using Swifter.Tools;
-using Swifter.VirtualViews;
 using Swifter.Writers;
 using System;
 using System.Collections;
@@ -14,67 +13,27 @@ namespace Swifter.RW
 
         internal T content;
 
-        public T Content
-        {
-            get
-            {
-                return content;
-            }
-        }
+        public T Content => content;
 
-        public ValueCopyer<int> this[int key]
-        {
-            get
-            {
-                return new ValueCopyer<int>(this, key);
-            }
-        }
+        public ValueCopyer<int> this[int key]=> new ValueCopyer<int>(this, key);
 
-        IValueWriter IDataWriter<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<int>.this[int key] => this[key];
 
-        IValueReader IDataReader<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<int>.this[int key] => this[key];
 
-        public IEnumerable<int> Keys => ArrayView<int>.CreateIndexView(content.Count);
+        public IEnumerable<int> Keys => ArrayHelper.CreateLengthIterator(Count);
 
-        public int Count
-        {
-            get
-            {
-                return content.Count;
-            }
-        }
+        public int Count => content.Count;
 
         object IDirectContent.DirectContent
         {
-            get
-            {
-                return content;
-            }
-            set
-            {
-                content = (T)value;
-            }
+            get => content;
+            set => content = (T)value;
         }
 
-        public long ObjectId
-        {
-            get
-            {
-                return TypeInfo<T>.IsValueType ? 0 : (long)Pointer.UnBox(content);
-            }
-        }
+        public object ReferenceToken => content;
+
+        IValueRW IDataRW<int>.this[int key] => this[key];
 
         public void Initialize()
         {
@@ -103,7 +62,7 @@ namespace Swifter.RW
 
             return;
 
-            List:
+        List:
 
             content = (T)(object)new List<TValue>(capacity);
         }
@@ -122,12 +81,35 @@ namespace Swifter.RW
 
         public void OnReadValue(int key, IValueWriter valueWriter)
         {
+            if (content is IList<TValue> list)
+            {
+                ValueInterface<TValue>.Content.WriteValue(valueWriter, list[key]);
+
+                return;
+            }
+
             throw new NotSupportedException();
         }
 
         public void OnWriteValue(int key, IValueReader valueReader)
         {
-            content.Add(ValueInterface<TValue>.Content.ReadValue(valueReader));
+            var value = ValueInterface<TValue>.Content.ReadValue(valueReader);
+
+            if (key >= content.Count)
+            {
+                content.Add(value);
+
+                return;
+            }
+
+            if (content is IList<TValue> list)
+            {
+                list[key] = value;
+
+                return;
+            }
+
+            throw new NotSupportedException($"TODO: '{typeof(T)}' not supported set elements.");
         }
 
         public void OnReadAll(IDataWriter<int> dataWriter, IValueFilter<int> valueFilter)
@@ -150,24 +132,21 @@ namespace Swifter.RW
             }
         }
 
-        IDataReader<TKey> IDataReader.As<TKey>()
+        public void OnWriteAll(IDataReader<int> dataReader)
         {
-            if (this is IDataReader<TKey>)
+            if (content is IList<TValue> list)
             {
-                return (IDataReader<TKey>)(object)this;
+                var length = Count;
+
+                for (int i = 0; i < length; i++)
+                {
+                    list[i] = ValueInterface<TValue>.Content.ReadValue(dataReader[i]);
+                }
+
+                return;
             }
 
-            return new AsDataReader<int, TKey>(this);
-        }
-
-        IDataWriter<TKey> IDataWriter.As<TKey>()
-        {
-            if (this is IDataWriter<TKey>)
-            {
-                return (IDataWriter<TKey>)(object)this;
-            }
-
-            return new AsDataWriter<int, TKey>(this);
+            throw new NotSupportedException($"TODO: '{typeof(T)}' not supported set elements.");
         }
     }
 
@@ -177,73 +156,27 @@ namespace Swifter.RW
 
         internal T content;
 
-        public T Content
-        {
-            get
-            {
-                return content;
-            }
-        }
+        public T Content => content;
 
-        public ValueCopyer<int> this[int key]
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public ValueCopyer<int> this[int key]=> throw new NotSupportedException();
 
-        IValueWriter IDataWriter<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<int>.this[int key] => this[key];
 
-        IValueReader IDataReader<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<int>.this[int key] => this[key];
 
-        public IEnumerable<int> Keys
-        {
-            get
-            {
-                return ArrayView<int>.CreateIndexView(content.Count);
-            }
-        }
+        public IEnumerable<int> Keys => ArrayHelper.CreateLengthIterator(content.Count);
 
-        public int Count
-        {
-            get
-            {
-                return content.Count;
-            }
-        }
+        public int Count => content.Count;
 
         object IDirectContent.DirectContent
         {
-            get
-            {
-                return content;
-            }
-            set
-            {
-                content = (T)value;
-            }
+            get => content;
+            set => content = (T)value;
         }
 
-        public long ObjectId
-        {
-            get
-            {
-                return TypeInfo<T>.IsValueType ? 0 : (long)Pointer.UnBox(content);
-            }
-        }
+        public object ReferenceToken => content;
+
+        IValueRW IDataRW<int>.this[int key] => this[key];
 
         public void Initialize()
         {
@@ -272,7 +205,7 @@ namespace Swifter.RW
 
             return;
 
-            Collection:
+        Collection:
 
             content = (T)(object)new ArrayList(capacity);
         }
@@ -291,11 +224,34 @@ namespace Swifter.RW
 
         public void OnReadValue(int key, IValueWriter valueWriter)
         {
+            if (content is IList list)
+            {
+                ValueInterface<object>.Content.WriteValue(valueWriter, list[key]);
+
+                return;
+            }
+
             throw new NotSupportedException();
         }
 
         public void OnWriteValue(int key, IValueReader valueReader)
         {
+            if (content is IList list)
+            {
+                var value = ValueInterface<object>.Content.ReadValue(valueReader);
+
+                if (key < content.Count)
+                {
+                    list[key] = value;
+                }
+                else
+                {
+                    list.Add(value);
+                }
+
+                return;
+            }
+
             throw new NotSupportedException();
         }
 
@@ -319,24 +275,21 @@ namespace Swifter.RW
             }
         }
 
-        IDataReader<TKey> IDataReader.As<TKey>()
+        public void OnWriteAll(IDataReader<int> dataReader)
         {
-            if (this is IDataReader<TKey>)
+            if (content is IList list)
             {
-                return (IDataReader<TKey>)(object)this;
+                var length = Count;
+
+                for (int i = 0; i < length; i++)
+                {
+                    list[i] = ValueInterface<object>.Content.ReadValue(dataReader[i]);
+                }
+
+                return;
             }
 
-            return new AsDataReader<int, TKey>(this);
-        }
-
-        IDataWriter<TKey> IDataWriter.As<TKey>()
-        {
-            if (this is IDataWriter<TKey>)
-            {
-                return (IDataWriter<TKey>)(object)this;
-            }
-
-            return new AsDataWriter<int, TKey>(this);
+            throw new NotSupportedException($"TODO: '{typeof(T)}' not supported set elements.");
         }
     }
 
@@ -357,7 +310,7 @@ namespace Swifter.RW
 
             var index = 0;
 
-            Loop:
+        Loop:
 
             if (item.IsGenericType && item.GetGenericTypeDefinition() == typeof(ICollection<>))
             {

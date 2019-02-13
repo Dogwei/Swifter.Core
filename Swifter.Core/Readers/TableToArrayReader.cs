@@ -1,5 +1,4 @@
-﻿using Swifter.Tools;
-using Swifter.Writers;
+﻿using Swifter.Writers;
 using System;
 using System.Collections.Generic;
 
@@ -14,37 +13,13 @@ namespace Swifter.Readers
             this.tableReader = tableReader;
         }
 
-        public IValueReader this[int key]
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public IValueReader this[int key]=> throw new NotSupportedException();
 
-        public IEnumerable<int> Keys
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public IEnumerable<int> Keys => throw new NotSupportedException();
 
-        public int Count
-        {
-            get
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public int Count => 0;
 
-        public long ObjectId
-        {
-            get
-            {
-                return (long)Pointer.UnBox(tableReader);
-            }
-        }
+        public object ReferenceToken => tableReader.ReferenceToken;
 
         public void OnReadAll(IDataWriter<int> dataWriter)
         {
@@ -78,7 +53,6 @@ namespace Swifter.Readers
                     }
                     catch (Exception)
                     {
-
                         throw e;
                     }
                 }
@@ -112,16 +86,6 @@ namespace Swifter.Readers
 
                 ++index;
             }
-        }
-
-        IDataReader<T> IDataReader.As<T>()
-        {
-            if (this is IDataReader<T>)
-            {
-                return (IDataReader<T>)(object)this;
-            }
-
-            return new AsDataReader<int, T>(this);
         }
     }
 }

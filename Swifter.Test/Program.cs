@@ -1,24 +1,26 @@
-﻿using Swifter.Data;
-using System.Data.Common;
-using Swifter.Json;
+﻿using Swifter.Json;
+using Swifter.Readers;
+using Swifter.Reflection;
+using Swifter.RW;
+using Swifter.Tools;
+using Swifter.Writers;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Security;
-using System.Security.Permissions;
-using Microsoft.AnalysisServices.AdomdClient;
-using System.Data;
-using System.Runtime.Remoting;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections;
-using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace Swifter.Test
 {
-    class Program
+    public class Program
     {
-        public static void Main()
+        public unsafe static void Main()
         {
+            Application.EnableVisualStyles();
+            Application.Run(new MyForm());
         }
     }
 }

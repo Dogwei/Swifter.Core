@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Swifter.Tools
 {
@@ -17,6 +18,8 @@ namespace Swifter.Tools
         public const string DefaultIndexerName = "Item";
 
         private static readonly bool offsetOfByHandleIsAvailable;
+
+        private static readonly object lockObject = new object();
 
         static TypeHelper()
         {
@@ -75,7 +78,7 @@ namespace Swifter.Tools
         {
             if (fieldOffsetCache == null)
             {
-                lock (typeof(TypeHelper))
+                lock (lockObject)
                 {
                     if (fieldOffsetCache == null)
                     {
@@ -84,12 +87,10 @@ namespace Swifter.Tools
                     }
                 }
             }
-
-            uint offset;
-
+            
             var fieldId = (long)fieldInfo.FieldHandle.Value;
 
-            if (fieldOffsetCache.TryGetValue(fieldId, out offset))
+            if (fieldOffsetCache.TryGetValue(fieldId, out uint offset))
             {
                 return offset;
             }
@@ -119,7 +120,7 @@ namespace Swifter.Tools
         {
             if (intPtrChooseMinMethod == null)
             {
-                lock (typeof(TypeHelper))
+                lock (lockObject)
                 {
                     if (intPtrChooseMinMethod == null)
                     {
@@ -303,7 +304,7 @@ namespace Swifter.Tools
 
             if (typeSizeCache == null)
             {
-                lock (typeof(TypeHelper))
+                lock (lockObject)
                 {
                     if (typeSizeCache == null)
                     {
@@ -339,10 +340,8 @@ namespace Swifter.Tools
             }
 
             var typeId = (long)type.TypeHandle.Value;
-
-            uint size;
-
-            if (typeSizeCache.TryGetValue(typeId, out size))
+            
+            if (typeSizeCache.TryGetValue(typeId, out uint size))
             {
                 return size;
             }
@@ -414,7 +413,7 @@ namespace Swifter.Tools
 
             if (obj == null)
             {
-                return default(T);
+                return default;
             }
 
             if (obj is string)
@@ -438,7 +437,7 @@ namespace Swifter.Tools
         {
             if (memberwiseClone == null)
             {
-                lock (typeof(TypeHelper))
+                lock (lockObject)
                 {
                     if (memberwiseClone == null)
                     {
@@ -454,95 +453,6 @@ namespace Swifter.Tools
             return memberwiseClone(obj);
         }
 
-        private const string AllocateMethodName = "Allocate";
-        private const string StubHelpersTypeName = "System.StubHelpers.StubHelpers";
-        private const string AllocateInternalName = "AllocateInternal";
-        private const string ActivationServicesTypeName = "System.Runtime.Remoting.Activation.ActivationServices";
-        private const string AllocateUninitializedClassInstanceName = "AllocateUninitializedClassInstance";
-
-        private delegate object AllocateDelegate(Type t);
-        private static AllocateDelegate allocate;
-        private delegate object AllocateInternalDelegate(IntPtr typeHandle);
-        private static AllocateInternalDelegate allocateInternal;
-        private delegate object AllocateUninitializedClassInstanceDelegate(Type type);
-        private static AllocateUninitializedClassInstanceDelegate allocateUninitializedClassInstance;
-        private static bool allocateIsInitialized;
-
-        private static object AllocateByInternal(Type type)
-        {
-            if (!allocateIsInitialized)
-            {
-                lock (typeof(TypeHelper))
-                {
-                    if (!allocateIsInitialized)
-                    {
-                        allocateIsInitialized = true;
-
-                        var allocateMethod = typeof(RuntimeTypeHandle).GetMethod(AllocateMethodName, BindingFlags.NonPublic | BindingFlags.Static);
-                        if (allocateMethod != null)
-                        {
-                            allocate = MethodHelper.CreateDelegate<AllocateDelegate>(allocateMethod, SignatureLevels.Cast);
-                        }
-
-                        var stubHelpersType = Type.GetType(StubHelpersTypeName);
-                        if (stubHelpersType != null)
-                        {
-                            var allocateInternalMethod = stubHelpersType.GetMethod(AllocateInternalName, BindingFlags.Static | BindingFlags.NonPublic);
-                            if (allocateInternalMethod != null)
-                            {
-                                allocateInternal = MethodHelper.CreateDelegate<AllocateInternalDelegate>(allocateInternalMethod, SignatureLevels.Cast);
-                            }
-                        }
-
-                        var activationServicesType = Type.GetType(ActivationServicesTypeName);
-                        if (activationServicesType != null)
-                        {
-                            var allocateUninitializedClassInstanceMethod = activationServicesType.GetMethod(AllocateUninitializedClassInstanceName, BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-                            if (allocateUninitializedClassInstanceMethod != null)
-                            {
-                                allocateUninitializedClassInstance = MethodHelper.CreateDelegate<AllocateUninitializedClassInstanceDelegate>(allocateUninitializedClassInstanceMethod, SignatureLevels.Cast);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (allocate != null)
-            {
-                try
-                {
-                    return allocate(type);
-                }
-                catch (Exception)
-                {
-                }
-            }
-
-            if (allocateInternal != null)
-            {
-                try
-                {
-                    return allocateInternal(type.TypeHandle.Value);
-                }
-                catch (Exception)
-                {
-                }
-            }
-
-            if (allocateUninitializedClassInstance != null)
-            {
-                try
-                {
-                    return allocateUninitializedClassInstance(type);
-                }
-                catch (Exception)
-                {
-                }
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// 分配一个类型的实例。
         /// </summary>
@@ -554,27 +464,7 @@ namespace Swifter.Tools
             {
                 throw new ArgumentNullException(nameof(type));
             }
-
-            if (type.IsGenericTypeDefinition)
-            {
-                throw new ArgumentException("Unable allocate instance of a generic definition type.", nameof(type));
-            }
-
-            if (type.IsInterface)
-            {
-                throw new ArgumentException("Unable allocate instance of a interface type.", nameof(type));
-            }
-
-            if (type.IsAbstract)
-            {
-                throw new ArgumentException("Unable allocate instance of a abstract type.", nameof(type));
-            }
-
-            if (type.IsByRef)
-            {
-                throw new ArgumentException("Unable allocate instance of a byRef type.", nameof(type));
-            }
-
+            
             if (type.IsArray)
             {
                 var lengths = new int[type.GetArrayRank()];
@@ -582,23 +472,12 @@ namespace Swifter.Tools
                 return Array.CreateInstance(type.GetElementType(), lengths);
             }
 
-            var tObject = AllocateByInternal(type);
-
-            if (tObject != null)
+            if (type == typeof(string))
             {
-                return tObject;
+                return "";
             }
 
-            unsafe
-            {
-                var pObject = stackalloc byte[(int)SizeOf(type) + sizeof(IntPtr)];
-
-                *(IntPtr*)pObject = type.TypeHandle.Value;
-
-                tObject = Pointer.Box((IntPtr)pObject);
-
-                return Clone(tObject);
-            }
+            return FormatterServices.GetUninitializedObject(type);
         }
 
         /// <summary>
@@ -647,7 +526,7 @@ namespace Swifter.Tools
                 return type.TypeHandle.Value;
             }
 
-            var obj = AllocateByInternal(type);
+            var obj = Allocate(type);
 
             if (obj == null)
             {
@@ -681,7 +560,7 @@ namespace Swifter.Tools
         {
             if (StaticFieldAddressCache == null)
             {
-                lock (typeof(TypeHelper))
+                lock (lockObject)
                 {
                     if (StaticFieldAddressCache == null)
                     {
@@ -782,7 +661,7 @@ namespace Swifter.Tools
         /// </summary>
         /// <typeparam name="T">值的类型</typeparam>
         /// <param name="value">值</param>
-        /// <returns>返回一个 bool 值。</returns>
+        /// <returns>返回一个 bool 值</returns>
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public static bool IsEmptyValue<T>(T value)
         {
@@ -848,60 +727,64 @@ namespace Swifter.Tools
             }
         }
 
+        private static IdCache<object> defaultValues;
+        /// <summary>
+        /// 判断一个值是否是空。
+        /// </summary>
+        /// <param name="value">值</param>
+        /// <returns>返回一个 bool 值</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public static bool IsEmptyValue(object value)
+        {
+            if (value == null)
+            {
+                return true;
+            }
+
+            if (defaultValues == null)
+            {
+                lock (lockObject)
+                {
+                    if (defaultValues == null)
+                    {
+                        defaultValues = new IdCache<object>();
+                    }
+                }
+            }
+
+            if (defaultValues.TryGetValue((long)Pointer.GetTypeHandle(value), out var default_value))
+            {
+                return RuntimeHelpers.Equals(value, default_value);
+            }
+
+            lock (defaultValues)
+            {
+                var objectHandle = (long)Pointer.GetTypeHandle(value);
+
+                if (!defaultValues.TryGetValue(objectHandle, out default_value))
+                {
+                    var type = value.GetType();
+
+                    if (type.IsValueType)
+                    {
+                        default_value = Activator.CreateInstance(type);
+                    }
+                    else
+                    {
+                        default_value = null;
+                    }
+
+                    defaultValues.DirectAdd(objectHandle, default_value);
+                }
+            }
+
+            return RuntimeHelpers.Equals(value, default_value);
+        }
+
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         private static void VersionNotSupport(string methodName)
         {
             throw new PlatformNotSupportedException(StringHelper.Format("current .net version not support '{0}' method.", methodName));
-        }
-
-        /// <summary>
-        /// 获取类型的 BasicTypes 值。
-        /// </summary>
-        /// <param name="type">类型信息</param>
-        /// <returns>返回 BasicTypes 值。</returns>
-        public static BasicTypes GetBasicType(Type type)
-        {
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Boolean:
-                    return BasicTypes.Boolean;
-                case TypeCode.Byte:
-                    return BasicTypes.Byte;
-                case TypeCode.Char:
-                    return BasicTypes.Char;
-                case TypeCode.DateTime:
-                    return BasicTypes.DateTime;
-                case TypeCode.DBNull:
-                    return BasicTypes.Null;
-                case TypeCode.Decimal:
-                    return BasicTypes.Decimal;
-                case TypeCode.Double:
-                    return BasicTypes.Double;
-                case TypeCode.Int16:
-                    return BasicTypes.Int16;
-                case TypeCode.Int32:
-                    return BasicTypes.Int32;
-                case TypeCode.Int64:
-                    return BasicTypes.Int64;
-                case TypeCode.SByte:
-                    return BasicTypes.SByte;
-                case TypeCode.Single:
-                    return BasicTypes.Single;
-                case TypeCode.String:
-                    return BasicTypes.String;
-                case TypeCode.UInt16:
-                    return BasicTypes.UInt16;
-                case TypeCode.UInt32:
-                    return BasicTypes.UInt32;
-                case TypeCode.UInt64:
-                    return BasicTypes.UInt64;
-            }
-
-            if (type.IsArray)
-            {
-                return BasicTypes.Array;
-            }
-
-            return BasicTypes.Object;
         }
 
         /// <summary>
@@ -944,20 +827,34 @@ namespace Swifter.Tools
             return true;
         }
 
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        internal static void CreateTempObjectFormValueTypeRef(Type valueType, TypedReference typedRef, Action<IntPtr> tempObjectScope)
+        internal static T SlowGetValue<T>(Type type, string staticMemberName)
         {
-            unsafe
+            return SlowGetValue<T>(type.GetMember(staticMemberName,
+                BindingFlags.Static |
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.GetField |
+                BindingFlags.GetProperty)[0], null);
+        }
+
+        private static T SlowGetValue<T>(MemberInfo memberInfo, object instance)
+        {
+            if (memberInfo is FieldInfo fieldInfo)
             {
-                var pType = (IntPtr*)((*(byte**)&typedRef) - sizeof(IntPtr));
+                if (fieldInfo.IsLiteral)
+                {
+                    return (T)fieldInfo.GetRawConstantValue();
+                }
 
-                var pBackup = *pType;
-
-                *pType = GetObjectHandle(valueType);
-
-                tempObjectScope((IntPtr)pType);
-
-                *pType = pBackup;
+                return (T)fieldInfo.GetValue(instance);
+            }
+            else if (memberInfo is PropertyInfo propertyInfo)
+            {
+                return (T)propertyInfo.GetValue(instance, null);
+            }
+            else
+            {
+                throw new MissingMemberException();
             }
         }
 

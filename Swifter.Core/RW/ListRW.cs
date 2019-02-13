@@ -1,6 +1,5 @@
 ﻿using Swifter.Readers;
 using Swifter.Tools;
-using Swifter.VirtualViews;
 using Swifter.Writers;
 using System;
 using System.Collections;
@@ -14,73 +13,23 @@ namespace Swifter.RW
 
         internal T content;
 
-        public T Content
-        {
-            get
-            {
-                return content;
-            }
-        }
+        public T Content => content;
 
-        public ValueCopyer<int> this[int key]
-        {
-            get
-            {
-                return new ValueCopyer<int>(this, key);
-            }
-        }
+        public ValueCopyer<int> this[int key]=> new ValueCopyer<int>(this, key);
 
-        IValueWriter IDataWriter<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<int>.this[int key] => this[key];
 
-        IValueReader IDataReader<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<int>.this[int key] => this[key];
 
-        public IEnumerable<int> Keys
-        {
-            get
-            {
-                return ArrayView<int>.CreateIndexView(content.Count);
-            }
-        }
+        public IEnumerable<int> Keys => ArrayHelper.CreateLengthIterator(Count);
 
-        public int Count
-        {
-            get
-            {
-                return content.Count;
-            }
-        }
+        public int Count => content.Count;
 
-        object IDirectContent.DirectContent
-        {
-            get
-            {
-                return content;
-            }
-            set
-            {
-                content = (T)value;
-            }
-        }
+        object IDirectContent.DirectContent { get => content; set => content = (T)value; }
 
-        public long ObjectId
-        {
-            get
-            {
-                return TypeInfo<T>.IsValueType ? 0 : (long)Pointer.UnBox(content);
-            }
-        }
+        public object ReferenceToken => content;
+
+        IValueRW IDataRW<int>.this[int key] => this[key];
 
         public void Initialize()
         {
@@ -121,9 +70,9 @@ namespace Swifter.RW
 
         public void OnReadAll(IDataWriter<int> dataWriter)
         {
-            int count = content.Count;
+            int length = content.Count;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < length; i++)
             {
                 ValueInterface<TValue>.Content.WriteValue(dataWriter[i], content[i]);
             }
@@ -136,7 +85,7 @@ namespace Swifter.RW
 
         public void OnWriteValue(int key, IValueReader valueReader)
         {
-            if (key == content.Count)
+            if (key >= content.Count)
             {
                 content.Add(ValueInterface<TValue>.Content.ReadValue(valueReader));
             }
@@ -148,11 +97,11 @@ namespace Swifter.RW
 
         public void OnReadAll(IDataWriter<int> dataWriter, IValueFilter<int> valueFilter)
         {
-            int count = content.Count;
+            int length = content.Count;
 
             var valueInfo = new ValueFilterInfo<int>();
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < length; i++)
             {
                 var value = content[i];
 
@@ -168,24 +117,14 @@ namespace Swifter.RW
             }
         }
 
-        IDataReader<TKey> IDataReader.As<TKey>()
+        public void OnWriteAll(IDataReader<int> dataReader)
         {
-            if (this is IDataReader<TKey>)
+            var length = Count;
+
+            for (int i = 0; i < length; i++)
             {
-                return (IDataReader<TKey>)(object)this;
+                content[i] = ValueInterface<TValue>.Content.ReadValue(dataReader[i]);
             }
-
-            return new AsDataReader<int, TKey>(this);
-        }
-
-        IDataWriter<TKey> IDataWriter.As<TKey>()
-        {
-            if (this is IDataWriter<TKey>)
-            {
-                return (IDataWriter<TKey>)(object)this;
-            }
-
-            return new AsDataWriter<int, TKey>(this);
         }
     }
 
@@ -195,73 +134,23 @@ namespace Swifter.RW
 
         internal T content;
 
-        public T Content
-        {
-            get
-            {
-                return content;
-            }
-        }
+        public T Content => content;
 
-        public ValueCopyer<int> this[int key]
-        {
-            get
-            {
-                return new ValueCopyer<int>(this, key);
-            }
-        }
+        public ValueCopyer<int> this[int key] => new ValueCopyer<int>(this, key);
 
-        IValueWriter IDataWriter<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<int>.this[int key] => this[key];
 
-        IValueReader IDataReader<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<int>.this[int key] => this[key];
 
-        public IEnumerable<int> Keys
-        {
-            get
-            {
-                return ArrayView<int>.CreateIndexView(content.Count);
-            }
-        }
+        public IEnumerable<int> Keys => ArrayHelper.CreateLengthIterator(Count);
 
-        public int Count
-        {
-            get
-            {
-                return content.Count;
-            }
-        }
+        public int Count => content.Count;
 
-        object IDirectContent.DirectContent
-        {
-            get
-            {
-                return content;
-            }
-            set
-            {
-                content = (T)value;
-            }
-        }
+        object IDirectContent.DirectContent { get => content; set => content = (T)value; }
 
-        public long ObjectId
-        {
-            get
-            {
-                return TypeInfo<T>.IsValueType ? 0 : (long)Pointer.UnBox(content);
-            }
-        }
+        public object ReferenceToken => content;
+
+        IValueRW IDataRW<int>.this[int key] => this[key];
 
         public void Initialize()
         {
@@ -302,9 +191,9 @@ namespace Swifter.RW
 
         public void OnReadAll(IDataWriter<int> dataWriter)
         {
-            int count = content.Count;
+            int length = content.Count;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < length; i++)
             {
                 ValueInterface<object>.Content.WriteValue(dataWriter[i], content[i]);
             }
@@ -317,7 +206,7 @@ namespace Swifter.RW
 
         public void OnWriteValue(int key, IValueReader valueReader)
         {
-            if (key == content.Count)
+            if (key >= content.Count)
             {
                 content.Add(ValueInterface<object>.Content.ReadValue(valueReader));
             }
@@ -329,11 +218,11 @@ namespace Swifter.RW
 
         public void OnReadAll(IDataWriter<int> dataWriter, IValueFilter<int> valueFilter)
         {
-            int count = content.Count;
+            int length = content.Count;
 
             var valueInfo = new ValueFilterInfo<int>();
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < length; i++)
             {
                 var value = content[i];
 
@@ -349,24 +238,14 @@ namespace Swifter.RW
             }
         }
 
-        IDataReader<TKey> IDataReader.As<TKey>()
+        public void OnWriteAll(IDataReader<int> dataReader)
         {
-            if (this is IDataReader<TKey>)
+            var length = Count;
+
+            for (int i = 0; i < length; i++)
             {
-                return (IDataReader<TKey>)(object)this;
+                content[i] = ValueInterface<object>.Content.ReadValue(dataReader[i]);
             }
-
-            return new AsDataReader<int, TKey>(this);
-        }
-
-        IDataWriter<TKey> IDataWriter.As<TKey>()
-        {
-            if (this is IDataWriter<TKey>)
-            {
-                return (IDataWriter<TKey>)(object)this;
-            }
-
-            return new AsDataWriter<int, TKey>(this);
         }
     }
 

@@ -10,7 +10,7 @@ namespace Swifter.Json
         /// <summary>
         /// 初始化实例
         /// </summary>
-        public JsonOutOfDepthException() : base("Json Struct Depth out of MaxDepth.")
+        public JsonOutOfDepthException() : base("Json struct depth out of the max depth.")
         {
         }
     }

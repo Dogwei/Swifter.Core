@@ -1,9 +1,9 @@
 ﻿using Swifter.Readers;
+using Swifter.RW;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Text;
 
 namespace Swifter.Data
 {
@@ -44,11 +44,6 @@ namespace Swifter.Data
             }
         }
 
-        public IDataWriter<T> As<T>()
-        {
-            throw new NotSupportedException();
-        }
-
         public void DirectWrite(object value)
         {
             var item = dbCommand.CreateParameter();
@@ -70,6 +65,14 @@ namespace Swifter.Data
 
         public void Initialize(int capacity)
         {
+        }
+
+        public void OnWriteAll(IDataReader<string> dataReader)
+        {
+            foreach (DbParameter item in dbCommand.Parameters)
+            {
+                item.Value = ValueInterface<object>.Content.ReadValue(dataReader[item.ParameterName]);
+            }
         }
 
         public void OnWriteValue(string key, IValueReader valueReader)

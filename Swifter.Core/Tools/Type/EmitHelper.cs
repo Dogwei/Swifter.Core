@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
+using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using System.Reflection.Emit;
 
 namespace Swifter.Tools
 {
@@ -11,6 +11,8 @@ namespace Swifter.Tools
     /// </summary>
     public static class EmitHelper
     {
+        private const int DifferenceSwitchMaxDepth = 2;
+
         /// <summary>
         /// 加载静态字段值。
         /// </summary>
@@ -588,6 +590,29 @@ namespace Swifter.Tools
             CaseInfo<string>[] cases,
             Label defaultLabel, bool ignoreCase = false)
         {
+            try
+            {
+                DifferenceSwitch(iLGen, emitLdcValue, cases, defaultLabel, ignoreCase);
+            }
+            catch (Exception)
+            {
+                HashSwitch(iLGen, emitLdcValue, cases, defaultLabel, ignoreCase);
+            }
+        }
+
+        /// <summary>
+        /// 生成 Switch(String) 代码块。
+        /// </summary>
+        /// <param name="iLGen">ILGenerator IL 指令生成器</param>
+        /// <param name="emitLdcValue">生成加载 Switch 参数的指令的委托</param>
+        /// <param name="cases">case 标签块集合</param>
+        /// <param name="defaultLabel">默认标签块</param>
+        /// <param name="ignoreCase">是否忽略大小写</param>
+        private static void HashSwitch(this ILGenerator iLGen,
+            Action<ILGenerator> emitLdcValue,
+            CaseInfo<string>[] cases,
+            Label defaultLabel, bool ignoreCase = false)
+        {
             Action<ILGenerator, string> itemLdcValue = (tILGen, value) =>
             {
                 tILGen.Emit(OpCodes.Ldstr, value);
@@ -627,20 +652,156 @@ namespace Swifter.Tools
         /// <summary>
         /// 生成 Switch(int) 代码块。
         /// </summary>
-        /// <param name="iLGen">ILGenerator IL 指令生成器</param>
-        /// <param name="emitLdcValue">生成加载 Switch 参数的指令的委托</param>
-        /// <param name="cases">case 标签块集合</param>
-        /// <param name="defaultLabel">默认标签块</param>
-        public static void Switch(this ILGenerator iLGen,
-            Action<ILGenerator> emitLdcValue,
-            CaseInfo<int>[] cases,
-            Label defaultLabel)
+        /// <param name="ILGen">ILGenerator IL 指令生成器</param>
+        /// <param name="EmitLdcValue">生成加载 Switch 参数的指令的委托</param>
+        /// <param name="Cases">case 标签块集合</param>
+        /// <param name="DefaultLabel">默认标签块</param>
+        public static void Switch(this ILGenerator ILGen,
+            Action<ILGenerator> EmitLdcValue,
+            CaseInfo<int>[] Cases,
+            Label DefaultLabel)
         {
-            cases = (CaseInfo<int>[])cases.Clone();
+            Cases = (CaseInfo<int>[])Cases.Clone();
 
-            Array.Sort(cases, (Before, After)=> { return Before.Value - After.Value; });
+            Array.Sort(Cases, (Before, After)=> { return Before.Value - After.Value; });
 
-            SwitchNumber(iLGen, emitLdcValue, cases, defaultLabel, (tILGen, value) => { tILGen.LoadConstant(value); }, 0, (cases.Length - 1) / 2, cases.Length - 1);
+            SwitchNumber(ILGen, EmitLdcValue, Cases, DefaultLabel, (tILGen, value) => { tILGen.LoadConstant(value); }, 0, (Cases.Length - 1) / 2, Cases.Length - 1);
+        }
+
+        /// <summary>
+        /// 生成 Switch(String) 代码块。字符串差异位置比较，通常情况下这比 Hash 比较要快。
+        /// </summary>
+        /// <param name="ILGen">ILGenerator IL 指令生成器</param>
+        /// <param name="EmitLdcValue">生成加载 Switch 参数的指令的委托</param>
+        /// <param name="Cases">case 标签块集合</param>
+        /// <param name="DefaultLabel">默认标签块</param>
+        /// <param name="IgnoreCase">是否忽略大小写</param>
+        private static void DifferenceSwitch(this ILGenerator ILGen,
+            Action<ILGenerator> EmitLdcValue,
+            CaseInfo<string>[] Cases,
+            Label DefaultLabel, bool IgnoreCase = false)
+        {
+            Action<ILGenerator, string> ItemLdcValue = (tILGen, value) =>
+            {
+                tILGen.Emit(OpCodes.Ldstr, value);
+            };
+
+            if (IgnoreCase)
+            {
+                Cases = (CaseInfo<string>[])Cases.Clone();
+
+                for (int i = 0; i < Cases.Length; i++)
+                {
+                    Cases[i] = new CaseInfo<string>(Cases[i].Value.ToUpper(), Cases[i].Label);
+                }
+
+                DifferenceSwitch(
+                    ILGen,
+                    EmitLdcValue,
+                    ((Func<string, string, bool>)StringHelper.IgnoreCaseEquals).Method,
+                    StringUpperCharArMethod,
+                    Cases,
+                    DefaultLabel,
+                    ItemLdcValue);
+            }
+            else
+            {
+                DifferenceSwitch(
+                    ILGen,
+                    EmitLdcValue,
+                    ((Func<string, string, bool>)StringHelper.Equals).Method,
+                    StringCharAtMethod,
+                    Cases,
+                    DefaultLabel,
+                    ItemLdcValue);
+            }
+        }
+
+        private static readonly MethodInfo StringCharAtMethod = ArrayHelper.Filter(
+            typeof(string).GetProperties(),
+            (item) => { var indexParameters = item.GetIndexParameters(); return indexParameters.Length == 1 && indexParameters[0].ParameterType == typeof(int); },
+            item => item)
+            [0].GetGetMethod();
+
+        private static readonly MethodInfo StringUpperCharArMethod = typeof(StringHelper).GetMethod(nameof(StringHelper.UpperCharAr), BindingFlags.Public | BindingFlags.Static);
+
+        private static readonly MethodInfo StringGetLengthMethod = typeof(string).GetProperty(nameof(string.Length)).GetGetMethod();
+
+        private static void DifferenceCasesProcess(
+            ILGenerator iLGen, 
+            Action<ILGenerator> emitLdcValue, 
+            MethodInfo stringEqualsMethod,
+            MethodInfo stringCharAtMethod,
+            Action<ILGenerator, string> itemLdcValue,
+            Label defaultLabel, 
+            CaseInfo<int>[] differenceCases)
+        {
+            foreach (var item in differenceCases)
+            {
+                iLGen.MarkLabel(item.Label);
+
+                if (item.Tag is StringSingleGroup<CaseInfo<string>> singleGroup)
+                {
+                    emitLdcValue(iLGen);
+                    itemLdcValue(iLGen, singleGroup.Value.Value);
+                    iLGen.Call(stringEqualsMethod);
+                    iLGen.Emit(OpCodes.Brtrue, singleGroup.Value.Label);
+                }
+                else if (item.Tag is StringDifferenceGroup<CaseInfo<string>> differenceGroup)
+                {
+                    var charCases = new CaseInfo<int>[differenceGroup.Groups.Count];
+
+                    for (int i = 0; i < charCases.Length; i++)
+                    {
+                        charCases[i] = new CaseInfo<int>(differenceGroup.Groups[i].Key, iLGen.DefineLabel()) { Tag = differenceGroup.Groups[i].Value };
+                    }
+
+                    Switch(iLGen, (ilGen2) =>
+                    {
+                        emitLdcValue(ilGen2);
+                        ilGen2.LoadConstant(differenceGroup.Index);
+                        ilGen2.Call(stringCharAtMethod);
+                    }, charCases, defaultLabel);
+
+                    DifferenceCasesProcess(iLGen, emitLdcValue, stringEqualsMethod, stringCharAtMethod, itemLdcValue,defaultLabel, charCases);
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+        }
+
+        private static void DifferenceSwitch(ILGenerator iLGen,
+            Action<ILGenerator> emitLdcValue,
+            MethodInfo stringEqualsMethod,
+            MethodInfo stringCharAtMethod,
+            CaseInfo<string>[] cases,
+            Label defaultLabel,
+            Action<ILGenerator, string> itemLdcValue)
+        {
+
+            var lengthGroup = new StringLengthGroup<CaseInfo<string>>(cases, item => item.Value);
+
+            if (lengthGroup.GetDepth() > DifferenceSwitchMaxDepth)
+            {
+                throw new ArgumentException("Groups too deep.");
+            }
+
+            var lengthCases = new CaseInfo<int>[lengthGroup.Groups.Count];
+
+            for (int i = 0; i < lengthCases.Length; i++)
+            {
+                lengthCases[i] = new CaseInfo<int>(lengthGroup.Groups[i].Key, iLGen.DefineLabel()) { Tag = lengthGroup.Groups[i].Value };
+            }
+
+            Switch(iLGen, (ilGen2) =>
+            {
+                emitLdcValue(ilGen2);
+                ilGen2.Call(StringGetLengthMethod);
+            }, lengthCases, defaultLabel);
+
+            DifferenceCasesProcess(iLGen, emitLdcValue, stringEqualsMethod, stringCharAtMethod, itemLdcValue, defaultLabel, lengthCases);
         }
 
         /// <summary>
@@ -681,7 +842,7 @@ namespace Swifter.Tools
 
             Array.Sort(cases);
 
-            var GroupedCases = new XDictionary<int, List<CaseInfo<T>>>();
+            var GroupedCases = new Dictionary<int, List<CaseInfo<T>>>();
 
             foreach (var Item in cases)
             {
@@ -717,7 +878,7 @@ namespace Swifter.Tools
                 {
                     EqILGen.Emit(OpCodes.Call, equalsMethod);
                 },
-                GroupedCases,
+                GroupedCases.ToList(),
                 defaultLabel,
                 ldcCaseValue,
                 0,
@@ -735,11 +896,35 @@ namespace Swifter.Tools
             int Index,
             int End)
         {
+
+            if (Begin > End)
+            {
+                ILGen.Emit(OpCodes.Br, DefaultLabel);
+
+                return;
+            }
+
+            if (Begin + 1 == End)
+            {
+                LdValue(ILGen);
+                ldcCase(ILGen, Cases[Begin].Value);
+                ILGen.Emit(OpCodes.Beq, Cases[Begin].Label);
+
+                LdValue(ILGen);
+                ldcCase(ILGen, Cases[End].Value);
+                ILGen.Emit(OpCodes.Beq, Cases[End].Label);
+
+                ILGen.Emit(OpCodes.Br, DefaultLabel);
+
+                return;
+            }
+
             if (Begin == End)
             {
                 LdValue(ILGen);
                 ldcCase(ILGen, Cases[Begin].Value);
                 ILGen.Emit(OpCodes.Beq, Cases[Begin].Label);
+
                 ILGen.Emit(OpCodes.Br, DefaultLabel);
 
                 return;
@@ -762,7 +947,7 @@ namespace Swifter.Tools
             Action<ILGenerator> LdcValue,
             LocalBuilder HashCodeLocal,
             Action<ILGenerator> CallEquals,
-            XDictionary<int, List<CaseInfo<T>>> Cases,
+            List<KeyValuePair<int, List<CaseInfo<T>>>> Cases,
             Label DefaultLabel,
             Action<ILGenerator, T> ldcCase,
             int Begin,
@@ -777,10 +962,10 @@ namespace Swifter.Tools
             if (Begin == End)
             {
                 ILGen.LoadLocal(HashCodeLocal);
-                ILGen.LoadConstant(Cases.GetEntry(Begin).Key);
+                ILGen.LoadConstant(Cases[Begin].Key);
                 ILGen.Emit(OpCodes.Bne_Un, DefaultLabel);
 
-                foreach (var Item in Cases.GetEntry(Begin).Value)
+                foreach (var Item in Cases[Begin].Value)
                 {
                     LdcValue(ILGen);
                     ldcCase(ILGen, Item.Value);
@@ -799,10 +984,10 @@ namespace Swifter.Tools
                 var EndLabel = ILGen.DefineLabel();
 
                 ILGen.LoadLocal(HashCodeLocal);
-                ILGen.LoadConstant(Cases.GetEntry(Begin).Key);
+                ILGen.LoadConstant(Cases[Begin].Key);
                 ILGen.Emit(OpCodes.Bne_Un, EndLabel);
 
-                foreach (var Item in Cases.GetEntry(Begin).Value)
+                foreach (var Item in Cases[Begin].Value)
                 {
                     LdcValue(ILGen);
                     ldcCase(ILGen, Item.Value);
@@ -814,10 +999,10 @@ namespace Swifter.Tools
                 ILGen.MarkLabel(EndLabel);
 
                 ILGen.LoadLocal(HashCodeLocal);
-                ILGen.LoadConstant(Cases.GetEntry(End).Key);
+                ILGen.LoadConstant(Cases[End].Key);
                 ILGen.Emit(OpCodes.Bne_Un, DefaultLabel);
 
-                foreach (var Item in Cases.GetEntry(End).Value)
+                foreach (var Item in Cases[End].Value)
                 {
                     LdcValue(ILGen);
                     ldcCase(ILGen, Item.Value);
@@ -833,7 +1018,7 @@ namespace Swifter.Tools
             var GtLabel = ILGen.DefineLabel();
 
             ILGen.LoadLocal(HashCodeLocal);
-            ILGen.LoadConstant(Cases.GetEntry(Index).Key);
+            ILGen.LoadConstant(Cases[Index].Key);
             ILGen.Emit(OpCodes.Bgt, GtLabel);
 
             SwitchObject(
@@ -884,6 +1069,11 @@ namespace Swifter.Tools
         public int HashCode;
 
         /// <summary>
+        /// 辅助变量。
+        /// </summary>
+        internal object Tag;
+
+        /// <summary>
         /// 实例化 Case 块。
         /// </summary>
         /// <param name="Value">Case 块的值</param>
@@ -904,4 +1094,5 @@ namespace Swifter.Tools
             return HashCode.CompareTo(other.HashCode);
         }
     }
+
 }

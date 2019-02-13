@@ -19,7 +19,7 @@ namespace Swifter.Reflection
     {
         private readonly static bool CheckChildrenInstance = typeof(T).IsClass && (!typeof(T).IsSealed);
         private static readonly long Int64TypeHandle = TypeInfo<T>.Int64TypeHandle;
-
+        
         /// <summary>
         /// 在值读取器中读取该类型的实例。
         /// </summary>
@@ -27,11 +27,11 @@ namespace Swifter.Reflection
         /// <returns>返回该类型的实例</returns>
         public T ReadValue(IValueReader valueReader)
         {
-            var objectRW = XObjectRW<T>.Create();
+            var objectRW = XObjectRW.Create(typeof(T));
 
             valueReader.ReadObject(objectRW);
 
-            return objectRW.Content;
+            return (T)objectRW.Content;
         }
 
         /// <summary>
@@ -51,12 +51,12 @@ namespace Swifter.Reflection
             /* 父类引用，子类实例时使用 Type 获取写入器。 */
             if (CheckChildrenInstance && Int64TypeHandle != (long)TypeHelper.GetTypeHandle(value))
             {
-                ValueInterface.GetInterface(value).WriteValue(valueWriter, value);
+                ValueInterface.GetInterface(value).Write(valueWriter, value);
 
                 return;
             }
 
-            var objectRW = XObjectRW<T>.Create();
+            var objectRW = XObjectRW.Create(typeof(T));
 
             objectRW.Initialize(value);
 

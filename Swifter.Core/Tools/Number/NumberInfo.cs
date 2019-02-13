@@ -87,6 +87,11 @@ namespace Swifter.Tools
         }
 
         /// <summary>
+        /// 获取是否为十进制数字。
+        /// </summary>
+        public bool IsDecimal => IsNumber && radix == 10;
+
+        /// <summary>
         /// 获取此数字在字符串中的结束位置，数字内容不包含此位置。
         /// </summary>
         public int End
@@ -97,6 +102,11 @@ namespace Swifter.Tools
                 return end;
             }
         }
+
+        /// <summary>
+        /// 获取此数字的进制数。
+        /// </summary>
+        public byte Radix => radix;
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         private int ToString(char* chars)
@@ -211,6 +221,46 @@ namespace Swifter.Tools
             {
                 return "NaN";
             }
+        }
+
+        /// <summary>
+        /// 转换为 Double。失败将引发异常。
+        /// </summary>
+        /// <returns>返回一个 Double</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public double ToDouble()
+        {
+            return NumberHelper.InstanceByRadix(radix).ToDouble(this);
+        }
+
+        /// <summary>
+        /// 转换为 Double。失败将引发异常。
+        /// </summary>
+        /// <returns>返回一个 Double</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public decimal ToDecimal()
+        {
+            return NumberHelper.ToDecimal(this);
+        }
+
+        /// <summary>
+        /// 转换为 UInt64。失败将引发异常。
+        /// </summary>
+        /// <returns>返回一个 Double</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public ulong ToUInt64()
+        {
+            return NumberHelper.InstanceByRadix(radix).ToUInt64(this);
+        }
+
+        /// <summary>
+        /// 转换为 Int64。失败将引发异常。
+        /// </summary>
+        /// <returns>返回一个 Double</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public long ToInt64()
+        {
+            return NumberHelper.InstanceByRadix(radix).ToInt64(this);
         }
     }
 }

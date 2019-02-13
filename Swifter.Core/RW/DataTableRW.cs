@@ -1,6 +1,5 @@
 ﻿using Swifter.Readers;
 using Swifter.Tools;
-using Swifter.VirtualViews;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ namespace Swifter.RW
     /// <summary>
     /// System.Data.DataTable Reader impl.
     /// </summary>
-    internal sealed class DataTableRW : ITableRW, IInitialize<DataTable>,IDirectContent
+    internal sealed class DataTableRW<T> : ITableRW, IInitialize<T>, IDirectContent where T : DataTable
     {
         private int readIndex;
         private int writeIndex;
@@ -21,101 +20,43 @@ namespace Swifter.RW
         {
         }
 
-        public IValueRW this[string key]
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return new ValueCopyer<string>(this, key);
-            }
-        }
+        public ValueCopyer<string> this[string key] => new ValueCopyer<string>(this, key);
 
-        public IValueRW this[int key]
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return new ValueCopyer<int>(this, key);
-            }
-        }
+        public ValueCopyer<int> this[int key] => new ValueCopyer<int>(this, key);
 
-        IValueReader IDataReader<string>.this[string key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<int>.this[int key] => this[key];
 
-        IValueWriter IDataWriter<string>.this[string key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<string>.this[string key] => this[key];
 
-        IValueReader IDataReader<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<int>.this[int key] => this[key];
 
-        IValueWriter IDataWriter<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueWriter IDataWriter<string>.this[string key] => this[key];
 
-        public IEnumerable<string> Keys
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return ArrayView<string>.Create(index => Content.Columns[index].ColumnName, Count);
-            }
-        }
+        IValueRW IDataRW<int>.this[int key] => this[key];
 
-        public int Count
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return Content.Columns.Count;
-            }
-        }
+        IValueRW IDataRW<string>.this[string key] => this[key];
 
-        IEnumerable<int> IDataReader<int>.Keys => ArrayView<int>.CreateIndexView(Count);
+        public IEnumerable<string> Keys => ArrayHelper.CreateNamesIterator(Content);
 
-        IEnumerable<int> IDataWriter<int>.Keys => ArrayView<int>.CreateIndexView(Count);
+        public int Count => Content.Columns.Count;
 
-        public DataTable Content { get; private set; }
+        IEnumerable<int> IDataRW<int>.Keys => ArrayHelper.CreateLengthIterator(Count);
 
-        public long ObjectId
-        {
-            get
-            {
-                return (long)Pointer.UnBox(Content);
-            }
-        }
+        IEnumerable<int> IDataReader<int>.Keys => ArrayHelper.CreateLengthIterator(Count);
+
+        IEnumerable<int> IDataWriter<int>.Keys => ArrayHelper.CreateLengthIterator(Count);
+
+        public T Content { get; private set; }
+
+        public object ReferenceToken => null;
 
         object IDirectContent.DirectContent
         {
-            get
-            {
-                return Content;
-            }
-            set
-            {
-                Content = (DataTable)value;
-            }
+            get => Content;
+            set => Initialize((T)value);
         }
 
-        public void Initialize(DataTable dataTable)
+        public void Initialize(T dataTable)
         {
             Content = dataTable;
 
@@ -127,10 +68,7 @@ namespace Swifter.RW
         {
             if (Content == null)
             {
-                Content = new DataTable();
-
-                readIndex = -1;
-                writeIndex = -1;
+                Initialize(Activator.CreateInstance<T>());
             }
         }
 
@@ -148,36 +86,30 @@ namespace Swifter.RW
 
         public void OnReadAll(IDataWriter<string> dataWriter)
         {
-            int length = Count;
-
-            for (int i = 0; i < length; i++)
+            foreach (DataColumn item in Content.Columns)
             {
-                OnReadValue(i, dataWriter[Content.Columns[i].ColumnName]);
+                ValueInterface.GetInterface(item.DataType).Write(dataWriter[item.ColumnName], Content.Rows[writeIndex][item.Ordinal]);
             }
         }
 
         public void OnReadAll(IDataWriter<int> dataWriter)
         {
-            int length = Count;
-
-            for (int i = 0; i < length; i++)
+            foreach (DataColumn item in Content.Columns)
             {
-                OnReadValue(i, dataWriter[i]);
+                ValueInterface.GetInterface(item.DataType).Write(dataWriter[item.Ordinal], Content.Rows[writeIndex][item.Ordinal]);
             }
         }
 
         public void OnReadAll(IDataWriter<string> dataWriter, IValueFilter<string> valueFilter)
         {
-            int length = Count;
-
             var valueInfo = new ValueFilterInfo<string>();
 
-            for (int i = 0; i < length; i++)
+            foreach (DataColumn item in Content.Columns)
             {
-                OnReadValue(i, valueInfo.ValueCopyer);
+                ValueInterface.GetInterface(item.DataType).Write(valueInfo.ValueCopyer, Content.Rows[writeIndex][item.Ordinal]);
 
-                valueInfo.Key = Content.Columns[i].ColumnName;
-                valueInfo.Type = valueInfo.ValueCopyer.Type;
+                valueInfo.Key = item.ColumnName;
+                valueInfo.Type = item.DataType;
 
                 if (valueFilter.Filter(valueInfo))
                 {
@@ -188,49 +120,66 @@ namespace Swifter.RW
 
         public void OnReadAll(IDataWriter<int> dataWriter, IValueFilter<int> valueFilter)
         {
-            int length = Count;
-
             var valueInfo = new ValueFilterInfo<int>();
 
-            for (int i = 0; i < length; i++)
+            foreach (DataColumn item in Content.Columns)
             {
-                OnReadValue(i, valueInfo.ValueCopyer);
+                ValueInterface.GetInterface(item.DataType).Write(valueInfo.ValueCopyer, Content.Rows[writeIndex][item.Ordinal]);
 
-                valueInfo.Key = i;
-                valueInfo.Type = valueInfo.ValueCopyer.Type;
+                valueInfo.Key = item.Ordinal;
+                valueInfo.Type = item.DataType;
 
                 if (valueFilter.Filter(valueInfo))
                 {
-                    valueInfo.ValueCopyer.WriteTo(dataWriter[i]);
+                    valueInfo.ValueCopyer.WriteTo(dataWriter[valueInfo.Key]);
                 }
             }
         }
 
         public void OnReadValue(string key, IValueWriter valueWriter)
         {
-            ValueInterface<object>.Content.WriteValue(valueWriter, Content.Rows[readIndex][key]);
+            var dataColumn = Content.Columns[key];
+
+            ValueInterface.GetInterface(dataColumn.DataType).Write(valueWriter, Content.Rows[readIndex][dataColumn.Ordinal]);
         }
 
         public void OnReadValue(int key, IValueWriter valueWriter)
         {
-            ValueInterface<object>.Content.WriteValue(valueWriter, Content.Rows[readIndex][key]);
+            var dataColumn = Content.Columns[key];
+
+            ValueInterface.GetInterface(dataColumn.DataType).Write(valueWriter, Content.Rows[readIndex][dataColumn.Ordinal]);
         }
 
         public void OnWriteValue(string key, IValueReader valueReader)
         {
-            var index = Content.Columns.IndexOf(key);
+            var dataColumn = Content.Columns[key];
 
-            if (index == -1)
+            if (dataColumn == null)
             {
-                index = Content.Columns.IndexOf(Content.Columns.Add(key));
+                var type = typeof(object);
+
+                var value = valueReader.DirectRead();
+
+                if (value != null)
+                {
+                    type = value.GetType();
+                }
+
+                dataColumn = Content.Columns.Add(key, type);
+
+                Content.Rows[writeIndex][dataColumn.Ordinal] = value;
+
+                return;
             }
 
-            OnWriteValue(index, valueReader);
+            Content.Rows[writeIndex][dataColumn.Ordinal] = ValueInterface.GetInterface(dataColumn.DataType).Read(valueReader);
         }
 
         public void OnWriteValue(int key, IValueReader valueReader)
         {
-            Content.Rows[writeIndex][key] = valueReader.DirectRead();
+            var dataColumn = Content.Columns[key];
+
+            Content.Rows[writeIndex][dataColumn.Ordinal] = ValueInterface.GetInterface(dataColumn.DataType).Read(valueReader);
         }
 
         public bool Read()
@@ -240,24 +189,20 @@ namespace Swifter.RW
             return readIndex < Content.Rows.Count;
         }
 
-        IDataReader<T> Readers.IDataReader.As<T>()
+        public void OnWriteAll(IDataReader<string> dataReader)
         {
-            if (this is IDataReader<T>)
+            foreach (DataColumn item in Content.Columns)
             {
-                return (IDataReader<T>)(object)this;
+                Content.Rows[writeIndex][item.Ordinal] = ValueInterface.GetInterface(item.DataType).Read(dataReader[item.ColumnName]);
             }
-
-            return new AsDataReader<string, T>(this);
         }
 
-        IDataWriter<T> IDataWriter.As<T>()
+        public void OnWriteAll(IDataReader<int> dataReader)
         {
-            if (this is IDataWriter<T>)
+            foreach (DataColumn item in Content.Columns)
             {
-                return (IDataWriter<T>)(object)this;
+                Content.Rows[writeIndex][item.Ordinal] = ValueInterface.GetInterface(item.DataType).Read(dataReader[item.Ordinal]);
             }
-
-            return new AsDataWriter<string, T>(this);
         }
     }
 
@@ -265,26 +210,35 @@ namespace Swifter.RW
     {
         public T ReadValue(IValueReader valueReader)
         {
-            var result = Activator.CreateInstance<T>();
+            var dataWriter = new DataTableRW<T>();
 
-            var dataReader = new DataTableRW();
-
-            dataReader.Initialize(result);
-
-            var toArrayWriter = new TableToArrayWriter(dataReader);
+            var toArrayWriter = new TableToArrayWriter(dataWriter);
 
             valueReader.ReadArray(toArrayWriter);
 
-            return result;
+            return dataWriter.Content;
         }
 
         public void WriteValue(IValueWriter valueWriter, T value)
         {
-            var dataReader = new OverrideDbDataReader(value.CreateDataReader());
+            TableToArrayReader tableToArrayReader;
 
-            var toArrayReader = new TableToArrayReader(dataReader);
+            if ((value.Rows.Count * value.Columns.Count) >= 100)
+            {
+                var overrideDbDataReader = new OverrideDbDataReader(value.CreateDataReader());
 
-            valueWriter.WriteArray(toArrayReader);
+                tableToArrayReader = new TableToArrayReader(overrideDbDataReader);
+            }
+            else
+            {
+                var dataTableRW = new DataTableRW<T>();
+
+                dataTableRW.Initialize(value);
+
+                tableToArrayReader = new TableToArrayReader(dataTableRW);
+            }
+
+            valueWriter.WriteArray(tableToArrayReader);
         }
     }
 }

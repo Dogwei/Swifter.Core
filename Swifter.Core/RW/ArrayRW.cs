@@ -1,6 +1,5 @@
 ﻿using Swifter.Readers;
 using Swifter.Tools;
-using Swifter.VirtualViews;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
@@ -40,85 +39,27 @@ namespace Swifter.RW
 
         public abstract void OnReadAll(IDataWriter<int> dataWriter, IValueFilter<int> valueFilter);
 
-        IDataReader<TKey> IDataReader.As<TKey>()
-        {
-            if (this is IDataReader<TKey>)
-            {
-                return (IDataReader<TKey>)this;
-            }
-            
-            return new AsDataReader<int, TKey>(this);
-        }
+        public abstract void OnWriteAll(IDataReader<int> dataReader);
 
-        IDataWriter<TKey> IDataWriter.As<TKey>()
-        {
-            if (this is IDataWriter<TKey>)
-            {
-                return (IDataWriter<TKey>)this;
-            }
+        public ValueCopyer<int> this[int key] => new ValueCopyer<int>(this, key);
 
-            return new AsDataWriter<int, TKey>(this);
-        }
+        public IEnumerable<int> Keys => ArrayHelper.CreateLengthIterator(Count);
 
-        public ValueCopyer<int> this[int key]
-        {
-            get
-            {
-                return new ValueCopyer<int>(this, key);
-            }
-        }
-
-        public IEnumerable<int> Keys
-        {
-            get
-            {
-                return ArrayView<int>.CreateIndexView(count);
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                return count;
-            }
-        }
+        public virtual int Count => count;
 
         object IDirectContent.DirectContent
         {
-            get
-            {
-                return Content;
-            }
-            set
-            {
-                content = (T)value;
-            }
+            get => Content;
+            set => Initialize((T)value);
         }
 
-        public virtual long ObjectId
-        {
-            get
-            {
-                return (long)Pointer.UnBox(content);
-            }
-        }
+        public virtual object ReferenceToken => content;
 
-        IValueReader IDataReader<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueRW IDataRW<int>.this[int key] => this[key];
 
-        IValueWriter IDataWriter<int>.this[int key]
-        {
-            get
-            {
-                return this[key];
-            }
-        }
+        IValueReader IDataReader<int>.this[int key] => this[key];
+
+        IValueWriter IDataWriter<int>.this[int key] => this[key];
     }
 
     internal interface IArrayRWCreater<T>
@@ -145,10 +86,10 @@ namespace Swifter.RW
                 switch (rank)
                 {
                     case 1:
-                        internalType = typeof(_1RankArrayRWCreater<>).MakeGenericType(elementType);
+                        internalType = typeof(OneRankArrayRWCreater<>).MakeGenericType(elementType);
                         break;
                     case 2:
-                        internalType = typeof(_2RankArrayRWCreater<>).MakeGenericType(elementType);
+                        internalType = typeof(TwoRankArrayRWCreater<>).MakeGenericType(elementType);
                         break;
                     default:
                         internalType = typeof(MultiRankArrayRWCreater<,>).MakeGenericType(type, elementType);
@@ -164,7 +105,7 @@ namespace Swifter.RW
         }
     }
 
-    internal sealed class _1RankArrayRW<T> : ArrayRW<T[]>
+    internal sealed class OneRankArrayRW<T> : ArrayRW<T[]>
     {
         public override void Initialize(int capacity)
         {
@@ -177,7 +118,7 @@ namespace Swifter.RW
 
             count = content.Length;
         }
-        
+
         public override void OnWriteValue(int key, IValueReader valueReader)
         {
             if (key >= content.Length)
@@ -212,7 +153,7 @@ namespace Swifter.RW
         {
             ValueInterface<T>.Content.WriteValue(valueWriter, content[key]);
         }
-        
+
         public override void OnReadAll(IDataWriter<int> dataWriter)
         {
             int length = Count;
@@ -244,17 +185,27 @@ namespace Swifter.RW
                 }
             }
         }
-    }
 
-    internal sealed class _1RankArrayRWCreater<T> : IArrayRWCreater<T[]>
-    {
-        public ArrayRW<T[]> Create()
+        public override void OnWriteAll(IDataReader<int> dataReader)
         {
-            return new _1RankArrayRW<T>();
+            var length = Count;
+
+            for (int i = 0; i < length; i++)
+            {
+                OnWriteValue(i, dataReader[i]);
+            }
         }
     }
 
-    internal sealed class _2RankArrayRW<T> : ArrayRW<T[,]>
+    internal sealed class OneRankArrayRWCreater<T> : IArrayRWCreater<T[]>
+    {
+        public ArrayRW<T[]> Create()
+        {
+            return new OneRankArrayRW<T>();
+        }
+    }
+
+    internal sealed class TwoRankArrayRW<T> : ArrayRW<T[,]>
     {
         private int rank2Count;
 
@@ -348,13 +299,23 @@ namespace Swifter.RW
             }
         }
 
+        public override void OnWriteAll(IDataReader<int> dataReader)
+        {
+            var length = Count;
+
+            for (int i = 0; i < length; i++)
+            {
+                OnWriteValue(i, dataReader[i]);
+            }
+        }
+
         private sealed class ChildrenRW : IDataRW<int>
         {
-            private readonly _2RankArrayRW<T> content;
+            private readonly TwoRankArrayRW<T> content;
             private readonly int baseIndex;
 
             [MethodImpl(VersionDifferences.AggressiveInlining)]
-            public ChildrenRW(_2RankArrayRW<T> content, int baseIndex)
+            public ChildrenRW(TwoRankArrayRW<T> content, int baseIndex)
             {
                 this.content = content;
                 this.baseIndex = baseIndex;
@@ -409,47 +370,19 @@ namespace Swifter.RW
                 content.rank2Count = Math.Max(key + 1, content.rank2Count);
             }
 
-            public ValueCopyer<int> this[int key]
-            {
-                get
-                {
-                    return new ValueCopyer<int>(this, key);
-                }
-            }
+            public ValueCopyer<int> this[int key] => new ValueCopyer<int>(this, key);
 
-            public IEnumerable<int> Keys => ArrayView<int>.CreateIndexView(content.rank2Count);
+            public IEnumerable<int> Keys => ArrayHelper.CreateLengthIterator(Count);
 
-            public int Count
-            {
-                get
-                {
-                    return content.rank2Count;
-                }
-            }
+            public int Count => content.rank2Count;
 
-            public long ObjectId
-            {
-                get
-                {
-                    return (long)Pointer.UnBox(this);
-                }
-            }
+            public object ReferenceToken => null;
 
-            IValueWriter IDataWriter<int>.this[int key]
-            {
-                get
-                {
-                    return this[key];
-                }
-            }
+            IValueRW IDataRW<int>.this[int key] => this[key];
 
-            IValueReader IDataReader<int>.this[int key]
-            {
-                get
-                {
-                    return this[key];
-                }
-            }
+            IValueWriter IDataWriter<int>.this[int key] => this[key];
+
+            IValueReader IDataReader<int>.this[int key] => this[key];
 
             public void OnReadValue(int key, IValueWriter valueWriter)
             {
@@ -488,73 +421,62 @@ namespace Swifter.RW
                 }
             }
 
-            IDataReader<TKey> IDataReader.As<TKey>()
+            public void OnWriteAll(IDataReader<int> dataReader)
             {
-                if (this is IDataReader<TKey>)
+                int length = Count;
+
+                for (int i = 0; i < length; ++i)
                 {
-                    return (IDataReader<TKey>)(object)this;
+                    content.content[baseIndex, i] = ValueInterface<T>.Content.ReadValue(dataReader[i]);
                 }
-
-                return new AsDataReader<int, TKey>(this);
-            }
-
-            IDataWriter<TKey> IDataWriter.As<TKey>()
-            {
-                if (this is IDataWriter<TKey>)
-                {
-                    return (IDataWriter<TKey>)(object)this;
-                }
-
-                return new AsDataWriter<int, TKey>(this);
             }
         }
     }
 
-    internal sealed class _2RankArrayRWCreater<T> : IArrayRWCreater<T[,]>
+    internal sealed class TwoRankArrayRWCreater<T> : IArrayRWCreater<T[,]>
     {
         public ArrayRW<T[,]> Create()
         {
-            return new _2RankArrayRW<T>();
+            return new TwoRankArrayRW<T>();
         }
     }
 
     internal sealed class MultiRankArrayRW<TArray, TValue> : ArrayRW<TArray>
     {
+        private static readonly int maxRankIndex;
+        private static readonly int rank;
+
+        static MultiRankArrayRW()
+        {
+            rank = typeof(TArray).GetArrayRank();
+
+            maxRankIndex = rank - 1;
+        }
+
         private readonly int currentRankIndex;
-        private readonly int maxRankIndex;
         private readonly int baseIndex;
+
         private readonly int[] counts;
+        private readonly int[] indices;
 
         private readonly MultiRankArrayRW<TArray, TValue> rootRank;
         private readonly MultiRankArrayRW<TArray, TValue> lastRank;
 
         public MultiRankArrayRW()
         {
-            maxRankIndex = typeof(TArray).GetArrayRank() - 1;
-
             rootRank = this;
 
-            counts = new int[maxRankIndex + 1];
-        }
-
-        internal MultiRankArrayRW(int maxRankIndex)
-        {
-            this.maxRankIndex = maxRankIndex;
-
-            rootRank = this;
-
-            counts = new int[maxRankIndex + 1];
+            counts = new int[rank];
+            indices = new int[rank];
         }
 
         internal MultiRankArrayRW(int currentRankIndex, int maxRankIndex, int index, MultiRankArrayRW<TArray, TValue> lastRank)
         {
             this.currentRankIndex = currentRankIndex;
-            this.maxRankIndex = maxRankIndex;
             this.baseIndex = index;
             this.lastRank = lastRank;
 
             rootRank = lastRank.rootRank;
-            counts = rootRank.counts;
         }
 
         public override TArray Content
@@ -565,10 +487,10 @@ namespace Swifter.RW
 
                 if (content == null)
                 {
-                    return default(TArray);
+                    return default;
                 }
 
-                int[] counts = this.counts;
+                int[] counts = rootRank.counts;
 
                 for (int i = maxRankIndex; i >= 0; --i)
                 {
@@ -580,7 +502,7 @@ namespace Swifter.RW
 
                 return rootRank.content;
 
-                Resize:
+            Resize:
 
                 Resize(counts);
 
@@ -588,21 +510,24 @@ namespace Swifter.RW
             }
         }
 
-        public override long ObjectId
+        public override int Count => rootRank.counts[currentRankIndex];
+
+        public override object ReferenceToken
         {
             get
             {
-                return baseIndex == 0 ? (long)Pointer.UnBox(content) : (long)Pointer.UnBox(this);
+                return baseIndex == 0 ? (object)content : null;
             }
         }
 
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         internal void Resize(int[] lengths)
         {
             var temp = (Array)(object)rootRank.content;
 
-            var content = Array.CreateInstance(typeof(TValue), lengths);
+            Array content = Array.CreateInstance(typeof(TValue), lengths);
 
-            CopyValues(temp, new int[maxRankIndex + 1], content, counts, 0, maxRankIndex);
+            CopyValues(temp, new int[maxRankIndex + 1], content, rootRank.counts, 0, maxRankIndex);
 
             rootRank.content = (TArray)(object)content;
         }
@@ -615,7 +540,7 @@ namespace Swifter.RW
             int length;
 
             /* 仅在新增时检查扩容 */
-            if (index >= count && index >= (length = content.GetLength(currentRankIndex)))
+            if (index >= rootRank.counts[currentRankIndex] && index >= (length = content.GetLength(currentRankIndex)))
             {
                 var lengths = new int[maxRankIndex + 1];
 
@@ -630,6 +555,7 @@ namespace Swifter.RW
             }
         }
 
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         internal static void CopyValues(Array source, int[] indices, Array destination, int[] counts, int rankIndex, int maxRankIndex)
         {
             int length = counts[rankIndex];
@@ -640,7 +566,7 @@ namespace Swifter.RW
                 {
                     indices[rankIndex] = i;
 
-                    destination.SetValue(source.GetValue(indices), indices);
+                    SetValue(destination, indices, GetValue(source, indices));
                 }
             }
             else
@@ -654,13 +580,64 @@ namespace Swifter.RW
             }
         }
 
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        internal static TValue GetValue(object array, int[] indices)
+        {
+            switch (indices.Length)
+            {
+                case 1:
+                    return ((TValue[])array)[indices[0]];
+                case 2:
+                    return ((TValue[,])array)[indices[0], indices[1]];
+                case 3:
+                    return ((TValue[,,])array)[indices[0], indices[1], indices[2]];
+                case 4:
+                    return ((TValue[,,,])array)[indices[0], indices[1], indices[2], indices[3]];
+                case 5:
+                    return ((TValue[,,,,])array)[indices[0], indices[1], indices[2], indices[3], indices[4]];
+                case 6:
+                    return ((TValue[,,,,,])array)[indices[0], indices[1], indices[2], indices[3], indices[4], indices[5]];
+                default:
+                    return (TValue)((Array)array).GetValue(indices);
+            }
+        }
+
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        internal static void SetValue(object array, int[] indices, TValue value)
+        {
+            switch (indices.Length)
+            {
+                case 1:
+                    ((TValue[])array)[indices[0]] = value;
+                    break;
+                case 2:
+                    ((TValue[,])array)[indices[0], indices[1]] = value;
+                    break;
+                case 3:
+                    ((TValue[,,])array)[indices[0], indices[1], indices[2]] = value;
+                    break;
+                case 4:
+                    ((TValue[,,,])array)[indices[0], indices[1], indices[2], indices[3]] = value;
+                    break;
+                case 5:
+                    ((TValue[,,,,])array)[indices[0], indices[1], indices[2], indices[3], indices[4]] = value;
+                    break;
+                case 6:
+                    ((TValue[,,,,,])array)[indices[0], indices[1], indices[2], indices[3], indices[4], indices[5]] = value;
+                    break;
+                default:
+                    ((Array)array).SetValue(value, indices);
+                    break;
+            }
+        }
+        
         public override void Initialize(TArray content)
         {
             rootRank.content = content;
-            
+
             for (int i = maxRankIndex; i >= 0; --i)
             {
-                counts[i] = ((Array)(object)content).GetLength(i);
+                rootRank.counts[i] = ((Array)(object)content).GetLength(i);
             }
         }
 
@@ -687,13 +664,11 @@ namespace Swifter.RW
 
         public override void OnReadAll(IDataWriter<int> dataWriter)
         {
-            int length = counts[currentRankIndex];
-            
+            int length = rootRank.counts[currentRankIndex];
+
             if (currentRankIndex == maxRankIndex)
             {
-                var indices = new int[maxRankIndex + 1];
-
-                GetIndices(indices);
+                var indices = GetIndices();
 
                 var content = ((Array)(object)rootRank.content);
 
@@ -701,7 +676,7 @@ namespace Swifter.RW
                 {
                     indices[currentRankIndex] = i;
 
-                    object value = content.GetValue(indices);
+                    var value = GetValue(content, indices);
 
                     ValueInterface<TValue>.Content.WriteValue(dataWriter[i], (TValue)value);
                 }
@@ -717,15 +692,13 @@ namespace Swifter.RW
 
         public override void OnReadAll(IDataWriter<int> dataWriter, IValueFilter<int> valueFilter)
         {
-            int length = counts[currentRankIndex];
+            int length = rootRank.counts[currentRankIndex];
 
             var valueInfo = new ValueFilterInfo<int>();
 
             if (currentRankIndex == maxRankIndex)
             {
-                var indices = new int[maxRankIndex + 1];
-
-                GetIndices(indices);
+                var indices = GetIndices();
 
                 var content = ((Array)(object)rootRank.content);
 
@@ -736,7 +709,7 @@ namespace Swifter.RW
 
                     indices[currentRankIndex] = i;
 
-                    object value = content.GetValue(indices);
+                    var value = GetValue(content, indices);
 
                     ValueInterface<TValue>.Content.WriteValue(valueInfo.ValueCopyer, (TValue)value);
 
@@ -763,43 +736,49 @@ namespace Swifter.RW
             }
         }
 
+        public override void OnWriteAll(IDataReader<int> dataReader)
+        {
+            var length = Count;
+
+            for (int i = 0; i < length; i++)
+            {
+                OnWriteValue(i, dataReader[i]);
+            }
+        }
+
         public override void OnReadValue(int key, IValueWriter valueWriter)
         {
             if (currentRankIndex == maxRankIndex)
             {
-                var indices = new int[maxRankIndex + 1];
-
-                GetIndices(indices);
+                var indices = GetIndices();
 
                 indices[currentRankIndex] = key;
 
-                object value = ((Array)(object)rootRank.content).GetValue(indices);
+                var value = GetValue(rootRank.content, indices);
 
-                ValueInterface<TValue>.Content.WriteValue(valueWriter, (TValue)value);
+                ValueInterface<TValue>.Content.WriteValue(valueWriter, value);
 
                 return;
             }
 
             valueWriter.WriteArray(new MultiRankArrayRW<TArray, TValue>(currentRankIndex + 1, maxRankIndex, key, this));
         }
-
+        
         public override void OnWriteValue(int key, IValueReader valueReader)
         {
             CheckExpansion(key);
-
-            counts[currentRankIndex] = Math.Max(key + 1, counts[currentRankIndex]);
+            
+            rootRank.counts[currentRankIndex] = Math.Max(key + 1, rootRank.counts[currentRankIndex]);
 
             if (currentRankIndex == maxRankIndex)
             {
-                var indices = new int[maxRankIndex + 1];
+                var value = ValueInterface<TValue>.Content.ReadValue(valueReader);
 
-                GetIndices(indices);
+                var indices = GetIndices();
 
                 indices[currentRankIndex] = key;
 
-                object value = ValueInterface<TValue>.Content.ReadValue(valueReader);
-                
-                ((Array)(object)rootRank.content).SetValue(value, indices);
+                SetValue(rootRank.content, indices, value);
             }
             else
             {
@@ -807,16 +786,23 @@ namespace Swifter.RW
             }
         }
 
-        internal void GetIndices(int[] indices)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        internal int[] GetIndices()
         {
+            var indices = rootRank.indices;
+
             var rank = this;
 
             while (rank.lastRank != null)
             {
-                indices[rank.lastRank.currentRankIndex] = rank.baseIndex;
+                var index = rank.baseIndex;
 
                 rank = rank.lastRank;
+
+                indices[rank.currentRankIndex] = index;
             }
+
+            return indices;
         }
     }
 

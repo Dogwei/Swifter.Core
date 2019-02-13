@@ -1,40 +1,31 @@
-﻿using Swifter.Readers;
-using Swifter.RW;
-using Swifter.Writers;
+﻿using Swifter.RW;
+using Swifter.Tools;
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
+using Swifter.Data.Sql;
+using static Swifter.Data.DbHelper;
 
 namespace Swifter.Data
 {
     /// <summary>
-    /// 提供数据库操作的实例方法。
+    /// 提供数据库操作的工具方法。
     /// </summary>
     public sealed class Database
     {
         /// <summary>
         /// 默认命令超时时间。
         /// </summary>
-        private const int CommandTimeout = 30;
-
-
-
-#if NET20 || NET30 || NET35 || NET40
-        private static void StartTask(System.Threading.ThreadStart action)
-        {
-            new System.Threading.Thread(action).Start();
-        }
-#else
-        private static void StartTask(Action action)
-        {
-            new System.Threading.Tasks.Task(action).Start();
-        }
-#endif
+        internal const int CommandTimeout = 30;
+        
+        readonly SqlBuilder SqlBuilder;
 
         /// <summary>
-        /// 数据库工厂实例。
+        /// 数据库供应者工厂。
         /// </summary>
         public readonly DbProviderFactory DbProviderFactory;
+
         /// <summary>
         /// 数据库连接字符串。
         /// </summary>
@@ -43,19 +34,41 @@ namespace Swifter.Data
         /// <summary>
         /// 初始化数据库连接字符串。
         /// </summary>
-        /// <param name="providerName">数据库工厂名称</param>
+        /// <param name="providerName">数据库供应者的包名</param>
         /// <param name="dbConnectionString">数据库连接字符串</param>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public Database(string providerName, string dbConnectionString)
         {
-            DbProviderFactory = DbHelper.GetProviderFactory(providerName);
+            DbProviderFactory = GetFactory(providerName);
 
             DbConnectionString = dbConnectionString;
+
+            SqlBuilder = GetSQLBuilder(providerName);
+        }
+
+        /// <summary>
+        /// 初始化数据库连接字符串。
+        /// </summary>
+        /// <param name="configName">数据库连接的配置项名称</param>
+        public Database(string configName)
+        {
+            var config = System.Configuration.ConfigurationManager.ConnectionStrings[configName];
+
+            var providerName = config.ProviderName;
+            var connectionString = config.ConnectionString;
+
+            DbProviderFactory = GetFactory(providerName);
+
+            DbConnectionString = connectionString;
+
+            SqlBuilder = GetSQLBuilder(providerName);
         }
 
         /// <summary>
         /// 打开一个新的数据库连接。
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public DbConnection OpenConnection()
         {
             var dbConnection = DbProviderFactory.CreateConnection();
@@ -66,27 +79,18 @@ namespace Swifter.Data
 
             return dbConnection;
         }
-
-        /// <summary>
-        /// 打开一个新的数据库连接，并开启事务。
-        /// </summary>
-        /// <returns></returns>
-        public DbTransaction BeginTransaction()
-        {
-            return OpenConnection().BeginTransaction();
-        }
-
+        
         /// <summary>
         /// 创建一个命令
         /// </summary>
-        /// <typeparam name="T">参数类型</typeparam>
         /// <param name="sql">SQL 代码</param>
         /// <param name="parameters">参数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回一个命令</returns>
-        public DbCommand CreateCommand<T>(string sql, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public DbCommand CreateCommand(string sql, object parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbConnection = dbTransaction?.Connection;
 
@@ -113,6 +117,8 @@ namespace Swifter.Data
             return dbCommand;
         }
 
+        private static readonly NameCache<string[]> nameCache = new NameCache<string[]>();
+
         /// <summary>
         /// 创建一个命令
         /// </summary>
@@ -121,47 +127,26 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回一个命令</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public DbCommand CreateCommand(string sql, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            return CreateCommand<object>(sql, null, dbTransaction, commandTimeout, commandType);
+            return CreateCommand(sql, null, dbTransaction, commandTimeout, commandType);
         }
 
-        private T ReadScalar<T>(DbDataReader dbDataReader)
+        /// <summary>
+        /// 将数据读取器的当前结果集映射为指定类的实例。
+        /// </summary>
+        /// <typeparam name="T">指定类型</typeparam>
+        /// <param name="dbDataReader">数据读取器</param>
+        /// <returns>返回该类型的实例</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        private static T ReadScalar<T>(DbDataReader dbDataReader)
         {
-            if (typeof(T).IsAssignableFrom(dbDataReader.GetFieldType(0)))
-            {
-                if (dbDataReader.Read())
-                {
-                    return (T)dbDataReader[0];
-                }
-
-                return default(T);
-            }
-
-            var overrideDbDataReader = new OverrideDbDataReader(dbDataReader);
-
-            var dataWriter = RWHelper.CreateWriter<T>();
-
-            dataWriter.Initialize();
-
-            if (dataWriter is IDataWriter<int>)
-            {
-                RWHelper.Copy(overrideDbDataReader, dataWriter);
-
-                return RWHelper.GetContent<T>(dataWriter);
-            }
-
-            if (overrideDbDataReader.Read())
-            {
-                RWHelper.Copy((IDataReader<string>)overrideDbDataReader, dataWriter);
-
-                return RWHelper.GetContent<T>(dataWriter);
-            }
-
-            return default(T);
+            return ValueInterface<T>.Content.ReadValue(new ReadScalarReader(dbDataReader));
         }
 
-        private Tuple<T1, T2> ReadScalar<T1, T2>(DbDataReader dbDataReader)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        private static (T1 Result1, T2 Result2) ReadScalar<T1, T2>(DbDataReader dbDataReader)
         {
             var item1 = ReadScalar<T1>(dbDataReader);
 
@@ -169,10 +154,11 @@ namespace Swifter.Data
 
             var item2 = ReadScalar<T2>(dbDataReader);
 
-            return new Tuple<T1, T2>(item1, item2);
+            return (item1, item2);
         }
 
-        private Tuple<T1, T2, T3> ReadScalar<T1, T2, T3>(DbDataReader dbDataReader)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        private static (T1 Result1, T2 Result2, T3 Result3) ReadScalar<T1, T2, T3>(DbDataReader dbDataReader)
         {
             var item1 = ReadScalar<T1>(dbDataReader);
 
@@ -184,20 +170,20 @@ namespace Swifter.Data
 
             var item3 = ReadScalar<T3>(dbDataReader);
 
-            return new Tuple<T1, T2, T3>(item1, item2, item3);
+            return (item1, item2, item3);
         }
 
         /// <summary>
         /// 执行一条查询命令。
         /// </summary>
-        /// <typeparam name="T">参数类型</typeparam>
         /// <param name="sql">SQL 代码</param>
         /// <param name="parameters">参数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回一个数据读取器</returns>
-        public DbDataReader ExecuteReader<T>(string sql, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public DbDataReader ExecuteReader(string sql, object parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
 
@@ -217,11 +203,11 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回一个数据读取器</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public DbDataReader ExecuteReader(string sql, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             return ExecuteReader(sql, (object)null, dbTransaction, commandTimeout, commandType);
         }
-
 
         /// <summary>
         /// 执行一条查询语句，并返回指定类型的结果。
@@ -236,6 +222,7 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回指定类型的值</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public T ExecuteScalar<T>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
@@ -271,7 +258,8 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回一个元组</returns>
-        public Tuple<T1, T2> ExecuteScalar<T1, T2>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public (T1 Result1, T2 Result2) ExecuteScalar<T1, T2>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
 
@@ -307,7 +295,8 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回一个元组</returns>
-        public Tuple<T1, T2, T3> ExecuteScalar<T1, T2, T3>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public (T1 Result1, T2 Result2, T3 Result3) ExecuteScalar<T1, T2, T3>(string sql, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
 
@@ -330,18 +319,32 @@ namespace Swifter.Data
                 }
             }
         }
+        
+        /// <summary>
+        /// 执行一条非查询语句。
+        /// </summary>
+        /// <param name="sql">SQL 代码</param>
+        /// <param name="dbTransaction">事务</param>
+        /// <param name="commandTimeout">超时时间（秒）</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns>返回受影响行数</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public int ExecuteNonQuery(string sql, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        {
+            return ExecuteNonQuery(sql, (object)null, dbTransaction, commandTimeout, commandType);
+        }
 
         /// <summary>
         /// 执行一条非查询语句。
         /// </summary>
-        /// <typeparam name="T">参数类型</typeparam>
         /// <param name="sql">SQL 代码</param>
         /// <param name="parameters">参数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回受影响行数</returns>
-        public int ExecuteNonQuery<T>(string sql, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public int ExecuteNonQuery(string sql, object parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             var dbCommand = CreateCommand(sql, parameters, dbTransaction, commandTimeout, commandType);
 
@@ -349,31 +352,18 @@ namespace Swifter.Data
         }
 
         /// <summary>
-        /// 执行一条非查询语句。
-        /// </summary>
-        /// <param name="sql">SQL 代码</param>
-        /// <param name="dbTransaction">事务</param>
-        /// <param name="commandTimeout">超时时间（秒）</param>
-        /// <param name="commandType">命令类型</param>
-        /// <returns>返回受影响行数</returns>
-        public int ExecuteNonQuery(string sql, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
-        {
-            return ExecuteNonQuery(sql, (object)null, dbTransaction, commandTimeout, commandType);
-        }
-
-        /// <summary>
         /// 异步执行一条查询语句。
         /// </summary>
-        /// <typeparam name="T">参数类型</typeparam>
         /// <param name="sql">SQL 语句</param>
         /// <param name="parameters">参数</param>
         /// <param name="asyncCallback">回调函数</param>
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
-        public void ExecuteReaderAsync<T>(string sql, Action<Exception, DbDataReader> asyncCallback, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public void ExecuteReaderAsync(string sql, Action<Exception, DbDataReader> asyncCallback, object parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            StartTask(() =>
+            AsyncTask(() =>
             {
                 DbCommand dbCommand = null;
                 Exception exception = null;
@@ -414,6 +404,7 @@ namespace Swifter.Data
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void ExecuteReaderAsync(string sql, Action<Exception, DbDataReader> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             ExecuteReaderAsync(sql, asyncCallback, (object)null, dbTransaction, commandTimeout, commandType);
@@ -432,9 +423,10 @@ namespace Swifter.Data
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void ExecuteScalarAsync<T>(string sql, Action<Exception, T> asyncCallback, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            StartTask(() =>
+            AsyncTask(() =>
             {
                 Exception exception = null;
                 T result = default(T);
@@ -465,13 +457,14 @@ namespace Swifter.Data
         /// <param name="dbTransaction">事务</param>
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void ExecuteScalarAsync<T1, T2>(string sql, Action<Exception, T1, T2> asyncCallback, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            StartTask(() =>
+            AsyncTask(() =>
             {
                 Exception exception = null;
 
-                var tuple = new Tuple<T1, T2>(default(T1), default(T2));
+                var tuple = new ValueTuple<T1, T2>(default(T1), default(T2));
 
                 try
                 {
@@ -501,13 +494,14 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回一个元组</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void ExecuteScalarAsync<T1, T2, T3>(string sql, Action<Exception, T1, T2, T3> asyncCallback, object parameters = null, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            StartTask(() =>
+            AsyncTask(() =>
             {
                 Exception exception = null;
 
-                var tuple = new Tuple<T1, T2, T3>(default(T1), default(T2), default(T3));
+                var tuple = new ValueTuple<T1, T2, T3>(default(T1), default(T2), default(T3));
 
                 try
                 {
@@ -523,11 +517,10 @@ namespace Swifter.Data
                 }
             });
         }
-        
+
         /// <summary>
         /// 异步执行一条非查询语句。
         /// </summary>
-        /// <typeparam name="T">参数类型</typeparam>
         /// <param name="sql">SQL 代码</param>
         /// <param name="parameters">参数</param>
         /// <param name="asyncCallback">回调函数</param>
@@ -535,9 +528,10 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回受影响行数</returns>
-        public void ExecuteNonQueryAsync<T>(string sql, Action<Exception, int> asyncCallback, T parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public void ExecuteNonQueryAsync(string sql, Action<Exception, int> asyncCallback, object parameters, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
-            StartTask(() =>
+            AsyncTask(() =>
             {
                 Exception exception = null;
                 int rows = 0;
@@ -566,9 +560,26 @@ namespace Swifter.Data
         /// <param name="commandTimeout">超时时间（秒）</param>
         /// <param name="commandType">命令类型</param>
         /// <returns>返回受影响行数</returns>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void ExecuteNonQueryAsync(string sql, Action<Exception, int> asyncCallback, DbTransaction dbTransaction = null, int commandTimeout = CommandTimeout, CommandType commandType = CommandType.Text)
         {
             ExecuteNonQueryAsync(sql, asyncCallback, (object)null, dbTransaction, commandTimeout, commandType);
+        }
+
+        /// <summary>
+        /// 获取当前供应商的 T-SQL 生成器。
+        /// </summary>
+        /// <returns>返回 T-SQL 生成器</returns>
+        /// <exception cref="NotSupportedException">当不支持该供应商时发生。</exception>
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public SqlBuilder CreateSQLBuilder()
+        {
+            if (SqlBuilder == null)
+            {
+                throw new NotSupportedException("T-SQL builder does not support the provider.");
+            }
+
+            return SqlBuilder.CreateInstance();
         }
     }
 }

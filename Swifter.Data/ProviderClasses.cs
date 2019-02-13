@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Swifter.Tools;
+using System;
+using System.Data;
 
 namespace Swifter.Data
 {
@@ -12,17 +14,24 @@ namespace Swifter.Data
         public Type tDataReader;
         public Type tTransaction;
 
+        public string tProviderName;
+
+        public ProviderClasses(string tProviderName)
+        {
+            this.tProviderName = tProviderName;
+        }
+
         public Type GetDynamicProviderFactoryType()
         {
-            var tConnection = this.tConnection ?? throw new NotSupportedException("Connection");
-            var tCommand = this.tCommand ?? throw new NotSupportedException("Command");
+            var tConnection = this.tConnection ?? throw new NotSupportedException(StringHelper.Format("No Type Implement '{1}' In Package '{0}'.", tProviderName, typeof(IDbConnection).FullName));
+            var tCommand = this.tCommand ?? throw new NotSupportedException(StringHelper.Format("No Type Implement '{1}' In Package '{0}'.", tProviderName, typeof(IDbCommand).FullName));
             var tDataAdapter = this.tDataAdapter ?? typeof(object);
-            var tParameter = this.tParameter ?? throw new NotSupportedException("Parameter");
-            var tParameterCollection = this.tParameterCollection ?? throw new NotSupportedException("ParameterCollection");
-            var tDataReader = this.tDataReader ?? throw new NotSupportedException("DataReader");
-            var tTransaction = this.tTransaction ?? throw new NotSupportedException("Transaction");
+            var tParameter = this.tParameter ?? throw new NotSupportedException(StringHelper.Format("No Type Implement '{1}' In Package '{0}'.", tProviderName, typeof(IDataParameter).FullName));
+            var tParameterCollection = this.tParameterCollection ?? throw new NotSupportedException(StringHelper.Format("No Type Implement '{1}' In Package '{0}'.", tProviderName, typeof(IDataParameterCollection).FullName));
+            var tDataReader = this.tDataReader ?? throw new NotSupportedException(StringHelper.Format("No Type Implement '{1}' In Package '{0}'.", tProviderName, typeof(IDataReader).FullName));
+            var tTransaction = this.tTransaction ?? throw new NotSupportedException(StringHelper.Format("No Type Implement '{1}' In Package '{0}'.", tProviderName, typeof(IDbTransaction).FullName));
 
-            var type = typeof(DynamicProviderFactory<,,,,,,>);
+            var type = typeof(ProxyProviderFactory<,,,,,,>);
 
             type = type.MakeGenericType(tConnection, tCommand, tDataAdapter, tParameter, tParameterCollection, tDataReader, tTransaction);
 

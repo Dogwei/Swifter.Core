@@ -3,10 +3,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>NET20;</TargetFrameworks>
-    <Optimize>true</Optimize>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Version>1.0.0</Version>
     <Authors>Dogwei</Authors>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
 </Project>

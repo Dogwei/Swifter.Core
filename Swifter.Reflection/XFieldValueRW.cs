@@ -10,34 +10,27 @@ namespace Swifter.Reflection
     /// <summary>
     /// 提供 XObjectRW 的字段读写器。
     /// </summary>
-    public class XFieldValueRW : IValueRW
+    public sealed class XFieldValueRW : IValueRW
     {
-        XObjectRW objectRW;
-        internal IXFieldRW fieldRW;
+        internal readonly object obj;
+        internal readonly IXFieldRW fieldRW;
 
-        internal XFieldValueRW(XObjectRW objectRW, IXFieldRW fieldRW)
+        internal XFieldValueRW(object obj, IXFieldRW fieldRW)
         {
-            this.objectRW = objectRW;
+            this.obj = obj;
             this.fieldRW = fieldRW;
         }
 
-        internal XFieldValueRW SetFieldRW(IXFieldRW fieldRW)
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        internal T ReadValue<T>()
         {
-            this.fieldRW = fieldRW;
-
-            return this;
+            return fieldRW.ReadValue<T>(obj);
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
-        internal T _read<T>()
+        internal void WriteValue<T>(T value)
         {
-            return fieldRW.ReadValue<T>(objectRW);
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        internal void _write<T>(T value)
-        {
-            fieldRW.WriteValue(objectRW, value);
+            fieldRW.WriteValue(obj, value);
         }
 
         /// <summary>
@@ -46,7 +39,7 @@ namespace Swifter.Reflection
         /// <returns>值</returns>
         public object DirectRead()
         {
-            return _read<object>();
+            return ReadValue<object>();
         }
 
         /// <summary>
@@ -55,16 +48,7 @@ namespace Swifter.Reflection
         /// <param name="value">值</param>
         public void DirectWrite(object value)
         {
-            _write(value);
-        }
-
-        /// <summary>
-        /// 获取该字段类型的 BasicTypes 值。
-        /// </summary>
-        /// <returns></returns>
-        public BasicTypes GetBasicType()
-        {
-            return fieldRW.BasicType;
+            WriteValue(value);
         }
 
         /// <summary>
@@ -73,9 +57,9 @@ namespace Swifter.Reflection
         /// <param name="valueWriter">数组结构写入器</param>
         public void ReadArray(IDataWriter<int> valueWriter)
         {
-            ValueCopyer valueCopyer = new ValueCopyer();
+            var valueCopyer = new ValueCopyer();
 
-            fieldRW.OnReadValue(objectRW, valueCopyer);
+            fieldRW.OnReadValue(obj, valueCopyer);
 
             valueCopyer.ReadArray(valueWriter);
         }
@@ -86,7 +70,7 @@ namespace Swifter.Reflection
         /// <returns>返回 bool 值。</returns>
         public bool ReadBoolean()
         {
-            return _read<bool>();
+            return ReadValue<bool>();
         }
 
         /// <summary>
@@ -95,7 +79,7 @@ namespace Swifter.Reflection
         /// <returns>返回 byte 值。</returns>
         public byte ReadByte()
         {
-            return _read<byte>();
+            return ReadValue<byte>();
         }
 
         /// <summary>
@@ -104,7 +88,7 @@ namespace Swifter.Reflection
         /// <returns>返回 char 值。</returns>
         public char ReadChar()
         {
-            return _read<char>();
+            return ReadValue<char>();
         }
 
         /// <summary>
@@ -113,7 +97,7 @@ namespace Swifter.Reflection
         /// <returns>返回 DateTime 值。</returns>
         public DateTime ReadDateTime()
         {
-            return _read<DateTime>();
+            return ReadValue<DateTime>();
         }
 
         /// <summary>
@@ -122,7 +106,7 @@ namespace Swifter.Reflection
         /// <returns>返回 decimal 值。</returns>
         public decimal ReadDecimal()
         {
-            return _read<decimal>();
+            return ReadValue<decimal>();
         }
 
         /// <summary>
@@ -131,7 +115,7 @@ namespace Swifter.Reflection
         /// <returns>返回 double 值。</returns>
         public double ReadDouble()
         {
-            return _read<double>();
+            return ReadValue<double>();
         }
 
         /// <summary>
@@ -140,7 +124,7 @@ namespace Swifter.Reflection
         /// <returns>返回 short 值。</returns>
         public short ReadInt16()
         {
-            return _read<short>();
+            return ReadValue<short>();
         }
 
         /// <summary>
@@ -149,7 +133,7 @@ namespace Swifter.Reflection
         /// <returns>返回 int 值。</returns>
         public int ReadInt32()
         {
-            return _read<int>();
+            return ReadValue<int>();
         }
 
         /// <summary>
@@ -158,7 +142,7 @@ namespace Swifter.Reflection
         /// <returns>返回 long 值。</returns>
         public long ReadInt64()
         {
-            return _read<long>();
+            return ReadValue<long>();
         }
 
         /// <summary>
@@ -167,9 +151,9 @@ namespace Swifter.Reflection
         /// <param name="valueWriter">对象结构数据写入器</param>
         public void ReadObject(IDataWriter<string> valueWriter)
         {
-            ValueCopyer valueCopyer = new ValueCopyer();
+            var valueCopyer = new ValueCopyer();
 
-            fieldRW.OnReadValue(objectRW, valueCopyer);
+            fieldRW.OnReadValue(obj, valueCopyer);
 
             valueCopyer.ReadObject(valueWriter);
         }
@@ -180,7 +164,7 @@ namespace Swifter.Reflection
         /// <returns>返回 sbyte 值。</returns>
         public sbyte ReadSByte()
         {
-            return _read<sbyte>();
+            return ReadValue<sbyte>();
         }
 
         /// <summary>
@@ -189,7 +173,7 @@ namespace Swifter.Reflection
         /// <returns>返回 float 值。</returns>
         public float ReadSingle()
         {
-            return _read<float>();
+            return ReadValue<float>();
         }
 
         /// <summary>
@@ -198,7 +182,7 @@ namespace Swifter.Reflection
         /// <returns>返回 string 值。</returns>
         public string ReadString()
         {
-            return _read<string>();
+            return ReadValue<string>();
         }
 
         /// <summary>
@@ -207,7 +191,7 @@ namespace Swifter.Reflection
         /// <returns>返回 ushort 值。</returns>
         public ushort ReadUInt16()
         {
-            return _read<ushort>();
+            return ReadValue<ushort>();
         }
 
         /// <summary>
@@ -216,7 +200,7 @@ namespace Swifter.Reflection
         /// <returns>返回 uint 值。</returns>
         public uint ReadUInt32()
         {
-            return _read<uint>();
+            return ReadValue<uint>();
         }
 
         /// <summary>
@@ -225,7 +209,7 @@ namespace Swifter.Reflection
         /// <returns>返回 ulong 值。</returns>
         public ulong ReadUInt64()
         {
-            return _read<ulong>();
+            return ReadValue<ulong>();
         }
 
         /// <summary>
@@ -234,11 +218,11 @@ namespace Swifter.Reflection
         /// <param name="dataReader">数组结构数据读取器</param>
         public void WriteArray(IDataReader<int> dataReader)
         {
-            ValueCopyer valueCopyer = new ValueCopyer();
+            var valueCopyer = new ValueCopyer();
 
             valueCopyer.WriteArray(dataReader);
 
-            fieldRW.OnWriteValue(objectRW, valueCopyer);
+            fieldRW.OnWriteValue(obj, valueCopyer);
         }
 
         /// <summary>
@@ -247,7 +231,7 @@ namespace Swifter.Reflection
         /// <param name="value">bool 值</param>
         public void WriteBoolean(bool value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -256,7 +240,7 @@ namespace Swifter.Reflection
         /// <param name="value">byte 值</param>
         public void WriteByte(byte value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -265,7 +249,7 @@ namespace Swifter.Reflection
         /// <param name="value">char 值</param>
         public void WriteChar(char value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -274,7 +258,7 @@ namespace Swifter.Reflection
         /// <param name="value">DateTime 值</param>
         public void WriteDateTime(DateTime value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -283,7 +267,7 @@ namespace Swifter.Reflection
         /// <param name="value">decimal 值</param>
         public void WriteDecimal(decimal value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -292,7 +276,7 @@ namespace Swifter.Reflection
         /// <param name="value">double 值</param>
         public void WriteDouble(double value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -301,7 +285,7 @@ namespace Swifter.Reflection
         /// <param name="value">short 值</param>
         public void WriteInt16(short value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -310,7 +294,7 @@ namespace Swifter.Reflection
         /// <param name="value">int 值</param>
         public void WriteInt32(int value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -319,7 +303,7 @@ namespace Swifter.Reflection
         /// <param name="value">long 值</param>
         public void WriteInt64(long value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -328,11 +312,11 @@ namespace Swifter.Reflection
         /// <param name="dataReader">对象结构数据读取器</param>
         public void WriteObject(IDataReader<string> dataReader)
         {
-            ValueCopyer valueCopyer = new ValueCopyer();
+            var valueCopyer = new ValueCopyer();
 
             valueCopyer.WriteObject(dataReader);
 
-            fieldRW.OnWriteValue(objectRW, valueCopyer);
+            fieldRW.OnWriteValue(obj, valueCopyer);
         }
 
         /// <summary>
@@ -341,7 +325,7 @@ namespace Swifter.Reflection
         /// <param name="value">sbyte 值</param>
         public void WriteSByte(sbyte value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -350,7 +334,7 @@ namespace Swifter.Reflection
         /// <param name="value">float 值</param>
         public void WriteSingle(float value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -359,7 +343,7 @@ namespace Swifter.Reflection
         /// <param name="value">bool 值</param>
         public void WriteString(string value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -368,7 +352,7 @@ namespace Swifter.Reflection
         /// <param name="value">ushort 值</param>
         public void WriteUInt16(ushort value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -377,7 +361,7 @@ namespace Swifter.Reflection
         /// <param name="value">uint 值</param>
         public void WriteUInt32(uint value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
@@ -386,45 +370,17 @@ namespace Swifter.Reflection
         /// <param name="value">ulong 值</param>
         public void WriteUInt64(ulong value)
         {
-            _write(value);
+            WriteValue(value);
         }
 
         /// <summary>
-        /// 获取字段或属性读写器的名称。
+        /// 获取一个可空类型的值。
         /// </summary>
-        /// <returns>返回一个名称</returns>
-        public override string ToString()
+        /// <typeparam name="T">值类型</typeparam>
+        /// <returns>获取 Null 或该值类型的值。</returns>
+        public T? ReadNullable<T>() where T : struct
         {
-            return objectRW.ToString() + "[\"" + fieldRW.Name + "\"]";
-        }
-    }
-
-    /// <summary>
-    /// 提供 XObjectRW 的字段读写器。
-    /// </summary>
-    /// <typeparam name="T">字段类型</typeparam>
-    public sealed class XFieldValueRW<T> : XFieldValueRW, IValueRW<T>
-    {
-        internal XFieldValueRW(XObjectRW objectRW, IXFieldRW fieldRW) : base(objectRW, fieldRW)
-        {
-        }
-
-        /// <summary>
-        /// 直接读取值。
-        /// </summary>
-        /// <returns>值</returns>
-        public T ReadValue()
-        {
-            return _read<T>();
-        }
-
-        /// <summary>
-        /// 直接设置值
-        /// </summary>
-        /// <param name="value">值</param>
-        public void WriteValue(T value)
-        {
-            _write(value);
+            return ReadValue<T?>();
         }
     }
 }

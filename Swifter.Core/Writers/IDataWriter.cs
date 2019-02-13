@@ -7,7 +7,7 @@ namespace Swifter.Writers
     /// 提供数据的写入方法。
     /// </summary>
     /// <typeparam name="TKey">键的类型</typeparam>
-    public interface IDataWriter<TKey>: IDataWriter
+    public interface IDataWriter<TKey> : IDataWriter
     {
         /// <summary>
         /// 从值读取器中读取一个值设置到指定键的值中。
@@ -15,6 +15,13 @@ namespace Swifter.Writers
         /// <param name="key">指定键</param>
         /// <param name="valueReader">值读取器</param>
         void OnWriteValue(TKey key, IValueReader valueReader);
+
+
+        /// <summary>
+        /// 从数据读取器中读取所有数据源字段到数据源的值
+        /// </summary>
+        /// <param name="dataReader">数据读取器</param>
+        void OnWriteAll(IDataReader<TKey> dataReader);
 
         /// <summary>
         /// 获取指定键的值写入器实例。
@@ -49,12 +56,5 @@ namespace Swifter.Writers
         /// 获取数据源键的数量
         /// </summary>
         int Count { get; }
-
-        /// <summary>
-        /// 将此数据写入器转换为具有键的类型的具体数据写入器。
-        /// </summary>
-        /// <typeparam name="T">键的类型</typeparam>
-        /// <returns>返回具体数据写入器</returns>
-        IDataWriter<T> As<T>();
     }
 }

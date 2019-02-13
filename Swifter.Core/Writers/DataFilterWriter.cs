@@ -11,7 +11,7 @@ namespace Swifter.Writers
     public sealed class DataFilterWriter<TKey> : IDataWriter<TKey>, IValueWriter
     {
         readonly ValueFilterInfo<TKey> ValueInfo;
-        readonly IDataWriter<TKey> DataWriter;
+        readonly IDataWriter<TKey> dataWriter;
         readonly IValueFilter<TKey> ValueFilter;
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace Swifter.Writers
         /// <param name="valueFilter">数据筛选器</param>
         public DataFilterWriter(IDataWriter<TKey> dataWriter, IValueFilter<TKey> valueFilter)
         {
-            DataWriter = dataWriter;
+            this.dataWriter = dataWriter;
             ValueFilter = valueFilter;
 
             ValueInfo = new ValueFilterInfo<TKey>();
@@ -45,34 +45,19 @@ namespace Swifter.Writers
         /// <summary>
         /// 获取原始数据写入器的键集合。
         /// </summary>
-        public IEnumerable<TKey> Keys => DataWriter.Keys;
+        public IEnumerable<TKey> Keys => dataWriter.Keys;
 
         /// <summary>
         /// 获取原始数据写入器的键的数量。
         /// </summary>
-        public int Count => DataWriter.Count;
-
-        /// <summary>
-        /// 将此数据写入器转换为具有键的类型的具体数据写入器。
-        /// </summary>
-        /// <typeparam name="T">键的类型</typeparam>
-        /// <returns>返回具体数据写入器</returns>
-        public IDataWriter<T> As<T>()
-        {
-            if ((object)this is IDataWriter<T> writer)
-            {
-                return writer;
-            }
-
-            return new AsDataWriter<TKey, T>(this);
-        }
+        public int Count => dataWriter.Count;
 
         /// <summary>
         /// 初始化原始写入器。
         /// </summary>
         public void Initialize()
         {
-            DataWriter.Initialize();
+            dataWriter.Initialize();
         }
 
         /// <summary>
@@ -81,7 +66,7 @@ namespace Swifter.Writers
         /// <param name="capacity">指定容量</param>
         public void Initialize(int capacity)
         {
-            DataWriter.Initialize(capacity);
+            dataWriter.Initialize(capacity);
         }
 
         /// <summary>
@@ -91,14 +76,14 @@ namespace Swifter.Writers
         /// <param name="valueReader">值读取器</param>
         public void OnWriteValue(TKey key, IValueReader valueReader)
         {
-            DataWriter.OnWriteValue(key, valueReader);
+            dataWriter.OnWriteValue(key, valueReader);
         }
 
         private void OnFilter()
         {
             if (ValueFilter.Filter(ValueInfo))
             {
-                ValueInfo.ValueCopyer.WriteTo(DataWriter[ValueInfo.Key]);
+                ValueInfo.ValueCopyer.WriteTo(dataWriter[ValueInfo.Key]);
             }
         }
 
@@ -226,6 +211,15 @@ namespace Swifter.Writers
             ValueInfo.ValueCopyer.WriteUInt64(value);
 
             OnFilter();
+        }
+
+        /// <summary>
+        /// 从数据读取器中读取所有数据源字段到数据源的值
+        /// </summary>
+        /// <param name="dataReader">数据读取器</param>
+        public void OnWriteAll(IDataReader<TKey> dataReader)
+        {
+            dataWriter.OnWriteAll(dataReader);
         }
     }
 }

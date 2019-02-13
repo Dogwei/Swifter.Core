@@ -1,5 +1,4 @@
 ﻿using Swifter.Readers;
-using Swifter.Tools;
 using Swifter.Writers;
 using System;
 
@@ -17,18 +16,12 @@ namespace Swifter.Reflection
 
         Type FieldType { get; }
 
-        BasicTypes BasicType { get; }
+        void OnReadValue(object obj, IValueWriter valueWriter);
 
-        void WriteTo(XObjectRW objectRW, IDataWriter<string> dataWriter);
+        void OnWriteValue(object obj, IValueReader valueReader);
 
-        void OnReadValue(XObjectRW objectRW, IValueWriter valueWriter);
+        T ReadValue<T>(object obj);
 
-        void OnWriteValue(XObjectRW objectRW, IValueReader valueReader);
-
-        T ReadValue<T>(XObjectRW objectRW);
-
-        void WriteValue<T>(XObjectRW objectRW, T value);
-        
-        XFieldValueRW CreateRW(XObjectRW objectRW);
+        void WriteValue<T>(object obj, T value);
     }
 }

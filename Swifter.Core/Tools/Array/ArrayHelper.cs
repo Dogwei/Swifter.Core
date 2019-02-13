@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 
 namespace Swifter.Tools
 {
@@ -28,26 +30,6 @@ namespace Swifter.Tools
         }
 
         /// <summary>
-        /// 判断一个数字是否为素数
-        /// </summary>
-        /// <param name="candidate">数字</param>
-        /// <returns>返回一个 bool 值。</returns>
-        private static bool IsPrime(int candidate)
-        {
-            if ((candidate & 1) != 0)
-            {
-                int limit = (int)Math.Sqrt(candidate);
-                for (int divisor = 3; divisor <= limit; divisor += 2)
-                {
-                    if ((candidate % divisor) == 0)
-                        return false;
-                }
-                return true;
-            }
-            return (candidate == 2);
-        }
-
-        /// <summary>
         /// 获取在 Int32 范围内大于指定值的最小素数。
         /// </summary>
         /// <param name="min">数字</param>
@@ -66,6 +48,23 @@ namespace Swifter.Tools
                     return i;
             }
 
+            // 判断一个数字是否为素数。
+            bool IsPrime(int candidate)
+            {
+                if ((candidate & 1) != 0)
+                {
+                    int limit = (int)Math.Sqrt(candidate);
+                    for (int divisor = 3; divisor <= limit; divisor += 2)
+                    {
+                        if ((candidate % divisor) == 0)
+                            return false;
+                    }
+                    return true;
+                }
+
+                return (candidate == 2);
+            }
+
             return min;
         }
 
@@ -74,32 +73,32 @@ namespace Swifter.Tools
         /// </summary>
         /// <typeparam name="TIn">输入数组类型</typeparam>
         /// <typeparam name="TOut">输出数组类型</typeparam>
-        /// <param name="InArray">输入数组</param>
-        /// <param name="Filter">输入数组筛选器</param>
-        /// <param name="AsValue">输入数组元素转输出数组元素委托</param>
+        /// <param name="input">输入数组</param>
+        /// <param name="filter">输入数组筛选器</param>
+        /// <param name="asFunc">输入数组元素转输出数组元素委托</param>
         /// <returns>返回一个新的数组</returns>
-        public static TOut[] Filter<TIn, TOut>(TIn[] InArray, Func<TIn, bool> Filter, Func<TIn, TOut> AsValue)
+        public static TOut[] Filter<TIn, TOut>(TIn[] input, Func<TIn, bool> filter, Func<TIn, TOut> asFunc)
         {
-            TOut[] NewArray = new TOut[InArray.Length];
+            var array = new TOut[input.Length];
 
-            int ResultLength = 0;
+            int length = 0;
 
-            foreach (var Item in InArray)
+            foreach (var Item in input)
             {
-                if (Filter(Item))
+                if (filter(Item))
                 {
-                    NewArray[ResultLength] = AsValue(Item);
+                    array[length] = asFunc(Item);
 
-                    ++ResultLength;
+                    ++length;
                 }
             }
 
-            if (ResultLength != InArray.Length)
+            if (length != input.Length)
             {
-                Array.Resize(ref NewArray, ResultLength);
+                Array.Resize(ref array, length);
             }
 
-            return NewArray;
+            return array;
         }
 
         /// <summary>
@@ -107,39 +106,143 @@ namespace Swifter.Tools
         /// </summary>
         /// <typeparam name="TIn">输入数组类型</typeparam>
         /// <typeparam name="TOut">输出数组类型</typeparam>
-        /// <param name="InSource">输入源</param>
-        /// <param name="Filter">输入数组筛选器</param>
-        /// <param name="AsValue">输入数组元素转输出数组元素委托</param>
+        /// <param name="input">输入源</param>
+        /// <param name="filter">输入数组筛选器</param>
+        /// <param name="asFunc">输入数组元素转输出数组元素委托</param>
         /// <returns>返回一个新的数组</returns>
-        public static TOut[] Filter<TIn, TOut>(IEnumerable<TIn> InSource, Func<TIn, bool> Filter, Func<TIn, TOut> AsValue)
+        public static TOut[] Filter<TIn, TOut>(IEnumerable<TIn> input, Func<TIn, bool> filter, Func<TIn, TOut> asFunc)
         {
-            int Length = 0;
+            var list = new List<TOut>();
 
-            foreach (var Item in InSource)
+            foreach (var item in input)
             {
-                ++Length;
-            }
-
-            TOut[] NewArray = new TOut[Length];
-
-            int ResultLength = 0;
-
-            foreach (var Item in InSource)
-            {
-                if (Filter(Item))
+                if (filter(item))
                 {
-                    NewArray[ResultLength] = AsValue(Item);
-
-                    ++ResultLength;
+                    list.Add(asFunc(item));
                 }
             }
 
-            if (ResultLength != NewArray.Length)
+            return list.ToArray();
+        }
+
+        /// <summary>
+        /// 复制集合元素到数组中。
+        /// </summary>
+        /// <typeparam name="T">元素类型</typeparam>
+        /// <param name="collection">集合</param>
+        /// <param name="array">数组</param>
+        /// <param name="arrayIndex">数组起始索引</param>
+        public static void CopyTo<T>(IEnumerable<T> collection, T[] array, int arrayIndex)
+        {
+            foreach (var item in collection)
             {
-                Array.Resize(ref NewArray, ResultLength);
+                array[arrayIndex] = item;
+
+                ++arrayIndex;
+            }
+        }
+
+        /// <summary>
+        /// 复制集合元素到数组中。
+        /// </summary>
+        /// <param name="collection">集合</param>
+        /// <param name="array">数组</param>
+        /// <param name="arrayIndex">数组起始索引</param>
+        public static void CopyTo<T>(IEnumerable<T> collection, Array array, int arrayIndex)
+        {
+            if (array is T[] tArray)
+            {
+                CopyTo(collection, tArray, arrayIndex);
+
+                return;
             }
 
-            return NewArray;
+            foreach (var item in collection)
+            {
+                array.SetValue(item, arrayIndex);
+
+                ++arrayIndex;
+            }
+        }
+
+        /// <summary>
+        /// 创建 Int32 范围迭代器。
+        /// </summary>
+        /// <param name="start">起始值（包含）</param>
+        /// <param name="end">结束值（不包含）</param>
+        /// <returns>返回一个 yield 关键字实现的迭代器</returns>
+        public static IEnumerable<int> CreateRangeIterator(int start, int end)
+        {
+            while (start < end)
+            {
+                yield return start;
+            }
+        }
+
+        /// <summary>
+        /// 创建 Int32 长度迭代器。
+        /// </summary>
+        /// <param name="length">长度</param>
+        /// <returns>返回一个 yield 关键字实现的迭代器</returns>
+        public static IEnumerable<int> CreateLengthIterator(int length) => CreateRangeIterator(0, length);
+
+        /// <summary>
+        /// 创建 String 系统数据读取器的字段名称迭代器。
+        /// </summary>
+        /// <param name="dbDataReader">系统数据读取器</param>
+        /// <returns>返回一个 yield 关键字实现的迭代器</returns>
+        public static IEnumerable<string> CreateNamesIterator(DbDataReader dbDataReader)
+        {
+            var length = dbDataReader.FieldCount;
+
+            for (int i = 0; i < length; i++)
+            {
+                yield return dbDataReader.GetName(i);
+            }
+        }
+
+        /// <summary>
+        /// 创建 String 表格的字段名称迭代器。
+        /// </summary>
+        /// <param name="dataTable">表格</param>
+        /// <returns>返回一个 yield 关键字实现的迭代器</returns>
+        public static IEnumerable<string> CreateNamesIterator(DataTable dataTable)
+        {
+            foreach (DataColumn item in dataTable.Columns)
+            {
+                yield return item.ColumnName;
+            }
+        }
+
+        /// <summary>
+        /// 创建数组的迭代器。
+        /// </summary>
+        /// <typeparam name="T">数组类型</typeparam>
+        /// <param name="array">数组</param>
+        /// <returns>返回一个 yield 关键字实现的迭代器</returns>
+        public static IEnumerable<T> CreateArrayIterator<T>(T[] array)
+        {
+            var length = array.Length;
+
+            for (int i = 0; i < length; i++)
+            {
+                yield return array[i];
+            }
+        }
+
+        /// <summary>
+        /// 创建 XConvert 类型转换迭代器。
+        /// </summary>
+        /// <typeparam name="TIn">输入类型</typeparam>
+        /// <typeparam name="TOut">输出类型</typeparam>
+        /// <param name="input">输入迭代器</param>
+        /// <returns>返回一个 yield 关键字实现的迭代器</returns>
+        public static IEnumerable<TOut> CreateAsIterator<TIn, TOut>(IEnumerable<TIn> input)
+        {
+            foreach (var item in input)
+            {
+                yield return XConvert<TIn, TOut>.Convert(item);
+            }
         }
     }
 }

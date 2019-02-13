@@ -4,14 +4,20 @@ using Swifter.Tools;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace Swifter.Json
 {
-    internal sealed unsafe class JsonSerializer : IValueWriter, IValueWriter<Guid>, IDataWriter<string>, IDataWriter<int>, IValueFilter<string>, IValueFilter<int>
+    internal sealed unsafe class JsonSerializer : BaseJsonSerializer, IValueWriter, IValueWriter<Guid>, IValueWriter<DateTimeOffset>, IDataWriter<string>, IDataWriter<int>, IValueFilter<string>, IValueFilter<int>
     {
+        public readonly JsonFormatterOptions options;
+        public readonly int maxDepth;
+        
+        public string indentedChars;
+        public string lineBreak;
+        public string middleChars;
+
         /// <summary>
         /// True: In Array, False: In Object.
         /// </summary>
@@ -23,17 +29,6 @@ namespace Swifter.Json
             this.options = options;
 
             this.maxDepth = maxDepth;
-
-            offset = 0;
-
-            hGlobal = HGlobalChars.ThreadInstance;
-
-            Expand(255);
-
-            if ((options & (JsonFormatterOptions.MultiReferencingNull | JsonFormatterOptions.MultiReferencingReference)) != 0)
-            {
-                objectIds = new IdCache<int>();
-            }
         }
 
         public IValueWriter this[int key]
@@ -55,191 +50,14 @@ namespace Swifter.Json
                 InternalWriteString(key);
 
                 WriteKeyAfter();
-
+                
                 return this;
             }
         }
+        
+        IEnumerable<string> IDataWriter<string>.Keys => null;
 
-
-        public readonly IdCache<int> objectIds;
-        public readonly JsonFormatterOptions options;
-        public readonly int maxDepth;
-
-        public string indentedChars;
-        public string lineBreak;
-        public string middleChars;
-
-        public HGlobalChars hGlobal;
-        public int offset;
-        public int depth;
-
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Expand(int expandMinSize)
-        {
-            if (hGlobal.count - offset < expandMinSize)
-            {
-                hGlobal.Expand(expandMinSize);
-            }
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Append(char c)
-        {
-            hGlobal.chars[offset] = c;
-
-            ++offset;
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void InternalWriteLongString(string value)
-        {
-            Expand(2);
-
-            Append('"');
-
-            fixed (char* lpValue = value)
-            {
-                int length = value.Length;
-
-                for (int i = 0; i < value.Length;)
-                {
-                    int count = length - i;
-
-                    Expand(count + 2);
-
-                    for (int end = count + offset; offset < end; ++i)
-                    {
-                        var c = lpValue[i];
-
-                        switch (c)
-                        {
-                            case '\\':
-                                Append('\\');
-                                Append('\\');
-                                break;
-                            case '"':
-                                Append('\\');
-                                Append('"');
-                                break;
-                            case '\n':
-                                Append('\\');
-                                Append('n');
-                                break;
-                            case '\r':
-                                Append('\\');
-                                Append('r');
-                                break;
-                            case '\t':
-                                Append('\\');
-                                Append('t');
-                                break;
-                            default:
-                                Append(c);
-                                break;
-                        }
-                    }
-                }
-            }
-
-            Expand(2);
-
-            Append('"');
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void InternalWriteString(string value)
-        {
-            int length = value.Length;
-
-            if (length > 300)
-            {
-                InternalWriteLongString(value);
-
-                return;
-            }
-
-            Expand(length * 2 + 2);
-
-            Append('"');
-
-            int offset = this.offset;
-
-            for (int i = 0; i < length; ++i)
-            {
-                var c = value[i];
-
-                switch (c)
-                {
-                    case '\\':
-                        hGlobal.chars[offset] = '\\';
-                        ++offset;
-                        hGlobal.chars[offset] = '\\';
-                        ++offset;
-                        break;
-                    case '"':
-                        hGlobal.chars[offset] = '\\';
-                        ++offset;
-                        hGlobal.chars[offset] = '"';
-                        ++offset;
-                        break;
-                    case '\n':
-                        hGlobal.chars[offset] = '\\';
-                        ++offset;
-                        hGlobal.chars[offset] = 'n';
-                        ++offset;
-                        break;
-                    case '\r':
-                        hGlobal.chars[offset] = '\\';
-                        ++offset;
-                        hGlobal.chars[offset] = 'r';
-                        ++offset;
-                        break;
-                    case '\t':
-                        hGlobal.chars[offset] = '\\';
-                        ++offset;
-                        hGlobal.chars[offset] = 't';
-                        ++offset;
-                        break;
-                    default:
-                        hGlobal.chars[offset] = c;
-                        ++offset;
-                        break;
-                }
-            }
-
-            this.offset = offset;
-
-            Append('"');
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void SaveObjectId(IDataReader dataReader)
-        {
-            long objectId = dataReader.ObjectId;
-
-            objectIds[objectId] = objectIds.Count;
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public int GetObjectId(IDataReader dataReader)
-        {
-            long objectId = dataReader.ObjectId;
-
-            if (objectId == 0)
-            {
-                return -1;
-            }
-
-            if (objectIds.TryGetValue(objectId, out int result))
-            {
-                return result;
-            }
-
-            objectIds[objectId] = objectIds.Count;
-
-            return -1;
-        }
+        IEnumerable<int> IDataWriter<int>.Keys => null;
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public bool AddDepth()
@@ -266,159 +84,63 @@ namespace Swifter.Json
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void DirectWrite(string value)
-        {
-            int length = value.Length;
-
-            Expand(length + 2);
-
-            for (int i = 0; i < length; ++i)
-            {
-                Append(value[i]);
-            }
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
         private bool Filter(ValueCopyer valueCopyer)
         {
-            var basicType = valueCopyer.GetBasicType();
+            var basicType = valueCopyer.TypeCode;
 
-            if ((options & JsonFormatterOptions.MultiReferencingNull) != 0 && (basicType == BasicTypes.Array || basicType == BasicTypes.Object))
+            if ((options & JsonFormatterOptions.IgnoreNull) != 0
+                && basicType == TypeCode.Empty)
             {
-                var dataReader = (IDataReader)valueCopyer.Value;
-
-                var objectId = GetObjectId(dataReader);
-
-                if (objectId != -1)
-                {
-                    valueCopyer.DirectWrite(null);
-
-                    basicType = BasicTypes.Null;
-                }
-            }
-
-            if ((options & JsonFormatterOptions.IgnoreNull) != 0)
-            {
-                if (basicType == BasicTypes.Null)
-                {
-                    return false;
-                }
+                return false;
             }
 
             if ((options & JsonFormatterOptions.IgnoreZero) != 0)
             {
-                switch (valueCopyer.GetBasicType())
+                switch (basicType)
                 {
-                    case BasicTypes.SByte:
+                    case TypeCode.SByte:
                         return valueCopyer.ReadSByte() != 0;
-                    case BasicTypes.Int16:
+                    case TypeCode.Int16:
                         return valueCopyer.ReadInt16() != 0;
-                    case BasicTypes.Int32:
+                    case TypeCode.Int32:
                         return valueCopyer.ReadInt32() != 0;
-                    case BasicTypes.Int64:
+                    case TypeCode.Int64:
                         return valueCopyer.ReadInt64() != 0;
-                    case BasicTypes.Byte:
+                    case TypeCode.Byte:
                         return valueCopyer.ReadByte() != 0;
-                    case BasicTypes.UInt16:
+                    case TypeCode.UInt16:
                         return valueCopyer.ReadUInt16() != 0;
-                    case BasicTypes.UInt32:
+                    case TypeCode.UInt32:
                         return valueCopyer.ReadUInt32() != 0;
-                    case BasicTypes.UInt64:
+                    case TypeCode.UInt64:
                         return valueCopyer.ReadUInt64() != 0;
-                    case BasicTypes.Single:
+                    case TypeCode.Single:
                         return valueCopyer.ReadSingle() != 0;
-                    case BasicTypes.Double:
+                    case TypeCode.Double:
                         return valueCopyer.ReadDouble() != 0;
-                    case BasicTypes.Decimal:
+                    case TypeCode.Decimal:
                         return valueCopyer.ReadDecimal() != 0;
                 }
             }
 
-            if ((options & JsonFormatterOptions.IgnoreEmptyString) != 0)
+            if ((options & JsonFormatterOptions.IgnoreEmptyString) != 0
+                && basicType == TypeCode.String
+                && valueCopyer.ReadString() == string.Empty)
             {
-                switch (valueCopyer.GetBasicType())
-                {
-                    case BasicTypes.String:
-                        return valueCopyer.ReadString() != "";
-                }
+                return false;
             }
 
             return true;
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public bool Filter(ValueFilterInfo<string> valueInfo)
         {
-            if (!Filter(valueInfo.ValueCopyer))
-            {
-                return false;
-            }
-
-            return true;
+            return Filter(valueInfo.ValueCopyer);
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public bool Filter(ValueFilterInfo<int> valueInfo)
         {
-            if (!Filter(valueInfo.ValueCopyer))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public override string ToString()
-        {
-            return new string(hGlobal.chars, 0, offset - 1);
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void WriteTo(TextWriter textWriter)
-        {
-            textWriter.Write(ToString());
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Initialize()
-        {
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Initialize(int capacity)
-        {
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public IDataWriter<T> As<T>()
-        {
-            if (this is IDataWriter<T>)
-            {
-                return (IDataWriter<T>)(object)this;
-            }
-
-            throw new NotSupportedException(StringHelper.Format("JsonSerializer not support the type '{0}' as Key.", typeof(T).Name));
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public int Count => 0;
-
-        IEnumerable<string> IDataWriter<string>.Keys => null;
-
-        IEnumerable<int> IDataWriter<int>.Keys => null;
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void OnWriteValue(string key, IValueReader valueReader)
-        {
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void OnWriteValue(int key, IValueReader valueReader)
-        {
+            return Filter(valueInfo.ValueCopyer);
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
@@ -428,11 +150,11 @@ namespace Swifter.Json
             {
                 if (isInArray)
                 {
-                    DirectWrite(lineBreak);
+                    Append(lineBreak);
 
                     for (int i = depth; i > 0; --i)
                     {
-                        DirectWrite(indentedChars);
+                        Append(indentedChars);
                     }
                 }
             }
@@ -451,11 +173,11 @@ namespace Swifter.Json
             {
                 if (!isInArray)
                 {
-                    DirectWrite(lineBreak);
+                    Append(lineBreak);
 
                     for (int i = depth; i > 0; --i)
                     {
-                        DirectWrite(indentedChars);
+                        Append(indentedChars);
                     }
                 }
             }
@@ -466,9 +188,15 @@ namespace Swifter.Json
         {
             Append(':');
 
+            WriteMiddleChars();
+        }
+
+        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        public void WriteMiddleChars()
+        {
             if ((options & JsonFormatterOptions.Indented) != 0)
             {
-                DirectWrite(middleChars);
+                Append(middleChars);
             }
         }
 
@@ -482,56 +210,15 @@ namespace Swifter.Json
         {
             if ((options & JsonFormatterOptions.Indented) != 0)
             {
-                DirectWrite(lineBreak);
+                Append(lineBreak);
 
                 for (int i = depth; i > 0; --i)
                 {
-                    DirectWrite(indentedChars);
+                    Append(indentedChars);
                 }
             }
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public bool CheckObject(IDataReader dataReader)
-        {
-            if ((options & JsonFormatterOptions.MultiReferencingNull) != 0)
-            {
-                if (options >= JsonFormatterOptions.IgnoreNull)
-                {
-                    SaveObjectId(dataReader);
-
-                    return false;
-                }
-
-                int objectId = GetObjectId(dataReader);
-
-                if (objectId != -1)
-                {
-                    WriteNull();
-
-                    return true;
-                }
-            }
-            else if ((options & JsonFormatterOptions.MultiReferencingReference) != 0)
-            {
-                int objectId = GetObjectId(dataReader);
-
-                if (objectId != -1)
-                {
-                    WriteValueBefore();
-
-                    DirectWrite("ref_" + objectId);
-
-                    WriteValueAfter();
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+       
         public void DirectWrite(object value)
         {
             if (value == null)
@@ -613,6 +300,7 @@ namespace Swifter.Json
 
             Expand(6);
 
+            // null
             Append('n');
             Append('u');
             Append('l');
@@ -620,15 +308,9 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteArray(IDataReader<int> dataReader)
         {
-            if (CheckObject(dataReader))
-            {
-                return;
-            }
-
             WriteValueBefore();
 
             Expand(2);
@@ -672,8 +354,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteBoolean(bool value)
         {
             WriteValueBefore();
@@ -700,8 +381,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteByte(byte value)
         {
             WriteValueBefore();
@@ -712,8 +392,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteChar(char value)
         {
             WriteValueBefore();
@@ -726,8 +405,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteDateTime(DateTime value)
         {
             WriteValueBefore();
@@ -742,8 +420,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteDecimal(decimal value)
         {
             WriteValueBefore();
@@ -754,8 +431,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteDouble(double value)
         {
             WriteValueBefore();
@@ -769,7 +445,6 @@ namespace Swifter.Json
             WriteValueAfter();
         }
 
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteInt16(short value)
         {
             WriteValueBefore();
@@ -782,8 +457,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteInt32(int value)
         {
             WriteValueBefore();
@@ -795,8 +469,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteInt64(long value)
         {
             WriteValueBefore();
@@ -808,15 +481,9 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteObject(IDataReader<string> dataReader)
         {
-            if (CheckObject(dataReader))
-            {
-                return;
-            }
-
             WriteValueBefore();
 
             Expand(2);
@@ -860,34 +527,29 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteSByte(sbyte value)
         {
             WriteValueBefore();
-
-
+            
             Expand(5);
 
             offset += NumberHelper.Decimal.ToString(value, hGlobal.chars + offset);
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteSingle(float value)
         {
             WriteValueBefore();
-
-
+            
             Expand(19);
 
             offset += NumberHelper.Decimal.ToString(value, hGlobal.chars + offset);
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteString(string value)
         {
             if (value == null)
@@ -903,8 +565,7 @@ namespace Swifter.Json
                 WriteValueAfter();
             }
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteUInt16(ushort value)
         {
             WriteValueBefore();
@@ -916,8 +577,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteUInt32(uint value)
         {
             WriteValueBefore();
@@ -929,8 +589,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteUInt64(ulong value)
         {
             WriteValueBefore();
@@ -942,8 +601,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteValue(Guid value)
         {
             WriteValueBefore();
@@ -954,6 +612,21 @@ namespace Swifter.Json
             Append('"');
 
             offset += NumberHelper.ToString(value, hGlobal.chars + offset);
+
+            Append('"');
+
+            WriteValueAfter();
+        }
+
+        public void WriteValue(DateTimeOffset value)
+        {
+            WriteValueBefore();
+            
+            Expand(32);
+
+            Append('"');
+
+            offset += DateTimeHelper.ToISOString(value, hGlobal.chars + offset);
 
             Append('"');
 

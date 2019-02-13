@@ -9,7 +9,6 @@
         True = 5,
         False = 6,
         Null = 7,
-        Reference = 8,
         Undefined = 0
     }
 }

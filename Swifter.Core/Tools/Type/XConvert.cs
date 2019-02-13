@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Swifter.RW;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -405,12 +406,18 @@ namespace Swifter.Tools
 
         private static TDestination DefaultConvert(TSource source)
         {
-            if (source is DBNull)
+            try
             {
-                return (TDestination)(object)null;
-            }
+                var valueCopyer = new ValueCopyer();
 
-            return (TDestination)System.Convert.ChangeType(source, typeof(TDestination));
+                ValueInterface<TSource>.Content.WriteValue(valueCopyer, source);
+
+                return ValueInterface<TDestination>.Content.ReadValue(valueCopyer);
+            }
+            catch (Exception)
+            {
+                return (TDestination)System.Convert.ChangeType(source, typeof(TDestination));
+            }
         }
 
         TDestination IDConvert<TDestination>.Convert(object obj)
@@ -627,6 +634,11 @@ namespace Swifter.Tools
 
         public static TDestination? ConvertTo<TSource, TDestination>(TSource source) where TDestination : struct
         {
+            if (typeof(TSource) == typeof(DBNull))
+            {
+                return null;
+            }
+
             if (source == null)
             {
                 return null;

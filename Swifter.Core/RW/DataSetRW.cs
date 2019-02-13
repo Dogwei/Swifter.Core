@@ -1,6 +1,5 @@
 ﻿using Swifter.Readers;
 using Swifter.Tools;
-using Swifter.VirtualViews;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
@@ -11,21 +10,23 @@ namespace Swifter.RW
     /// <summary>
     /// System.Data.DataSet Reader impl.
     /// </summary>
-    internal sealed class DataSetRW : IDataRW<int>, IInitialize<DataSet>
+    internal sealed class DataSetRW<T> : IDataRW<int>, IInitialize<T>where T:DataSet
     {
+        IValueRW IDataRW<int>.this[int key] => new ValueCopyer<int>(this, key);
+
         IValueReader IDataReader<int>.this[int key] => new ValueCopyer<int>(this, key);
 
         IValueWriter IDataWriter<int>.this[int key]=> throw new NotSupportedException();
 
-        public IEnumerable<int> Keys => ArrayView<int>.CreateIndexView(Count);
+        public IEnumerable<int> Keys => ArrayHelper.CreateLengthIterator(Count);
 
         public int Count => Content.Tables.Count;
 
-        public long ObjectId => (long)Pointer.UnBox(Content);
+        public object ReferenceToken => Content;
 
-        public DataSet Content { get; private set; }
-        
-        public void Initialize(DataSet obj)
+        public T Content { get; private set; }
+
+        public void Initialize(T obj)
         {
             Content = obj;
         }
@@ -39,13 +40,22 @@ namespace Swifter.RW
         {
             if (Content == null)
             {
-                Content = new DataSet();
+                if (typeof(T) == typeof(DataSet))
+                {
+                    Content = (T)new DataSet();
+                }
+                else
+                {
+                    Content = Activator.CreateInstance<T>();
+                }
             }
         }
 
         public void OnReadAll(IDataWriter<int> dataWriter)
         {
-            for (int i = 0; i < Content.Tables.Count; i++)
+            var length = Content.Tables.Count;
+
+            for (int i = 0; i < length; i++)
             {
                 OnReadValue(i, dataWriter[i]);
             }
@@ -60,7 +70,7 @@ namespace Swifter.RW
                 OnReadValue(i, valueInfo.ValueCopyer);
 
                 valueInfo.Key = i;
-                valueInfo.Type = valueInfo.ValueCopyer.Type;
+                valueInfo.Type = typeof(DataTable);
 
                 if (valueFilter.Filter(valueInfo))
                 {
@@ -74,34 +84,21 @@ namespace Swifter.RW
             ValueInterface<DataTable>.Content.WriteValue(valueWriter, Content.Tables[key]);
         }
 
+        public void OnWriteAll(IDataReader<int> dataReader)
+        {
+            throw new NotSupportedException($"'{typeof(T)}' not supported set tables.");
+        }
+
         public void OnWriteValue(int key, IValueReader valueReader)
         {
             if (key == Content.Tables.Count)
             {
                 Content.Tables.Add(ValueInterface<DataTable>.Content.ReadValue(valueReader));
             }
-
-            throw new NotSupportedException();
-        }
-
-        IDataReader<T> Readers.IDataReader.As<T>()
-        {
-            if (((object)this) is IDataReader<T> dataReader)
+            else
             {
-                return dataReader;
+                throw new NotSupportedException($"'{typeof(T)}' not supported set tables.");
             }
-
-            return new AsDataReader<int, T>(this);
-        }
-
-        IDataWriter<T> IDataWriter.As<T>()
-        {
-            if (((object)this) is IDataWriter<T> dataWriter)
-            {
-                return dataWriter;
-            }
-
-            return new AsDataWriter<int, T>(this);
         }
     }
 
@@ -109,25 +106,35 @@ namespace Swifter.RW
     {
         public T ReadValue(IValueReader valueReader)
         {
-            if (valueReader is IValueReader<T>)
+            if (valueReader is IValueReader<T> tReader)
             {
-                return ((IValueReader<T>)valueReader).ReadValue();
+                return tReader.ReadValue();
             }
-
-            var result = Activator.CreateInstance<T>();
-
-            var dataReader = new DataSetRW();
-
-            dataReader.Initialize(result);
+            
+            var dataReader = new DataSetRW<T>();
 
             valueReader.ReadArray(dataReader);
 
-            return result;
+            return dataReader.Content;
         }
 
         public void WriteValue(IValueWriter valueWriter, T value)
         {
-            var dataReader = new DataSetRW();
+            if (value == null)
+            {
+                valueWriter.DirectWrite(null);
+
+                return;
+            }
+
+            if (valueWriter is IValueWriter<T> tWriter)
+            {
+                tWriter.WriteValue(value);
+
+                return;
+            }
+
+            var dataReader = new DataSetRW<T>();
 
             dataReader.Initialize(value);
 

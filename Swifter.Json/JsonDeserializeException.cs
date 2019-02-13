@@ -1,5 +1,6 @@
 ﻿using Swifter.Tools;
 using System;
+using System.ComponentModel;
 
 namespace Swifter.Json
 {

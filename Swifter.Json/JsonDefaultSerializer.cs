@@ -3,34 +3,21 @@ using Swifter.Tools;
 using Swifter.Writers;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace Swifter.Json
 {
-    internal sealed unsafe class JsonDefaultSerializer : IValueWriter, IValueWriter<Guid>, IDataWriter<string>, IDataWriter<int>
+    internal sealed unsafe class JsonDefaultSerializer : BaseJsonSerializer, IValueWriter, IValueWriter<Guid>, IValueWriter<DateTimeOffset>, IDataWriter<string>, IDataWriter<int>
     {
+        public readonly int maxDepth;
+
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public JsonDefaultSerializer(int maxDepth)
         {
             this.maxDepth = maxDepth;
-
-            offset = 0;
-
-            hGlobal = HGlobalChars.ThreadInstance;
-            
-            Expand(255);
         }
 
-        public IValueWriter this[int key]
-        {
-            [MethodImpl(VersionDifferences.AggressiveInlining)]
-            get
-            {
-                return this;
-            }
-        }
+        public IValueWriter this[int key] => this;
 
         public IValueWriter this[string key]
         {
@@ -44,168 +31,13 @@ namespace Swifter.Json
                 return this;
             }
         }
-
         
-        public readonly int maxDepth;
-
-        public HGlobalChars hGlobal;
-        public int offset;
-        public int depth;
-        
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Expand(int expandMinSize)
-        {
-            if (hGlobal.count - offset < expandMinSize)
-            {
-                hGlobal.Expand(expandMinSize);
-            }
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Append(char c)
-        {
-            hGlobal.chars[offset] = c;
-
-            ++offset;
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void InternalWriteLongString(string value)
-        {
-            Expand(2);
-
-            Append('"');
-
-            fixed (char* lpValue = value)
-            {
-                int length = value.Length;
-
-                for (int i = 0; i < value.Length;)
-                {
-                    int count = length - i;
-
-                    Expand(count + 2);
-
-                    for (int end = count + offset; offset < end; ++i)
-                    {
-                        var c = lpValue[i];
-
-                        switch (c)
-                        {
-                            case '\\':
-                                Append('\\');
-                                Append('\\');
-                                break;
-                            case '"':
-                                Append('\\');
-                                Append('"');
-                                break;
-                            case '\n':
-                                Append('\\');
-                                Append('n');
-                                break;
-                            case '\r':
-                                Append('\\');
-                                Append('r');
-                                break;
-                            case '\t':
-                                Append('\\');
-                                Append('t');
-                                break;
-                            default:
-                                Append(c);
-                                break;
-                        }
-                    }
-                }
-            }
-
-            Expand(2);
-
-            Append('"');
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void InternalWriteString(string value)
-        {
-            int length = value.Length;
-
-            if (length > 300)
-            {
-                InternalWriteLongString(value);
-
-                return;
-            }
-
-            Expand(length * 2 + 2);
-
-            var chars = hGlobal.chars;
-            
-            int offset = this.offset;
-
-            chars[offset] = '"';
-            ++offset;
-
-            for (int i = 0; i < length; ++i)
-            {
-                var c = value[i];
-
-                switch (c)
-                {
-                    case '\\':
-                        chars[offset] = '\\';
-                        ++offset;
-                        chars[offset] = '\\';
-                        ++offset;
-                        break;
-                    case '"':
-                        chars[offset] = '\\';
-                        ++offset;
-                        chars[offset] = '"';
-                        ++offset;
-                        break;
-                    case '\n':
-                        chars[offset] = '\\';
-                        ++offset;
-                        chars[offset] = 'n';
-                        ++offset;
-                        break;
-                    case '\r':
-                        chars[offset] = '\\';
-                        ++offset;
-                        chars[offset] = 'r';
-                        ++offset;
-                        break;
-                    case '\t':
-                        chars[offset] = '\\';
-                        ++offset;
-                        chars[offset] = 't';
-                        ++offset;
-                        break;
-                    default:
-                        chars[offset] = c;
-                        ++offset;
-                        break;
-                }
-            }
-
-            chars[offset] = '"';
-            ++offset;
-
-            this.offset = offset;
-        }
-
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public bool AddDepth()
         {
             ++depth;
 
-            if (depth <= maxDepth)
-            {
-                return true;
-            }
-
-            return false;
+            return depth <= maxDepth;
         }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
@@ -213,59 +45,10 @@ namespace Swifter.Json
         {
             --depth;
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public override string ToString()
-        {
-            return new string(hGlobal.chars, 0, offset - 1);
-        }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void WriteTo(TextWriter textWriter)
-        {
-            textWriter.Write(ToString());
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Initialize()
-        {
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public void Initialize(int capacity)
-        {
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
-        public IDataWriter<T> As<T>()
-        {
-            if ((object)this is IDataWriter<T> writer)
-            {
-                return writer;
-            }
-
-            throw new NotSupportedException(StringHelper.Format("JsonSerializer not support the type '{0}' as Key.", typeof(T).Name));
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public int Count => 0;
-
+       
         IEnumerable<string> IDataWriter<string>.Keys => null;
 
         IEnumerable<int> IDataWriter<int>.Keys => null;
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void OnWriteValue(string key, IValueReader valueReader)
-        {
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public void OnWriteValue(int key, IValueReader valueReader)
-        {
-        }
 
         [MethodImpl(VersionDifferences.AggressiveInlining)]
         public void WriteValueAfter()
@@ -278,8 +61,7 @@ namespace Swifter.Json
         {
             Append(':');
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void DirectWrite(object value)
         {
             if (value == null)
@@ -359,6 +141,7 @@ namespace Swifter.Json
         {
             Expand(6);
 
+            // null
             Append('n');
             Append('u');
             Append('l');
@@ -366,8 +149,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteArray(IDataReader<int> dataReader)
         {
             Expand(2);
@@ -394,8 +176,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteBoolean(bool value)
         {
             Expand(6);
@@ -420,8 +201,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteByte(byte value)
         {
             Expand(4);
@@ -430,8 +210,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteChar(char value)
         {
             Expand(4);
@@ -442,8 +221,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteDateTime(DateTime value)
         {
             Expand(32);
@@ -456,8 +234,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteDecimal(decimal value)
         {
             Expand(33);
@@ -466,8 +243,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteDouble(double value)
         {
             Expand(19);
@@ -477,8 +253,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteInt16(short value)
         {
             Expand(8);
@@ -488,8 +263,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteInt32(int value)
         {
             Expand(12);
@@ -498,8 +272,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteInt64(long value)
         {
             Expand(21);
@@ -508,8 +281,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteObject(IDataReader<string> dataReader)
         {
             Expand(2);
@@ -536,8 +308,7 @@ namespace Swifter.Json
             
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteSByte(sbyte value)
         {
             Expand(5);
@@ -546,8 +317,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteSingle(float value)
         {
             Expand(19);
@@ -556,8 +326,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteString(string value)
         {
             if (value == null)
@@ -571,8 +340,7 @@ namespace Swifter.Json
                 WriteValueAfter();
             }
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteUInt16(ushort value)
         {
             Expand(7);
@@ -581,8 +349,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteUInt32(uint value)
         {
             Expand(11);
@@ -591,8 +358,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteUInt64(ulong value)
         {
             Expand(21);
@@ -601,8 +367,7 @@ namespace Swifter.Json
 
             WriteValueAfter();
         }
-
-        [MethodImpl(VersionDifferences.AggressiveInlining)]
+        
         public void WriteValue(Guid value)
         {
             Expand(40);
@@ -610,6 +375,19 @@ namespace Swifter.Json
             Append('"');
 
             offset += NumberHelper.ToString(value, hGlobal.chars + offset);
+
+            Append('"');
+
+            WriteValueAfter();
+        }
+
+        public void WriteValue(DateTimeOffset value)
+        {
+            Expand(32);
+
+            Append('"');
+
+            offset += DateTimeHelper.ToISOString(value, hGlobal.chars + offset);
 
             Append('"');
 
