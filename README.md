@@ -1,310 +1,49 @@
-# Swifter.Json
-
-ÕâÊÇÆù½ñÎªÖ¹ .Net Æ½Ì¨¹¦ÄÜ×îÇ¿´ó£¬ĞÔÄÜ×î¼ÑµÄ JSON ĞòÁĞ»¯ºÍ·´ĞòÁĞ»¯¿â¡£
-
-#### Ö®ËùÒÔËµÇ¿´ó£¬ÒòÎªÕâĞ©¹¦ÄÜÆäËû¿ò¼ÜÃ»ÓĞ£¡
-	1): Ö§³ÖÉî¶È¸´ÔÓµÄ¶ÔÏó½á¹¹ÇÒÒ×ÓÚÊ¹ÓÃ¡£
-	2): ÓÃ $ref ±íÊ¾ÖØ¸´ºÍÑ­»·ÒıÓÃµÄĞòÁĞ»¯ºÍ·´ĞòÁĞ»¯¡£
-	3): Ä¿Ç°Î¨Ò»Ö§³Ö ref ÊôĞÔµÄ JSON ¿â¡£ 
-	4): Ö§³Ö¼¸ºõËùÓĞÄú³£ÓÃµÄÀàĞÍ£¡²¢ÔÊĞíÄú×Ô¶¨ÒåÀàĞÍµÄĞĞÎª¡£
-	5): Ö§³Ö .Net Framework 2.0 +, .Net Core 2.0+, .Net Standard 2.0+, Mono, Xamarin, Unity¡£
-
-#### ĞÔÄÜÎªºÎÓÅÒì£¿
-	1): ×îÓÅĞãµÄÕûĞÍºÍ¸¡µãĞÍ ToString ºÍ Parse ·½·¨ÊµÏÖ¡£
-	2): Emit ÊµÏÖµÄ¸ßĞÔÄÜ¶ÔÏóÓ³Éä¹¤¾ß¡£
-	3): ±¾µØÄÚ´æ·ÖÅä£¡¾Ü¾ø .Net ÍĞ¹Ü¶ş´ÎÄÚ´æ¡£
-	4): Ê¹ÓÃÏß³Ì»º´æ£¬ÈÃÄúµÄ³ÌĞòÔËĞĞÔ½¾ÃËÙ¶ÈÔ½¿ì¡£
-	5): ÄÚ²¿È«Ö¸ÕëÔËËã£¬Ïàµ±ÓÚÊ¹ÓÃÁË .Net Core ĞÂ¼¼Êõ Span<T>£¡
-
-#### Swifter.Json ÊµÓÃ¹¦ÄÜ
-	1): Ëõ½øÃÀ»¯ Json¡£
-	2): ÔÊĞíºöÂÔ 0 »ò null »ò "" Öµ¡£
-	3): ÔÊĞíÊ¹ÓÃ [RWField] ÌØĞÔ¶¨ÖÆÊôĞÔ»ò×Ö¶ÎµÄĞĞÎª¡£
-	4): ÔÊĞíÉèÖÃ×î´óÉî¶ÈÀ´ÏŞÖÆÄÚÈİ´óĞ¡¡£
-
-#### Swifter.Json Ö§³ÖµÄÀàĞÍ
-	bool, byte, sbyte, char, shoft, ushoft, int, uint, long, ulong,
-	float, double, decimal, string, enum DateTime, DateTimeOffset,
-	Guid, TimeSpan, DBNull, Nullable<T>, Version, Type,
-	Array, Multidimensional-Arrays, IList, IList<T>, ICollection,
-	ICollection<T>, IDictionary, IDictionary<TKey, TValue>,
-	IEnumerable, IEnumerable<T>, DataTable, DbDataReader ...
-	ÆäÓàÀàĞÍ½«»á±»µ±×÷ Object£¬ÒÔ ÊôĞÔ¼ü/ÊôĞÔÖµ µÄĞÎÊ½Ó³Éä¡£
-
-#### Swifter.Json °²È«Âğ£¿
-	Ã¿´Î·¢²¼Ö®Ç°ÎÒ¶¼»á²âÊÔÖÁÉÙÒ»¸öÔÂ£¬²¢ÇÒ¾­¹ı´óÁ¿µÄ²âÊÔ£¬ÔÚÊµ¼ÊÏîÄ¿ÖĞÊ¹ÓÃÎ´·¢²¼µÄ°æ±¾
-	À´È·±£·¢²¼°æ±¾µÄÎÈ¶¨ĞÔ¡£µ«¼´Ê¹ÕâÑù£¬ÎÒÒ²ÎŞ·¨±£Ö¤ËüÒ»¶¨°²È«¡£ËùÒÔ£¬Èç¹ûÄú·¢ÏÖÁË
-	Bug »òÄ³Ğ©²»ºÏÀíµÄµØ·½Çë¼°Ê±ÁªÏµÎÒ QQ:1287905882£¬ÓÊÏä 1287905882@qq.com¡£
-	
-#### ÈçºÎ°²×°£¿
-
-	```
-	Nuget> Install-Package Swifter.Json -Version 1.1.2
-	```
-
-#### ĞÔÄÜ²âÊÔ¶Ô±È
-
-	*:  Í¼±êÖĞµÄÑÕÉ«ËæËùÓÃÊ±¼ä´Ó ÂÌÉ« ½¥±äÎª »ÆÉ«¡£µ±ÓÃÊ±³¬¹ı 3 ±¶Ê±½«ÒÔÁÁ»ÆÉ«ÏÔÊ¾¡£
-			Timeout: ±íÊ¾ÓÃÊ±¹ı¾Ã¡£
-			Exception: ±íÊ¾·¢ÉúÁËÒì³£¡£
-			Error: Î´·¢ÉúÒì³££¬µ«½á¹û²»ÕıÈ·¡£
-
-	*:	Swifter.Json µÚÒ»´ÎÖ´ĞĞĞèÒª¶îÍâµÄÊ±¼äÀ´Éú³ÉÒ»¸ö ¡°²Ù×÷Àà¡± (FastObjectRW<T>)£¬
-		Ö®ºóÖ´ĞĞÔò»áÔ½À´Ô½¿ì¡£ËùÒÔÈç¹ûÄúµÄ³ÌĞòĞèÒª³¤ÆÚÔËĞĞ£¬ÄÇÃ´ Swifter.Json ÊÇÄúÓÅµÄÑ¡Ôñ¡£
-		µ±È»Èç¹ûÄúµÄ³ÌĞò²»ÊÊÓÃÕâÖÖÄ£Ê½£¬ÄÇÃ´ÏÂÃæ½éÉÜµÄ XObjectRW<T> Ò²ĞíÊÊºÏÄú¡£
-
-	*:	²âÊÔÊ±ÆäËû¿âËùÊ¹ÓÃµÄ°æ±¾
-
-
-
-#### ´úÂëÊ¾Àı
-
-	1): ¼òµ¥Ê¹ÓÃ
-
-	```C#
-    public class Demo
-    {
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-        
-        public static void Main()
-        {
-            var json = JsonFormatter.SerializeObject(new { Id = 1, Name = "Dogwei" });
-            var dictionary = JsonFormatter.DeserializeObject<Dictionary<string, object>>(json);
-            var obj = JsonFormatter.DeserializeObject<Demo>(json);
-        }
-    }
-	```
-
-	2): ´¦ÀíÖØ¸´ÒıÓÃ
-
-	```C#
-    public class Demo
-    {
-        public int Id { get; set; }
-
-        public string Name { get; set; }
-
-        public Demo Instance { get; set; }
-
-        public static void Main()
-        {
-            var jsonFormatter = new JsonFormatter(JsonFormatterOptions.MultiReferencingReference);
-
-            var obj = new Demo() { Id = 1, Name = "Dogwei" };
-
-            obj.Instance = obj;
-
-            var json = jsonFormatter.Serialize(obj);
-
-            var deser = jsonFormatter.Deserialize<Demo>(json);
-
-            Console.WriteLine(json); // {"Id":1,"Instance":{"$ref":"#"},"Name":"Dogwei"}
-
-            Console.WriteLine(deser.Instance == deser); // True
-        }
-    }
-	```
-
-	3): RWField ÌØĞÔ
-
-	```C#
-    public class Demo
-    {
-        [RWField("First Name")]
-        public string Name { get; set; }
-
-        [RWField]
-        public int Age;
-
-        [RWField(Access = RWFieldAccess.Ignore)]
-        public int Sex { get; set; }
-        [RWField(Order = 1)]
-        public int Id { get; set; }
-
-        public static void Main()
-        {
-            var obj = new Demo() { Id = 1, Name = "Dogwei", Age = 22, Sex = 1 };
-
-            var json = JsonFormatter.SerializeObject(obj);
-
-            Console.WriteLine(json); // {"Id":1,"Age":22,"First Name":"Dogwei"}
-        }
-    }
-	```
-
-	4): ÉèÖÃÈÕÆÚ¸ñÊ½
-
-	```C#
-    public class Demo
-    {
-        public static void Main()
-        {
-            var jsonFormatter = new JsonFormatter();
-
-            jsonFormatter.SetDateTimeFormat("yyyy-MM-dd HH:mm:ss");
-
-            var json = jsonFormatter.Serialize(DateTime.Now);
-
-            Console.WriteLine(json); // "2019-02-13 11:03:46"
-        }
-    }
-	```
-
-	5): ×Ô¶¨ÒåÀàĞÍµÄĞĞÎª
-
-	```C#
-    public class Demo
-    {
-        public string Name { get; set; }
-
-        public int Sex { get; set; }
-
-        public bool IsMan { get => Sex == 1; }
-
-        public unsafe static void Main()
-        {
-            var jsonFormatter = new JsonFormatter();
-            
-            jsonFormatter.SetValueInterface<bool>(new MyBooleanInterface());
-
-            var obj = new Demo() { Name = "Dogwei", Sex = 1 };
-
-            var json = jsonFormatter.Serialize(obj);
-
-            Console.WriteLine(json); // {"IsMan":"yes","Name":"Dogwei","Sex":1}
-        }
-    }
-
-    public class MyBooleanInterface : IValueInterface<bool>
-    {
-        public bool ReadValue(IValueReader valueReader)
-        {
-            var value = valueReader.ReadString();
-
-            switch (value)
-            {
-                case "yes":
-                case "true":
-                    return true;
-                case "no":
-                case "false":
-                    return false;
-                default:
-                    return Convert.ToBoolean(value);
-            }
-        }
-
-        public void WriteValue(IValueWriter valueWriter, bool value)
-        {
-            valueWriter.WriteString(value ? "yes" : "no");
-        }
-    }
-	```
-
-	6): ÉèÖÃ»º´æ´óĞ¡
-
-	```C#
-    public class Demo
-    {
-        public static void Main()
-        {
-            HGlobalCache.MaxSize = 1024 * 500; // 500KB
-
-            var json = JsonFormatter.SerializeObject(new { MaxJsonLength = 256000 });
-        }
-    }
-	```
-
-	7): ĞòÁĞ»¯³¬´óÎÄ¼ş
-
-	```C#
-    public class Demo
-    {
-        public static void Main()
-        {
-            var bigObject = new BigObject();
-
-            using (FileStream fileStream = new FileStream("/BigObject.json", FileMode.Create, FileAccess.ReadWrite))
-            {
-                using (StreamWriter streamWriter = new StreamWriter(fileStream))
-                {
-                    JsonFormatter.SerializeObject(bigObject, streamWriter);
-                }
-            }
-        }
-    }
-	```
-
-	8): Ê¹ÓÃÊÊÓÃĞ¡ĞÍÓ¦ÓÃ³ÌĞòµÄ XObjectRW<T>
-
-	```C#
-    public class Demo
-    {
-        public static void Main()
-        {
-            // Default (FastObjectInterface)    : ³õÊ¼»¯¿ªÏú½Ï´ó£¬ÄÚ´æ½Ï´ó£¬ĞÔÄÜÓÅÒì¡£
-            // XObjectInterface                 : ³õÊ¼»¯¿ªÏúĞ¡£¬ÄÚ´æÕ¼ÓÃÉÙ£¬ĞÔÄÜÒ²²»´í¡£
-
-            ValueInterface.DefaultObjectInterfaceType = typeof(XObjectInterface<>);
-
-            var json = JsonFormatter.SerializeObject(new { Id = 1, Name = "Dogwei" });
-
-            Console.WriteLine(json); // {"Id":1,"Name":"Dogwei"}
-        }
-    }
-	```
-
-
 # Swifter.Core
 
-Swifter.Core ÓĞÖúÓÚÄú½â³ıÓïÑÔÏŞÖÆ£¬±àĞ´Äú×îÓÅĞãµÄ .Net ³ÌĞò¡£
+#### Swifter.Core æœ‰åŠ©äºæ‚¨è§£é™¤è¯­è¨€é™åˆ¶ï¼Œç¼–å†™æ‚¨æœ€ä¼˜ç§€çš„ .Net ç¨‹åºã€‚
 
-#### Swifter.Core ÊµÏÖµÄÆì½¢¹¦ÄÜ£º
-	1): ¼¸ºõËùÓĞ³£ÓÃÀàĞÍµÄ³¬¸ßĞÔÄÜ¶ÔÏóÓ³Éä¹¤¾ß¡£
-	2): Ğ§ÂÊ³¬¸ßÊıÑ§Ëã·¨£¡³¬ .Net ×Ô´øËã·¨ 10+ ±¶¡£
-	3): ¿ª·ÅµÄÎ¯ÍĞ½Ó¿Ú£¡´´½¨Äú×îÊµÓÃ£¬ĞÔÄÜ×îºÃµÄÎ¯ÍĞ°É¡£
-	4): ¼«ÖÂĞÔÄÜµÄ»º´æ¹¤¾ß¡£Ïß³Ì°²È«µÄ ÒÚ/Ãë ¶ÁÈ¡ĞÔÄÜ£¬±ÈÏß³Ì²»°²È«µÄ Dictionary »¹Òª¿ìÁ½±¶£¡
-	5): ¿ª·ÅÖ¸Õë¹¤¾ß£¡ÔÊĞíÄú»ñÈ¡¶ÔÏóµÄµØÖ·£¬×Ö¶ÎÆ«ÒÆÁ¿£¬ÀàĞÍµÄ´óĞ¡µÈµ×²ãĞÅÏ¢¡£
-	6): ¸ßĞÔÄÜµÄÀàĞÍ×ª»»¹¤¾ß XConvert£¡ÔÊĞíÄú½«ÈÎÒâÀàĞÍ×ª»»ÎªÈÎÒâÀàĞÍ£¬Ö»ÒªËüÃÇ±¾ÉíÖ§³Ö×ª»»¡£
-	7): ½â¾ö .Net20 µ½ .Net471 µÄ°æ±¾¼æÈİÎÊÌâ¡£ ÒıÓÃ Swifter.Core ÔÊĞíÄúÔÚµÍ°æ±¾ÖĞÊ¹ÓÃ Ôª×é£¬dynamic£¬LINQ µÈ¡£
+## Swifter.Core å®ç°çš„æ——èˆ°åŠŸèƒ½ï¼š
+	(1): å‡ ä¹æ‰€æœ‰å¸¸ç”¨ç±»å‹çš„è¶…é«˜æ€§èƒ½å¯¹è±¡æ˜ å°„å·¥å…·ã€‚
+	(2): æ•ˆç‡è¶…é«˜æ•°å­¦ç®—æ³•ï¼è¶… .Net è‡ªå¸¦ç®—æ³• 10+ å€ã€‚
+	(3): å¼€æ”¾çš„å§”æ‰˜æ¥å£ï¼åˆ›å»ºæ‚¨æœ€å®ç”¨ï¼Œæ€§èƒ½æœ€å¥½çš„å§”æ‰˜å§ã€‚
+	(4): æè‡´æ€§èƒ½çš„ç¼“å­˜å·¥å…·ã€‚çº¿ç¨‹å®‰å…¨çš„ äº¿/ç§’ è¯»å–æ€§èƒ½ï¼Œæ¯”çº¿ç¨‹ä¸å®‰å…¨çš„ Dictionary è¿˜è¦å¿«ä¸¤å€ï¼
+	(5): å¼€æ”¾æŒ‡é’ˆå·¥å…·ï¼å…è®¸æ‚¨è·å–å¯¹è±¡çš„åœ°å€ï¼Œå­—æ®µåç§»é‡ï¼Œç±»å‹çš„å¤§å°ç­‰åº•å±‚ä¿¡æ¯ã€‚
+	(6): é«˜æ€§èƒ½çš„ç±»å‹è½¬æ¢å·¥å…· XConvertï¼å…è®¸æ‚¨å°†ä»»æ„ç±»å‹è½¬æ¢ä¸ºä»»æ„ç±»å‹ï¼Œåªè¦å®ƒä»¬æœ¬èº«æ”¯æŒè½¬æ¢ã€‚
+	(7): è§£å†³ .Net20 åˆ° .Net471 çš„ç‰ˆæœ¬å…¼å®¹é—®é¢˜ã€‚ å¼•ç”¨ Swifter.Core å…è®¸æ‚¨åœ¨ä½ç‰ˆæœ¬ä¸­ä½¿ç”¨ å…ƒç»„ï¼Œdynamicï¼ŒLINQ ç­‰ã€‚
 
 
-#### ÒÑÖ§³ÖÓ³ÉäµÄ¶ÔÏó»òÖµÀàĞÍÓĞ
+## å·²æ”¯æŒæ˜ å°„çš„å¯¹è±¡æˆ–å€¼ç±»å‹æœ‰
 	bool, byte, sbyte, char, shoft, ushoft, int, uint, long, ulong,
 	float, double, decimal, string, enum DateTime, DateTimeOffset,
 	Guid, TimeSpan, DBNull, Nullable<T>, Version, Type,
 	Array, Multidimensional-Arrays, IList, IList<T>, ICollection,
 	ICollection<T>, IDictionary, IDictionary<TKey, TValue>,
 	IEnumerable, IEnumerable<T>, DataTable, DbDataReader ...
-	ÆäÓàÀàĞÍ½«»á±»µ±×÷ Object£¬ÒÔ ÊôĞÔ¼ü/ÊôĞÔÖµ µÄĞÎÊ½Ó³Éä¡£
+	å…¶ä½™ç±»å‹å°†ä¼šè¢«å½“ä½œ Objectï¼Œä»¥ å±æ€§é”®/å±æ€§å€¼ çš„å½¢å¼æ˜ å°„ã€‚
 
-#### ¸ßĞ§µÄÊıÑ§Ëã·¨
-	1): ´óÊı×Ö¼Ó¼õ³Ë³ıËã·¨
-	2): ÕûĞÍºÍ¸¡µãĞÍ 2-64 ½øÖÆ ToString ºÍ Parse Ëã·¨
-	3): Guid ºÍ Ê±¼äµÄ ToString ºÍ Parse Ëã·¨¡£
+## é«˜æ•ˆçš„æ•°å­¦ç®—æ³•
+	(1): å¤§æ•°å­—åŠ å‡ä¹˜é™¤ç®—æ³•
+	(2): æ•´å‹å’Œæµ®ç‚¹å‹ 2-64 è¿›åˆ¶ ToString å’Œ Parse ç®—æ³•
+	(3): Guid å’Œ æ—¶é—´çš„ ToString å’Œ Parse ç®—æ³•ã€‚
 
-#### ´´ĞÂ¼¼Êõ
-	1): Difference-Switch ×Ö·û´®Æ¥ÅäËã·¨£¬±È Hash Æ¥Åä¿ì 3 ±¶£¡
-	2): Ö§³Ö ref ÊôĞÔ£¡ÏÖÔÚÔÊĞíÄúÔÚÊµÌåÖĞ¶¨Òå ref ÊôĞÔ½µµÍ³ÌĞòÄÚ´æÀ²¡£
-	3): ÄÚ²¿ÈıÖÖÊµÏÖ´´½¨Î¯ÍĞ£¬Ö§³Ö´´½¨ 99.9% ·½·¨µÄÎ¯ÍĞ£¡£¨½öµ± TypedReference* ×÷Îª²ÎÊıÀàĞÍµÄ·½·¨²»Ö§³Ö¡££©
+## åˆ›æ–°æŠ€æœ¯
+	(1): Difference-Switch å­—ç¬¦ä¸²åŒ¹é…ç®—æ³•ï¼Œæ¯” Hash åŒ¹é…å¿« 3 å€ï¼
+	(2): æ”¯æŒ ref å±æ€§ï¼ç°åœ¨å…è®¸æ‚¨åœ¨å®ä½“ä¸­å®šä¹‰ ref å±æ€§é™ä½ç¨‹åºå†…å­˜å•¦ã€‚
+	(3): å†…éƒ¨ä¸‰ç§å®ç°åˆ›å»ºå§”æ‰˜ï¼Œæ”¯æŒåˆ›å»º 99.9% æ–¹æ³•çš„å§”æ‰˜ï¼ï¼ˆä»…å½“ TypedReference* ä½œä¸ºå‚æ•°ç±»å‹çš„æ–¹æ³•ä¸æ”¯æŒã€‚ï¼‰
 
-#### ÊıÑ§Ëã·¨ĞÔÄÜ¶Ô±È
+## æ•°å­¦ç®—æ³•æ€§èƒ½å¯¹æ¯”
 
-#### ¶ÔÏóÓ³Éä¼òµ¥ĞÔÄÜ¶Ô±È
+## å¯¹è±¡æ˜ å°„ç®€å•æ€§èƒ½å¯¹æ¯”
 
-#### »º´æĞÔÄÜ¶Ô±È
+## ç¼“å­˜æ€§èƒ½å¯¹æ¯”
 
-#### Î¯ÍĞ¶¯Ì¬Ö´ĞĞµÄĞÔÄÜ¶Ô±È
-
-
-#### ¸ß¶ËÍæ·¨
-	1): ½«Ò»¸ö¶ÔÏóµÄ¸´ÖÆµ½×ÖµäÖĞ£º
-
-	·´Ö®ÒàÈ»¡£
+## å§”æ‰˜åŠ¨æ€æ‰§è¡Œçš„æ€§èƒ½å¯¹æ¯”
 
 
-	2): ½«Ò»¸ö¶ÔÏó×ªÎª½á¹¹µØÖ·£¬²¢ÉèÖÃËüµÄË½ÓĞ×Ö¶ÎµÄÖµ£º
+## é«˜ç«¯ç©æ³•
 
-	3): ½«Ò»¸öÊı×Ö×ª»»Îª 52 ½øÖÆµÄ×Ö·û´®£º
+#### (1): å°†ä¸€ä¸ªå¯¹è±¡çš„å¤åˆ¶åˆ°å­—å…¸ä¸­ (åä¹‹äº¦ç„¶ã€‚)ï¼š
+
+#### (2): å°†ä¸€ä¸ªå¯¹è±¡è½¬ä¸ºç»“æ„åœ°å€ï¼Œå¹¶è®¾ç½®å®ƒçš„ç§æœ‰å­—æ®µçš„å€¼ï¼š
+
+#### (3): å°†ä¸€ä¸ªæ•°å­—è½¬æ¢ä¸º 52 è¿›åˆ¶çš„å­—ç¬¦ä¸²ï¼š
